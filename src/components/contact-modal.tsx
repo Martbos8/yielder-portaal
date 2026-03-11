@@ -15,7 +15,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MaterialIcon } from "@/components/icon";
-import { createClient } from "@/lib/supabase/client";
+import { createContactRequest } from "@/lib/actions/contact.actions";
+import { getErrorMessage } from "@/lib/errors";
 
 type ContactModalProps = {
   productName?: string;
@@ -39,6 +40,7 @@ export function ContactModal({
   const [message, setMessage] = useState("");
   const [urgency, setUrgency] = useState<"normaal" | "hoog">(defaultUrgency);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -46,44 +48,22 @@ export function ContactModal({
     if (!subject.trim()) return;
 
     setStatus("submitting");
+    setErrorMsg("");
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setStatus("error");
-        return;
-      }
-
-      const { error } = await supabase.from("contact_requests").insert({
-        company_id: companyId,
-        user_id: user.id,
+      const result = await createContactRequest({
+        companyId,
         subject: subject.trim(),
-        message: message.trim() || null,
-        product_id: productId || null,
+        message: message.trim() || undefined,
+        productId: productId || undefined,
         urgency,
       });
 
-      if (error) {
+      if (!result.success) {
+        setErrorMsg(result.error ?? "Er ging iets mis.");
         setStatus("error");
         return;
       }
-
-      // Log to audit_log
-      await supabase.from("audit_log").insert({
-        action: "contact_request.created",
-        entity_type: "contact_request",
-        entity_id: productId || null,
-        details: {
-          company_id: companyId,
-          subject: subject.trim(),
-          urgency,
-          product_id: productId || null,
-        },
-      });
 
       setStatus("success");
 
@@ -95,7 +75,8 @@ export function ContactModal({
         setMessage("");
         setUrgency(defaultUrgency);
       }, 2000);
-    } catch {
+    } catch (err) {
+      setErrorMsg(getErrorMessage(err, "Er ging iets mis. Probeer het opnieuw."));
       setStatus("error");
     }
   }
@@ -182,9 +163,7 @@ export function ContactModal({
             {status === "error" && (
               <div className="flex items-center gap-2 text-sm text-red-600 mb-4">
                 <MaterialIcon name="error" size={16} />
-                <span>
-                  Er ging iets mis. Probeer het opnieuw.
-                </span>
+                <span>{errorMsg}</span>
               </div>
             )}
 

@@ -73,3 +73,35 @@
 - 429 tests pass, build + lint groen
 - Geleerd: Supabase .single() returns PGRST116 error code when no row found — must exclude this from DatabaseError throws
 [23:35:00] Iteratie 4 klaar
+[23:34:18] Iteratie 4 klaar
+[23:34:18] Iteratie 5 gestart
+
+[23:38:00] Taak 5 VOLTOOID — Server Actions voor mutaties
+- Installed Zod v4.3.6 for input validation
+- Created src/lib/actions/ directory with 3 server action modules:
+  - contact.actions.ts — createContactRequest with Zod schema validation, auth check, rate limiting, audit logging
+  - notification.actions.ts — markNotificationAsRead, markAllNotificationsAsRead with Zod UUID validation, auth check
+  - feedback.actions.ts — recordRecommendationFeedback with Zod validation, auth check, audit logging
+  - index.ts — barrel re-exports for all actions and types
+- Refactored ContactModal: removed direct Supabase client calls, now uses createContactRequest server action
+- Refactored NotificationPanel: removed direct Supabase client calls, now uses markNotificationAsRead/markAllNotificationsAsRead server actions
+- Removed console.error from learning.ts (convention: no console.log/error in commits)
+- Each action: "use server" directive, auth check, Zod input validation, typed return { success, error? }
+- Errors use custom error classes from errors.ts (AuthError, ValidationError, DatabaseError, RateLimitError)
+- 429 tests pass, build + lint groen
+- Geleerd: Zod v4 importeert z.input<> en z.output<> i.p.v. z.infer<> — maar z.infer werkt ook als alias voor z.output
+- Geleerd: Server Actions in Next.js App Router moeten "use server" directive hebben als eerste statement — ze kunnen dan direct aangeroepen worden vanuit client components zonder API route
+- Geleerd: Server actions gooien errors die serialized worden naar de client — try/catch in de component vangt ze op
+[23:38:00] Iteratie 5 klaar
+
+[23:40:00] Iteratie 5b — Taak 5 frontend integratie afgerond
+- ContactModal: added proper error message display using getErrorMessage() + result.success check
+- ContactForm: fully rewritten to use createContactRequest server action (was no-op before)
+  - Added companyId prop, passed from contact page via getUserCompanyId()
+  - Form data extracted via FormData API, proper error/loading states
+  - Removed unused name/email fields (auth provides identity)
+- Contact page: passes companyId to ContactForm, conditionally renders when companyId exists
+- Fixed RateLimitError constructor call in contact.actions.ts (was passing string, expects number)
+- Build + lint + 429 tests groen
+- Geleerd: ContactForm had no backend mutation at all — it was purely cosmetic
+- Geleerd: getUserCompanyId() returns string|null — must handle null case in server components

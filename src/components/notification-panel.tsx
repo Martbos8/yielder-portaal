@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MaterialIcon } from "./icon";
 import type { Notification } from "@/types/database";
-import { createClient } from "@/lib/supabase/client";
+import { markNotificationAsRead, markAllNotificationsAsRead } from "@/lib/actions/notification.actions";
 
 interface NotificationPanelProps {
   notifications: Notification[];
@@ -70,25 +70,25 @@ export function NotificationPanel({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen]);
 
-  async function markAsRead(notificationId: string) {
-    const supabase = createClient();
-    await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("id", notificationId);
+  async function handleMarkAsRead(notificationId: string) {
+    try {
+      await markNotificationAsRead({ notificationId });
+    } catch {
+      // Silently fail — notification state will refresh on next page load
+    }
   }
 
-  async function markAllAsRead() {
-    const supabase = createClient();
+  async function handleMarkAllAsRead() {
     const unreadIds = notifications
       .filter((n) => !n.is_read)
       .map((n) => n.id);
     if (unreadIds.length === 0) return;
 
-    await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .in("id", unreadIds);
+    try {
+      await markAllNotificationsAsRead({ notificationIds: unreadIds });
+    } catch {
+      // Silently fail — notification state will refresh on next page load
+    }
   }
 
   return (
@@ -116,7 +116,7 @@ export function NotificationPanel({
             </h3>
             {unreadCount > 0 && (
               <button
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 className="text-xs text-yielder-orange hover:text-yielder-orange/80 font-medium transition-colors"
               >
                 Alles gelezen
@@ -141,7 +141,7 @@ export function NotificationPanel({
                   key={notification.id}
                   onClick={() => {
                     if (!notification.is_read) {
-                      markAsRead(notification.id);
+                      handleMarkAsRead(notification.id);
                     }
                   }}
                   className={`w-full text-left px-4 py-3 flex gap-3 hover:bg-warm-50 transition-colors border-b border-slate-50 last:border-b-0 ${

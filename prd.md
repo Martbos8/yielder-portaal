@@ -81,7 +81,7 @@ Per iteratie:
 - Update alle imports in pages die queries.ts gebruiken
 - ALLE bestaande tests moeten blijven slagen
 
-### Taak 5: Server Actions voor mutaties [not started]
+### Taak 5: Server Actions voor mutaties [done]
 - Lees alle pagina's die data muteren (contact form, notification read, etc.)
 - Maak `src/lib/actions/` directory:
   - `contact.actions.ts` — createContactRequest met Zod validatie
