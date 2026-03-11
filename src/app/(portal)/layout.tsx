@@ -1,4 +1,4 @@
-import { getUserProfile, getUserCompany } from "@/lib/queries";
+import { getUserProfile, getUserCompany, getOpenTicketCount } from "@/lib/queries";
 import { PortalShell } from "@/components/portal-shell";
 
 function getInitials(name: string | null): string {
@@ -14,9 +14,10 @@ export default async function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [profile, company] = await Promise.all([
+  const [profile, company, openTicketCount] = await Promise.all([
     getUserProfile(),
     getUserCompany(),
+    getOpenTicketCount(),
   ]);
 
   const fullName = profile?.full_name ?? "Gebruiker";
@@ -24,7 +25,7 @@ export default async function PortalLayout({
   const initials = getInitials(profile?.full_name ?? null);
 
   return (
-    <PortalShell user={{ fullName, initials, companyName }}>
+    <PortalShell user={{ fullName, initials, companyName }} openTicketCount={openTicketCount}>
       {children}
     </PortalShell>
   );

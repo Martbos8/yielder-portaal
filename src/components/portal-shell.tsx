@@ -12,10 +12,11 @@ interface UserContext {
 
 interface PortalShellProps {
   user: UserContext;
+  openTicketCount: number;
   children: React.ReactNode;
 }
 
-export function PortalShell({ user, children }: PortalShellProps) {
+export function PortalShell({ user, openTicketCount, children }: PortalShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -24,6 +25,7 @@ export function PortalShell({ user, children }: PortalShellProps) {
         onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
         companyName={user.companyName}
         initials={user.initials}
+        openTicketCount={openTicketCount}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
