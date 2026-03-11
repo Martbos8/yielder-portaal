@@ -1,6 +1,14 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { MaterialIcon } from "./icon";
+import { createClient } from "@/lib/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -9,6 +17,13 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuToggle, companyName, initials }: HeaderProps) {
+  const router = useRouter();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
   return (
     <header
       className="flex items-center justify-between whitespace-nowrap
@@ -42,9 +57,20 @@ export function Header({ onMenuToggle, companyName, initials }: HeaderProps) {
           <MaterialIcon name="notifications" size={22} />
           <span className="absolute top-1.5 right-1.5 size-2 bg-rose-500 rounded-full ring-2 ring-white" />
         </button>
-        <div className="size-10 rounded-xl bg-yielder-navy flex items-center justify-center text-white font-semibold text-sm cursor-pointer hover:bg-yielder-navy-dark transition-colors shadow-[0_2px_8px_rgba(31,59,97,0.2)]">
-          {initials}
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger className="size-10 rounded-xl bg-yielder-navy flex items-center justify-center text-white font-semibold text-sm cursor-pointer hover:bg-yielder-navy-dark transition-colors shadow-[0_2px_8px_rgba(31,59,97,0.2)]">
+            {initials}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem
+              onClick={handleSignOut}
+              variant="destructive"
+            >
+              <MaterialIcon name="logout" size={18} />
+              <span>Uitloggen</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

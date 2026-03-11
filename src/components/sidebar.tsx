@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { MaterialIcon } from "./icon";
+import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   { href: "/dashboard", icon: "space_dashboard", label: "Dashboard" },
@@ -23,6 +24,13 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose, fullName, companyName, initials }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   return (
     <>
@@ -112,6 +120,13 @@ export function Sidebar({ isOpen, onClose, fullName, companyName, initials }: Si
                 </p>
               )}
             </div>
+            <button
+              onClick={handleSignOut}
+              className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50"
+              title="Uitloggen"
+            >
+              <MaterialIcon name="logout" size={20} />
+            </button>
           </div>
         </div>
       </aside>
