@@ -45,7 +45,7 @@ Per iteratie:
 - Dit maakt de codebase robuuster tegen runtime errors
 - Run build + test na elke fix
 
-### Taak 2: Database types genereren en synchroniseren [not started]
+### Taak 2: Database types genereren en synchroniseren [done]
 - Lees `src/types/database.ts` — dit zijn handmatige types
 - Maak een `src/types/supabase.ts` met gegenereerde types die EXACT matchen met het database schema
 - Verifieer dat alle queries in `src/lib/queries.ts` correct getypt zijn

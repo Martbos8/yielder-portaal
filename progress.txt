@@ -14,3 +14,17 @@
 - Geleerd: @supabase/postgrest-js v2.99 vereist Relationships[] in GenericTable
 - Geleerd: noUncheckedIndexedAccess vereist ! assertions in tests bij bekende array data
 - Build + test groen (395 tests pass)
+[23:21:26] Iteratie 1 klaar
+[23:21:26] Iteratie 2 gestart
+
+[23:24:00] Taak 2 VOLTOOID — Database types genereren en synchroniseren
+- Refactored src/types/database.ts: alle types nu afgeleid van Database interface in supabase.ts
+- supabase.ts (met volledige Database interface incl. Row/Insert/Update per tabel) was al aanwezig
+- Supabase clients (server.ts + client.ts) gebruikten al createClient<Database>()
+- Alle queries in queries.ts hadden al .returns<Type[]>() generics
+- database.ts nu: TableRow<"tablename"> helper + re-exports — single source of truth
+- Union types (TicketStatus, HardwareAssetType, etc.) afgeleid via indexed access types
+- DashboardStats en CompanySize blijven handmatig (computed/application-level, niet in DB)
+- 19 tabellen, 395 tests pass, build + lint groen
+- Geleerd: TypeScript indexed access types (Type["field"]) perfect voor het afleiden van union types uit DB schema
+[23:24:00] Iteratie 2 klaar
