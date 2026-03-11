@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
+import { useRealtime } from "@/hooks/use-realtime";
 
 interface UserContext {
   fullName: string;
@@ -19,6 +21,26 @@ interface PortalShellProps {
 
 export function PortalShell({ user, openTicketCount, criticalUpgradeCount = 0, children }: PortalShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
+
+  // Subscribe to realtime changes — refresh server data when changes occur
+  useRealtime([
+    {
+      table: "tickets",
+      events: ["INSERT", "UPDATE", "DELETE"],
+      onEvent: () => router.refresh(),
+    },
+    {
+      table: "agreements",
+      events: ["INSERT", "UPDATE", "DELETE"],
+      onEvent: () => router.refresh(),
+    },
+    {
+      table: "hardware_assets",
+      events: ["INSERT", "UPDATE", "DELETE"],
+      onEvent: () => router.refresh(),
+    },
+  ]);
 
   return (
     <div className="relative h-screen w-full flex flex-col overflow-hidden">
