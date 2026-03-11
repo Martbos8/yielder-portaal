@@ -60,6 +60,17 @@ export async function getRecentTickets(limit = 5): Promise<Ticket[]> {
   return (data ?? []) as Ticket[];
 }
 
+export async function getTicketById(id: string): Promise<Ticket | null> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("tickets")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  return data as Ticket | null;
+}
+
 export async function getTickets(): Promise<Ticket[]> {
   const supabase = await createClient();
   const { data } = await supabase

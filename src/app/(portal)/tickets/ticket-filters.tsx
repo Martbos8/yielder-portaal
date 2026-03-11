@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { Input } from "@/components/ui/input";
@@ -197,7 +198,12 @@ export function TicketFilters({ tickets }: { tickets: Ticket[] }) {
                       {ticket.cw_ticket_id ?? "—"}
                     </TableCell>
                     <TableCell className="font-medium">
-                      {ticket.summary}
+                      <Link
+                        href={`/tickets/${ticket.id}`}
+                        className="hover:text-yielder-navy hover:underline transition-colors"
+                      >
+                        {ticket.summary}
+                      </Link>
                     </TableCell>
                     <TableCell>
                       <Badge className={status.className}>
