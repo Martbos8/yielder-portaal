@@ -12,6 +12,16 @@ import type {
   SyncLog,
 } from "@/types/database";
 
+const PROFILE_COLUMNS = "id, email, full_name, avatar_url, created_at, updated_at";
+const COMPANY_COLUMNS = "id, name, cw_company_id, employee_count, industry, region, created_at, updated_at";
+const TICKET_COLUMNS = "id, company_id, cw_ticket_id, summary, description, status, priority, contact_name, source, is_closed, cw_created_at, cw_updated_at, created_at, updated_at";
+const HARDWARE_COLUMNS = "id, company_id, cw_config_id, name, type, manufacturer, model, serial_number, assigned_to, warranty_expiry, created_at, updated_at";
+const AGREEMENT_COLUMNS = "id, company_id, cw_agreement_id, name, type, status, bill_amount, start_date, end_date, created_at, updated_at";
+const LICENSE_COLUMNS = "id, company_id, vendor, product_name, license_type, seats_total, seats_used, expiry_date, status, cost_per_seat, created_at, updated_at";
+const CONTACT_COLUMNS = "id, company_id, full_name, email, phone, role, created_at, updated_at";
+const NOTIFICATION_COLUMNS = "id, company_id, user_id, title, message, type, is_read, link, created_at";
+const SYNC_LOG_COLUMNS = "id, entity_type, status, records_synced, records_failed, error_message, started_at, completed_at, created_at";
+
 export async function getUserProfile(): Promise<Profile | null> {
   const supabase = await createClient();
   const {
@@ -21,7 +31,7 @@ export async function getUserProfile(): Promise<Profile | null> {
 
   const { data } = await supabase
     .from("profiles")
-    .select("*")
+    .select(PROFILE_COLUMNS)
     .eq("id", user.id)
     .single();
 
@@ -61,7 +71,7 @@ export async function getUserCompany(): Promise<Company | null> {
 
   const { data: company } = await supabase
     .from("companies")
-    .select("*")
+    .select(COMPANY_COLUMNS)
     .eq("id", data.company_id)
     .single();
 
@@ -72,7 +82,7 @@ export async function getRecentTickets(limit = 5): Promise<Ticket[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("tickets")
-    .select("*")
+    .select(TICKET_COLUMNS)
     .eq("is_closed", false)
     .order("cw_created_at", { ascending: false })
     .limit(limit);
@@ -84,7 +94,7 @@ export async function getTicketById(id: string): Promise<Ticket | null> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("tickets")
-    .select("*")
+    .select(TICKET_COLUMNS)
     .eq("id", id)
     .single();
 
@@ -95,7 +105,7 @@ export async function getTickets(): Promise<Ticket[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("tickets")
-    .select("*")
+    .select(TICKET_COLUMNS)
     .order("cw_created_at", { ascending: false });
 
   return (data ?? []) as Ticket[];
@@ -105,7 +115,7 @@ export async function getHardwareAssets(): Promise<HardwareAsset[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("hardware_assets")
-    .select("*")
+    .select(HARDWARE_COLUMNS)
     .order("name", { ascending: true });
 
   return (data ?? []) as HardwareAsset[];
@@ -115,7 +125,7 @@ export async function getAgreements(): Promise<Agreement[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("agreements")
-    .select("*")
+    .select(AGREEMENT_COLUMNS)
     .order("status", { ascending: true })
     .order("name", { ascending: true });
 
@@ -132,7 +142,7 @@ export async function getExpiringAgreements(
 
   const { data } = await supabase
     .from("agreements")
-    .select("*")
+    .select(AGREEMENT_COLUMNS)
     .eq("status", "active")
     .not("end_date", "is", null)
     .lte("end_date", futureDateStr)
@@ -147,7 +157,7 @@ export async function getExpiredWarrantyHardware(): Promise<HardwareAsset[]> {
 
   const { data } = await supabase
     .from("hardware_assets")
-    .select("*")
+    .select(HARDWARE_COLUMNS)
     .not("warranty_expiry", "is", null)
     .lt("warranty_expiry", todayStr)
     .order("warranty_expiry", { ascending: true });
@@ -201,7 +211,7 @@ export async function getLicenses(): Promise<License[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("licenses")
-    .select("*")
+    .select(LICENSE_COLUMNS)
     .order("vendor", { ascending: true })
     .order("product_name", { ascending: true });
 
@@ -212,7 +222,7 @@ export async function getContacts(): Promise<Contact[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("contacts")
-    .select("*")
+    .select(CONTACT_COLUMNS)
     .order("full_name", { ascending: true });
 
   return (data ?? []) as Contact[];
@@ -224,7 +234,7 @@ export async function getNotifications(
   const supabase = await createClient();
   let query = supabase
     .from("notifications")
-    .select("*")
+    .select(NOTIFICATION_COLUMNS)
     .order("created_at", { ascending: false });
 
   if (unreadOnly) {
@@ -239,7 +249,7 @@ export async function getSyncStatus(): Promise<SyncLog[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("sync_logs")
-    .select("*")
+    .select(SYNC_LOG_COLUMNS)
     .order("started_at", { ascending: false })
     .limit(10);
 

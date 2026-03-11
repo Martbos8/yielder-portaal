@@ -59,12 +59,20 @@ export function useRealtime(subscriptions: RealtimeSubscription[]) {
       }
     }
 
-    channel.subscribe();
+    channel.subscribe((status) => {
+      if (status === "CHANNEL_ERROR") {
+        // Subscription failed — clean up to prevent memory leaks
+        supabase.removeChannel(channel);
+        channelRef.current = null;
+      }
+    });
     channelRef.current = channel;
 
     return () => {
-      supabase.removeChannel(channel);
-      channelRef.current = null;
+      if (channelRef.current) {
+        supabase.removeChannel(channel);
+        channelRef.current = null;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
