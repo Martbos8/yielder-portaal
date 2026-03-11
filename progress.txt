@@ -64,4 +64,12 @@
 - Build + lint + 429 tests pass
 - Geleerd: Column constants (as const) per repository zorgt ervoor dat je exact weet welke data je ophaalt — geen overbodige kolommen over de wire
 - Geleerd: Barrel re-export in queries.ts voorkomt breaking changes voor bestaande test imports
+[23:35:00] Iteratie 4 — aanvulling:
+- Added product.repository.ts: getActiveProducts, getProductCategories, getProductDependencies, getClientProducts
+- All column selects verified against actual Supabase schema (supabase.ts Row types)
+- DatabaseError handling added to ALL repositories (was missing — queries silently returned empty data on DB errors)
+- PGRST116 (row not found) excluded from error throws in .single() queries (expected for getUserProfile, getTicketById etc.)
+- getDashboardStats: all 3 parallel queries now check for errors individually
+- 429 tests pass, build + lint groen
+- Geleerd: Supabase .single() returns PGRST116 error code when no row found — must exclude this from DatabaseError throws
 [23:35:00] Iteratie 4 klaar

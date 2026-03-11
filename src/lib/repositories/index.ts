@@ -7,4 +7,5 @@ export { getAgreements, getExpiringAgreements } from "./agreement.repository";
 export { getUserProfile, getUserCompanyId, getUserCompany, getContacts, getDashboardStats } from "./company.repository";
 export { getNotifications } from "./notification.repository";
 export { getLicenses } from "./license.repository";
+export { getActiveProducts, getProductCategories, getProductDependencies, getClientProducts } from "./product.repository";
 export { getSyncStatus } from "./sync.repository";

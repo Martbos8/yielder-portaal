@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { AuthError, DatabaseError } from "@/lib/errors";
+import { DatabaseError } from "@/lib/errors";
 import type { Profile, Company, Contact, DashboardStats } from "@/types/database";
 
 const PROFILE_COLUMNS = "id, email, full_name, avatar_url, is_yielder, created_at, updated_at" as const;
