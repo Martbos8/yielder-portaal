@@ -102,7 +102,7 @@ Per iteratie:
   - CORS configuratie
   - Redirect chains optimaliseren (geen dubbele redirects)
 
-### Taak 7: Caching strategie implementeren [not started]
+### Taak 7: Caching strategie implementeren [done]
 - Implementeer multi-level caching:
   - **In-memory cache** (`src/lib/cache.ts`): generic Map-based cache met TTL
     - `cache.get<T>(key): T | null`

@@ -9,3 +9,20 @@ export { getNotifications } from "./notification.repository";
 export { getLicenses } from "./license.repository";
 export { getActiveProducts, getProductCategories, getProductDependencies, getClientProducts } from "./product.repository";
 export { getSyncStatus } from "./sync.repository";
+
+// Cached repository wrappers
+export {
+  getCachedActiveProducts,
+  getCachedProductCategories,
+  getCachedProductDependencies,
+  getCachedClientProducts,
+  getCachedUserCompany,
+  getCachedUserCompanyId,
+  getCachedDashboardStats,
+  getCachedRecommendations,
+  invalidateProductCache,
+  invalidateCompanyCache,
+  invalidateDashboardCache,
+  invalidateAllCaches,
+} from "./cached";
+

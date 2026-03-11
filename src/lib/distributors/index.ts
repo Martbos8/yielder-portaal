@@ -2,9 +2,8 @@
 import { CopacoClient } from "./copaco";
 import { IngramClient } from "./ingram";
 import { TDSynnexClient } from "./td-synnex";
+import { cached as cachedFn, CacheTTL, cache } from "@/lib/cache";
 import type { DistributorPrice, PriceResult } from "./types";
-
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const distributors = [
   new CopacoClient(),
@@ -12,26 +11,16 @@ const distributors = [
   new TDSynnexClient(),
 ];
 
-// In-memory cache for prices
-const priceCache = new Map<string, { prices: DistributorPrice[]; fetchedAt: number }>();
-
 /**
  * Gets prices for a product SKU from all distributors.
  * Caches results for 24 hours.
  */
 export async function getPricesForSku(sku: string): Promise<DistributorPrice[]> {
-  const cached = priceCache.get(sku);
-  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
-    return cached.prices;
-  }
-
-  const pricePromises = distributors.map((d) => d.getPrice(sku));
-  const results = await Promise.all(pricePromises);
-  const prices = results.filter((p): p is DistributorPrice => p !== null);
-
-  priceCache.set(sku, { prices, fetchedAt: Date.now() });
-
-  return prices;
+  return cachedFn(`distributor-price:${sku}`, CacheTTL.DAY, async () => {
+    const pricePromises = distributors.map((d) => d.getPrice(sku));
+    const results = await Promise.all(pricePromises);
+    return results.filter((p): p is DistributorPrice => p !== null);
+  });
 }
 
 /**
@@ -75,7 +64,7 @@ export function findBestPrice(prices: DistributorPrice[]): DistributorPrice | nu
  * Clears the price cache (useful for testing or manual refresh).
  */
 export function clearPriceCache(): void {
-  priceCache.clear();
+  cache.invalidate("distributor-price:*");
 }
 
 /**

@@ -1,12 +1,13 @@
 import Link from "next/link";
 import {
-  getDashboardStats,
+  getCachedDashboardStats,
+  getCachedRecommendations,
+  getCachedUserCompanyId,
   getRecentTickets,
   getExpiringAgreements,
   getExpiredWarrantyHardware,
-  getUserCompanyId,
 } from "@/lib/repositories";
-import { getRecommendations, type Recommendation } from "@/lib/engine/recommendation";
+import type { Recommendation } from "@/lib/engine/recommendation";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import type { TicketStatus } from "@/types/database";
@@ -48,9 +49,9 @@ const statusConfig: Record<
 
 async function getTopRecommendations(): Promise<Recommendation[]> {
   try {
-    const companyId = await getUserCompanyId();
+    const companyId = await getCachedUserCompanyId();
     if (!companyId) return [];
-    const all = await getRecommendations(companyId);
+    const all = await getCachedRecommendations(companyId);
     // Sort critical first, then take top 3
     const sorted = [...all].sort((a, b) => {
       if (a.severity === "critical" && b.severity !== "critical") return -1;
@@ -99,7 +100,7 @@ function getSeverityLabel(severity: string | null): string {
 export default async function DashboardPage() {
   const [stats, recentTickets, expiringAgreements, expiredWarranty, topRecommendations] =
     await Promise.all([
-      getDashboardStats(),
+      getCachedDashboardStats(),
       getRecentTickets(5),
       getExpiringAgreements(30),
       getExpiredWarrantyHardware(),

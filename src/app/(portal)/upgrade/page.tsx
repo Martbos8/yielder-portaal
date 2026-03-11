@@ -1,5 +1,5 @@
-import { getUserCompanyId } from "@/lib/repositories";
-import { getRecommendations, type Recommendation } from "@/lib/engine/recommendation";
+import { getCachedUserCompanyId, getCachedRecommendations } from "@/lib/repositories";
+import type { Recommendation } from "@/lib/engine/recommendation";
 import { getBestPrice } from "@/lib/distributors";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
@@ -67,7 +67,7 @@ async function getRecommendationPrices(
 }
 
 export default async function UpgradePage() {
-  const companyId = await getUserCompanyId();
+  const companyId = await getCachedUserCompanyId();
 
   if (!companyId) {
     return (
@@ -78,7 +78,7 @@ export default async function UpgradePage() {
     );
   }
 
-  const recommendations = await getRecommendations(companyId);
+  const recommendations = await getCachedRecommendations(companyId);
   const prices = await getRecommendationPrices(recommendations);
   const itScore = computeItScore(recommendations);
 

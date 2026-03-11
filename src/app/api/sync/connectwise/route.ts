@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { syncAll } from "@/lib/connectwise/sync";
+import { invalidateAllCaches } from "@/lib/repositories";
 import { AuthError, isAppError, toErrorResponse } from "@/lib/errors";
 
 /**
@@ -25,6 +26,9 @@ export async function POST(request: NextRequest) {
         results: [],
       });
     }
+
+    // Invalidate all caches after successful sync — data has changed
+    invalidateAllCaches();
 
     return NextResponse.json({ message: "Sync voltooid", results });
   } catch (error) {

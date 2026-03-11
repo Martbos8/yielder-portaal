@@ -129,3 +129,25 @@
 - Geleerd: Function overloads work well for middleware handling both preflight and regular responses
 - Geleerd: Stale .next cache can cause ENOENT errors on build — rm -rf .next fixes it
 [23:43:00] Iteratie 6 klaar
+[23:44:18] Iteratie 6 klaar
+[23:44:18] Iteratie 7 gestart
+
+[23:48:00] Taak 7 VOLTOOID — Caching strategie implementeren
+- Created src/lib/cache.ts: generic MemoryCache class with TTL, prefix invalidation, periodic cleanup, max entry limit (1000)
+- CacheTTL presets: SHORT (2min), MEDIUM (5min), LONG (30min), HOUR (1h), DAY (24h)
+- cached() helper: cache-through function that fetches on miss and caches result
+- Created src/lib/repositories/cached.ts: cached wrappers for high-traffic repository functions
+  - getCachedActiveProducts (1h), getCachedProductCategories (1h), getCachedProductDependencies (1h)
+  - getCachedClientProducts (5min per company), getCachedRecommendations (5min per company)
+  - getCachedUserCompany (30min), getCachedUserCompanyId (30min)
+  - getCachedDashboardStats (2min)
+- Invalidation helpers: invalidateProductCache, invalidateCompanyCache, invalidateDashboardCache, invalidateAllCaches
+- Refactored distributor price cache to use generic cache module (was standalone Map)
+- Applied cached versions in dashboard page (stats + recommendations + companyId)
+- Applied cached versions in upgrade page (companyId + recommendations)
+- Added cache invalidation after ConnectWise sync success
+- 13 new tests (453 total), build + lint groen
+- Geleerd: cached() helper met null-check werkt goed, maar falsy values (0, "", false) vereisen === null check in get()
+- Geleerd: Cache key patterns met prefix:* wildcards geven flexibele invalidation — per-domain of globaal
+- Geleerd: Serverless functions krijgen per invocation een verse cache — in-memory cache is vooral nuttig voor dev server en edge runtime (persistent worker)
+[23:48:00] Iteratie 7 klaar
