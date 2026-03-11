@@ -7,6 +7,10 @@ import type {
   Agreement,
   Contact,
   DashboardStats,
+  ProductCategory,
+  Product,
+  ProductDependency,
+  ClientProduct,
 } from "@/types/database";
 
 describe("Database types", () => {
@@ -99,6 +103,59 @@ describe("Database types", () => {
       monthlyAmount: 4500,
     };
     expect(stats.openTickets).toBe(5);
+  });
+
+  it("product catalog types are importable and structurally correct", () => {
+    const category: ProductCategory = {
+      id: "cat-1",
+      name: "Cybersecurity",
+      slug: "cybersecurity",
+      icon: "security",
+      description: "Firewalls en endpoint protection",
+      sort_order: 1,
+      created_at: "2026-01-01",
+      updated_at: "2026-01-01",
+    };
+    expect(category.slug).toBe("cybersecurity");
+
+    const product: Product = {
+      id: "prod-1",
+      category_id: "cat-1",
+      name: "FortiGate Firewall",
+      vendor: "Fortinet",
+      sku: "FG-60F",
+      description: "Next-gen firewall",
+      type: "hardware",
+      lifecycle_years: 5,
+      is_active: true,
+      created_at: "2026-01-01",
+      updated_at: "2026-01-01",
+    };
+    expect(product.type).toBe("hardware");
+    expect(product.vendor).toBe("Fortinet");
+
+    const dependency: ProductDependency = {
+      id: "dep-1",
+      product_id: "prod-1",
+      depends_on_product_id: "prod-2",
+      dependency_type: "requires",
+      created_at: "2026-01-01",
+    };
+    expect(dependency.dependency_type).toBe("requires");
+
+    const clientProduct: ClientProduct = {
+      id: "cp-1",
+      company_id: "comp-1",
+      product_id: "prod-1",
+      quantity: 3,
+      purchase_date: "2025-06-01",
+      expiry_date: "2028-06-01",
+      status: "active",
+      created_at: "2026-01-01",
+      updated_at: "2026-01-01",
+    };
+    expect(clientProduct.status).toBe("active");
+    expect(clientProduct.quantity).toBe(3);
   });
 });
 

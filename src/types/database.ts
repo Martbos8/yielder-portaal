@@ -93,3 +93,56 @@ export type DashboardStats = {
   activeContracts: number;
   monthlyAmount: number;
 };
+
+// Product Catalog types
+
+export type ProductCategory = {
+  id: string;
+  name: string;
+  slug: string;
+  icon: string;
+  description: string | null;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProductType = "hardware" | "software" | "service";
+
+export type Product = {
+  id: string;
+  category_id: string;
+  name: string;
+  vendor: string | null;
+  sku: string | null;
+  description: string | null;
+  type: ProductType;
+  lifecycle_years: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type DependencyType = "requires" | "recommended" | "enhances";
+
+export type ProductDependency = {
+  id: string;
+  product_id: string;
+  depends_on_product_id: string;
+  dependency_type: DependencyType;
+  created_at: string;
+};
+
+export type ClientProductStatus = "active" | "expiring" | "expired";
+
+export type ClientProduct = {
+  id: string;
+  company_id: string;
+  product_id: string;
+  quantity: number;
+  purchase_date: string | null;
+  expiry_date: string | null;
+  status: ClientProductStatus;
+  created_at: string;
+  updated_at: string;
+};
