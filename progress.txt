@@ -507,3 +507,5 @@
 - Geleerd: aria-label on notification bell should be dynamic: include unread count for screen reader context
 - Geleerd: useCallback on Escape key handler prevents unnecessary re-registration of event listeners
 [00:52:00] Iteratie 17 klaar
+[00:53:15] Iteratie 14 klaar
+[00:53:15] Iteratie 15 gestart
