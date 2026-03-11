@@ -97,7 +97,11 @@ const CW_ENV_VARS = [
   "CW_CLIENT_ID",
 ];
 
-const DISTRIBUTOR_NAMES = ["Copaco", "Ingram Micro", "TD Synnex"];
+const DISTRIBUTORS = [
+  { name: "Copaco", envVar: "COPACO_API_KEY" },
+  { name: "Ingram Micro", envVar: "INGRAM_API_KEY" },
+  { name: "TD Synnex", envVar: "TD_SYNNEX_API_KEY" },
+] as const;
 
 function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleString("nl-NL", {
@@ -173,15 +177,20 @@ export default async function AdminPage() {
         <Card className="rounded-2xl p-5 shadow-card border">
           <h3 className="text-sm font-medium text-muted-foreground mb-3">Distributeur APIs</h3>
           <div className="space-y-2">
-            {DISTRIBUTOR_NAMES.map((name) => (
-              <div key={name} className="flex items-center justify-between">
-                <span className="text-sm text-foreground">{name}</span>
-                <div className="flex items-center gap-1.5">
-                  <div className="size-2.5 rounded-full bg-red-500" />
-                  <span className="text-xs text-muted-foreground">Demo</span>
+            {DISTRIBUTORS.map(({ name, envVar }) => {
+              const configured = !!process.env[envVar];
+              return (
+                <div key={name} className="flex items-center justify-between">
+                  <span className="text-sm text-foreground">{name}</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className={`size-2.5 rounded-full ${configured ? "bg-emerald-500" : "bg-red-500"}`} />
+                    <span className="text-xs text-muted-foreground">
+                      {configured ? "Geconfigureerd" : "Demo"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </Card>
 
