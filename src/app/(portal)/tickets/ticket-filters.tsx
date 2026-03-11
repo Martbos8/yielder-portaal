@@ -180,12 +180,12 @@ export function TicketFilters({ tickets }: { tickets: Ticket[] }) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[80px]">#ID</TableHead>
+                <TableHead className="w-[80px] hidden sm:table-cell">#ID</TableHead>
                 <TableHead>Samenvatting</TableHead>
                 <TableHead className="w-[140px]">Status</TableHead>
                 <TableHead className="w-[120px]">Prioriteit</TableHead>
-                <TableHead className="w-[160px]">Contactpersoon</TableHead>
-                <TableHead className="w-[130px]">Aangemaakt</TableHead>
+                <TableHead className="w-[160px] hidden md:table-cell">Contactpersoon</TableHead>
+                <TableHead className="w-[130px] hidden sm:table-cell">Aangemaakt</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -194,7 +194,7 @@ export function TicketFilters({ tickets }: { tickets: Ticket[] }) {
                 const priority = priorityConfig[ticket.priority];
                 return (
                   <TableRow key={ticket.id}>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
+                    <TableCell className="font-mono text-xs text-muted-foreground hidden sm:table-cell">
                       {ticket.cw_ticket_id ?? "—"}
                     </TableCell>
                     <TableCell className="font-medium">
@@ -215,10 +215,10 @@ export function TicketFilters({ tickets }: { tickets: Ticket[] }) {
                         {priority.label}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
                       {ticket.contact_name ?? "—"}
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
+                    <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
                       {formatDate(ticket.cw_created_at)}
                     </TableCell>
                   </TableRow>

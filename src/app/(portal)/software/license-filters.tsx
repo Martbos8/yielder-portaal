@@ -237,10 +237,10 @@ export function LicenseFilters({ licenses }: { licenses: License[] }) {
                 <TableRow>
                   <TableHead>Vendor</TableHead>
                   <TableHead>Product</TableHead>
-                  <TableHead className="w-[120px]">Type</TableHead>
+                  <TableHead className="w-[120px] hidden md:table-cell">Type</TableHead>
                   <TableHead className="w-[160px]">Seats</TableHead>
-                  <TableHead className="w-[130px]">Verloopdatum</TableHead>
-                  <TableHead className="w-[100px]">Prijs/seat</TableHead>
+                  <TableHead className="w-[130px] hidden sm:table-cell">Verloopdatum</TableHead>
+                  <TableHead className="w-[100px] hidden md:table-cell">Prijs/seat</TableHead>
                   <TableHead className="w-[140px]">Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -255,7 +255,7 @@ export function LicenseFilters({ licenses }: { licenses: License[] }) {
                       <TableCell className="text-sm">
                         {license.product_name}
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
                         {license.license_type ?? "—"}
                       </TableCell>
                       <TableCell>
@@ -264,10 +264,10 @@ export function LicenseFilters({ licenses }: { licenses: License[] }) {
                           total={license.seats_total}
                         />
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
                         {formatDate(license.expiry_date)}
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
+                      <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
                         {formatCurrency(license.cost_per_seat)}
                       </TableCell>
                       <TableCell>
