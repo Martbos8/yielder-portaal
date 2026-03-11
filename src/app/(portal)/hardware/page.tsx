@@ -1,3 +1,6 @@
+/** Revalidate hardware data every 5 minutes. */
+export const revalidate = 300;
+
 import { getHardwareAssets } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";

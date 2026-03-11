@@ -1,3 +1,6 @@
+/** Revalidate recommendations every 5 minutes (matches CacheTTL.MEDIUM). */
+export const revalidate = 300;
+
 import { getCachedUserCompanyId, getCachedRecommendations } from "@/lib/repositories";
 import type { Recommendation } from "@/lib/engine/recommendation";
 import { getBestPrice } from "@/lib/distributors";

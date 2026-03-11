@@ -1,3 +1,6 @@
+/** Revalidate contract data every 5 minutes. */
+export const revalidate = 300;
+
 import { getAgreements } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";

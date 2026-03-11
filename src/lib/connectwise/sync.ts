@@ -3,6 +3,7 @@
 
 import { ConnectWiseClient } from "./client";
 import { ExternalServiceError } from "@/lib/errors";
+import { invalidateAllCaches } from "@/lib/repositories/cached";
 import type {
   CWCompany,
   CWTicket,
@@ -71,6 +72,9 @@ export async function syncAll(): Promise<CWSyncResult[]> {
   results.push(await syncTickets(client));
   results.push(await syncAgreements(client));
   results.push(await syncConfigurations(client));
+
+  // Invalidate all caches after sync — data has changed
+  invalidateAllCaches();
 
   return results;
 }

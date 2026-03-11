@@ -23,6 +23,7 @@ export {
   invalidateProductCache,
   invalidateCompanyCache,
   invalidateDashboardCache,
+  invalidateRecommendationCache,
   invalidateAllCaches,
 } from "./cached";
 

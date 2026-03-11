@@ -99,6 +99,11 @@ export function invalidateDashboardCache(): void {
   cache.invalidate("dashboard:*");
 }
 
+/** Invalidate recommendation caches. */
+export function invalidateRecommendationCache(): void {
+  cache.invalidate("recommendations:*");
+}
+
 /** Invalidate all caches (e.g., after a sync). */
 export function invalidateAllCaches(): void {
   cache.clear();

@@ -1,3 +1,6 @@
+/** Revalidate dashboard data every 2 minutes (matches CacheTTL.SHORT). */
+export const revalidate = 120;
+
 import Link from "next/link";
 import {
   getCachedDashboardStats,

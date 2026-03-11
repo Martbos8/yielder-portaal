@@ -1,5 +1,4 @@
-import { getUserProfile, getUserCompany, getUserCompanyId, getOpenTicketCount, getNotifications } from "@/lib/repositories";
-import { getRecommendations } from "@/lib/engine/recommendation";
+import { getUserProfile, getOpenTicketCount, getNotifications, getCachedUserCompany, getCachedUserCompanyId, getCachedRecommendations } from "@/lib/repositories";
 import { PortalShell } from "@/components/portal-shell";
 
 function getInitials(name: string | null): string {
@@ -22,16 +21,16 @@ export default async function PortalLayout({
 }) {
   const [profile, company, openTicketCount, companyId, notifications] = await Promise.all([
     getUserProfile(),
-    getUserCompany(),
+    getCachedUserCompany(),
     getOpenTicketCount(),
-    getUserCompanyId(),
+    getCachedUserCompanyId(),
     getNotifications(),
   ]);
 
   let criticalUpgradeCount = 0;
   if (companyId) {
     try {
-      const recs = await getRecommendations(companyId);
+      const recs = await getCachedRecommendations(companyId);
       criticalUpgradeCount = recs.filter((r) => r.severity === "critical").length;
     } catch {
       // Silently fail — tables may not exist yet

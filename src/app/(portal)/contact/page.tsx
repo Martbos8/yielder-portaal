@@ -1,4 +1,4 @@
-import { getContacts, getUserCompany, getUserCompanyId } from "@/lib/repositories";
+import { getContacts, getCachedUserCompany, getCachedUserCompanyId } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import ContactForm from "./contact-form";
@@ -37,8 +37,8 @@ const yielderTeam = [
 export default async function ContactPage() {
   const [contacts, company, companyId] = await Promise.all([
     getContacts(),
-    getUserCompany(),
-    getUserCompanyId(),
+    getCachedUserCompany(),
+    getCachedUserCompanyId(),
   ]);
 
   return (
