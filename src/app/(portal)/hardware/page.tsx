@@ -15,6 +15,7 @@ import {
   countAssetsNeedingUpgrade,
   type WarrantyStatus,
 } from "@/lib/hardware-utils";
+import { HardwareDetailModal } from "@/components/hardware-detail-modal";
 import Link from "next/link";
 
 const typeOrder: HardwareAssetType[] = [
@@ -161,69 +162,77 @@ export default async function HardwarePage() {
                       null, // purchase_date not available on HardwareAsset
                       null  // lifecycle_years not available on HardwareAsset
                     );
+                    const warrantyText = formatWarrantyText(asset.warranty_expiry);
 
                     return (
-                      <Card key={asset.id} className={upgradeInfo.needsUpgrade ? "ring-1 ring-red-200" : ""}>
-                        <CardHeader>
-                          <div className="flex items-start justify-between gap-2">
-                            <CardTitle className="truncate">
-                              {asset.name}
-                            </CardTitle>
-                            {upgradeInfo.needsUpgrade && (
-                              <Link href="/upgrade" className="shrink-0">
-                                <Badge
-                                  className={
-                                    upgradeInfo.severity === "critical"
-                                      ? "bg-red-100 text-red-700 hover:bg-red-200 cursor-pointer whitespace-nowrap"
-                                      : "bg-orange-100 text-orange-700 hover:bg-orange-200 cursor-pointer whitespace-nowrap"
-                                  }
-                                >
-                                  <MaterialIcon
-                                    name={upgradeInfo.severity === "critical" ? "error" : "upgrade"}
-                                    size={12}
-                                    className="mr-1"
-                                  />
-                                  {upgradeInfo.badgeText}
-                                </Badge>
-                              </Link>
+                      <HardwareDetailModal
+                        key={asset.id}
+                        asset={asset}
+                        warrantyClassName={config.className}
+                        warrantyText={warrantyText}
+                      >
+                        <Card className={`hover:shadow-card-hover transition-shadow ${upgradeInfo.needsUpgrade ? "ring-1 ring-red-200" : ""}`}>
+                          <CardHeader>
+                            <div className="flex items-start justify-between gap-2">
+                              <CardTitle className="truncate">
+                                {asset.name}
+                              </CardTitle>
+                              {upgradeInfo.needsUpgrade && (
+                                <Link href="/upgrade" className="shrink-0" onClick={(e) => e.stopPropagation()}>
+                                  <Badge
+                                    className={
+                                      upgradeInfo.severity === "critical"
+                                        ? "bg-red-100 text-red-700 hover:bg-red-200 cursor-pointer whitespace-nowrap"
+                                        : "bg-orange-100 text-orange-700 hover:bg-orange-200 cursor-pointer whitespace-nowrap"
+                                    }
+                                  >
+                                    <MaterialIcon
+                                      name={upgradeInfo.severity === "critical" ? "error" : "upgrade"}
+                                      size={12}
+                                      className="mr-1"
+                                    />
+                                    {upgradeInfo.badgeText}
+                                  </Badge>
+                                </Link>
+                              )}
+                            </div>
+                            {(asset.manufacturer || asset.model) && (
+                              <CardDescription>
+                                {[asset.manufacturer, asset.model]
+                                  .filter(Boolean)
+                                  .join(" ")}
+                              </CardDescription>
                             )}
-                          </div>
-                          {(asset.manufacturer || asset.model) && (
-                            <CardDescription>
-                              {[asset.manufacturer, asset.model]
-                                .filter(Boolean)
-                                .join(" ")}
-                            </CardDescription>
-                          )}
-                        </CardHeader>
-                        <CardContent className="space-y-2">
-                          {asset.serial_number && (
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <MaterialIcon
-                                name="tag"
-                                size={14}
-                              />
-                              <span className="font-mono">
-                                {asset.serial_number}
-                              </span>
+                          </CardHeader>
+                          <CardContent className="space-y-2">
+                            {asset.serial_number && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <MaterialIcon
+                                  name="tag"
+                                  size={14}
+                                />
+                                <span className="font-mono">
+                                  {asset.serial_number}
+                                </span>
+                              </div>
+                            )}
+                            {asset.assigned_to && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <MaterialIcon
+                                  name="person"
+                                  size={14}
+                                />
+                                <span>{asset.assigned_to}</span>
+                              </div>
+                            )}
+                            <div className="pt-1">
+                              <Badge className={config.className}>
+                                {warrantyText}
+                              </Badge>
                             </div>
-                          )}
-                          {asset.assigned_to && (
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <MaterialIcon
-                                name="person"
-                                size={14}
-                              />
-                              <span>{asset.assigned_to}</span>
-                            </div>
-                          )}
-                          <div className="pt-1">
-                            <Badge className={config.className}>
-                              {formatWarrantyText(asset.warranty_expiry)}
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
+                      </HardwareDetailModal>
                     );
                   })}
                 </div>
