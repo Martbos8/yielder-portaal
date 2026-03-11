@@ -10,6 +10,21 @@ export async function GET(request: Request) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // Koppel user aan bedrijf op basis van metadata uit login
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const companyId = user.user_metadata?.company_id;
+        if (companyId) {
+          // Verwijder oude mappings en maak nieuwe
+          await supabase
+            .from("user_company_mapping")
+            .delete()
+            .eq("user_id", user.id);
+          await supabase
+            .from("user_company_mapping")
+            .insert({ user_id: user.id, company_id: companyId });
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

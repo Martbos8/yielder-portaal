@@ -12,6 +12,36 @@
 
 
 -- ############################################################
+-- SECTIE 0: OPRUIMEN BESTAANDE TABELLEN
+-- ############################################################
+-- Drop in omgekeerde volgorde vanwege foreign keys
+
+DROP TABLE IF EXISTS contact_requests CASCADE;
+DROP TABLE IF EXISTS distributor_prices CASCADE;
+DROP TABLE IF EXISTS recommendation_feedback CASCADE;
+DROP TABLE IF EXISTS client_products CASCADE;
+DROP TABLE IF EXISTS product_dependencies CASCADE;
+DROP TABLE IF EXISTS products CASCADE;
+DROP TABLE IF EXISTS product_categories CASCADE;
+DROP TABLE IF EXISTS audit_log CASCADE;
+DROP TABLE IF EXISTS sync_logs CASCADE;
+DROP TABLE IF EXISTS documents CASCADE;
+DROP TABLE IF EXISTS notifications CASCADE;
+DROP TABLE IF EXISTS licenses CASCADE;
+DROP TABLE IF EXISTS contacts CASCADE;
+DROP TABLE IF EXISTS agreements CASCADE;
+DROP TABLE IF EXISTS hardware_assets CASCADE;
+DROP TABLE IF EXISTS tickets CASCADE;
+DROP TABLE IF EXISTS user_company_mapping CASCADE;
+DROP TABLE IF EXISTS companies CASCADE;
+DROP TABLE IF EXISTS profiles CASCADE;
+
+-- Drop oude trigger als die bestaat
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+DROP FUNCTION IF EXISTS public.handle_new_user();
+
+
+-- ############################################################
 -- SECTIE 1: CORE TABLES
 -- ############################################################
 

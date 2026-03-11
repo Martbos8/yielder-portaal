@@ -1,16 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 
+type CompanyOption = { id: string; name: string };
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [companyId, setCompanyId] = useState("");
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+
+  useEffect(() => {
+    async function fetchCompanies() {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("companies")
+        .select("id, name")
+        .order("name");
+      if (data && data.length > 0) {
+        setCompanies(data);
+        setCompanyId(data[0].id);
+      }
+    }
+    fetchCompanies();
+  }, []);
 
   async function handleMagicLink(e: React.FormEvent) {
     e.preventDefault();
@@ -22,6 +41,7 @@ export default function LoginPage() {
       email,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: { company_id: companyId },
       },
     });
 
@@ -75,6 +95,34 @@ export default function LoginPage() {
         <form onSubmit={handleMagicLink} className="space-y-5">
           <div>
             <label
+              htmlFor="login-company"
+              className="block text-xs font-medium text-white/50 mb-2 uppercase tracking-wider"
+            >
+              Uw bedrijf
+            </label>
+            <select
+              id="login-company"
+              value={companyId}
+              onChange={(e) => setCompanyId(e.target.value)}
+              required
+              className="w-full px-4 py-3.5 text-sm text-white bg-white/[0.06]
+                border border-white/[0.12] rounded-2xl
+                focus:outline-none focus:ring-2 focus:ring-white/20
+                focus:border-white/25 focus:bg-white/[0.10]
+                focus:shadow-[0_0_0_3px_rgba(255,255,255,0.06)]
+                transition-all appearance-none"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.4)' d='M2 4l4 4 4-4'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 16px center" }}
+            >
+              {companies.map((c) => (
+                <option key={c.id} value={c.id} className="bg-[#1a2d4a] text-white">
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label
               htmlFor="login-email"
               className="block text-xs font-medium text-white/50 mb-2 uppercase tracking-wider"
             >
@@ -111,7 +159,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            disabled={loading || !email}
+            disabled={loading || !email || !companyId}
             className="w-full py-3.5 mt-3 text-sm font-semibold text-[#1a2d4a]
               bg-white rounded-full hover:bg-white/95 active:scale-[0.98]
               transition-all shadow-[0_4px_20px_rgba(255,255,255,0.15)]
@@ -147,26 +195,6 @@ export default function LoginPage() {
             )}
           </button>
         </form>
-
-        {/* SSO placeholder */}
-        <div className="mt-8">
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/10" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="px-3 text-white/30 bg-[#0f1a2e]">of</span>
-            </div>
-          </div>
-          <button
-            disabled
-            className="w-full mt-4 py-3 text-sm font-medium text-white/40
-              bg-white/[0.04] border border-white/[0.08] rounded-full
-              cursor-not-allowed transition-all"
-          >
-            Inloggen via SSO (binnenkort)
-          </button>
-        </div>
 
         {/* Footer */}
         <div className="flex items-center justify-center gap-2 mt-10 opacity-40">
