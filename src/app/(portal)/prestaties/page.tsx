@@ -7,7 +7,7 @@ import {
 } from "@/lib/performance-stats";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
-import { SLATrendChart, CategoryChart } from "@/components/performance-charts";
+import { LazySLATrendChart, LazyCategoryChart } from "@/components/lazy-charts";
 import { StatCard, EmptyStateInline } from "@/components/data-display";
 
 function getComplianceBadge(percent: number): {
@@ -103,7 +103,7 @@ export default async function PrestatiePage() {
             Trend afgelopen 6 maanden
           </h2>
           {trends.some((t) => t.resolved > 0) ? (
-            <SLATrendChart data={trends} />
+            <LazySLATrendChart data={trends} />
           ) : (
             <EmptyStateInline
               icon="show_chart"
@@ -119,7 +119,7 @@ export default async function PrestatiePage() {
             Tickets per categorie
           </h2>
           {categories.length > 0 ? (
-            <CategoryChart data={categories} />
+            <LazyCategoryChart data={categories} />
           ) : (
             <EmptyStateInline
               icon="bar_chart"

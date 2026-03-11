@@ -509,3 +509,26 @@
 [00:52:00] Iteratie 17 klaar
 [00:53:15] Iteratie 14 klaar
 [00:53:15] Iteratie 15 gestart
+[00:53:40] Iteratie 16 klaar
+[00:53:40] Iteratie 17 gestart
+
+[00:57:00] Taak 18 VOLTOOID — Performance optimalisatie
+- Dynamic import Recharts: created src/components/lazy-charts.tsx with next/dynamic wrappers (ssr: false)
+  - LazySLATrendChart, LazyCategoryChart for prestaties page
+  - LazyHealthTrendChart, LazyScoreRing for it-gezondheid page
+  - Recharts no longer in initial JS bundle — loaded client-side only on pages that need it
+- Debounced search (300ms): created src/lib/hooks/use-debounce.ts with useDebouncedValue hook
+  - DataTable global search: debounced to prevent filtering on every keystroke
+  - Hardware-client search: debounced for smooth UX with large asset lists
+  - Page resets to 0 when debounced value changes (via useEffect)
+- Memoized expensive computations:
+  - Hardware-client: healthScores Map memoized per asset (was recomputed on every render per card)
+  - Stats avgHealth now uses memoized health scores instead of recomputing
+  - DataTable processedData already properly memoized (verified)
+  - Hardware groups/filtered already properly memoized (verified)
+- Bundle size check: prestaties + it-gezondheid First Load JS = 108 kB (Recharts lazy-loaded separately)
+- 471 tests pass, build + lint groen
+- Geleerd: next/dynamic with ssr:false + .then(mod => ({ default: mod.NamedExport })) is the pattern for lazy-loading named exports
+- Geleerd: useDebouncedValue hook (value + delay → setTimeout/clearTimeout) is cleaner than useCallback-based debounce for React state
+- Geleerd: Page reset on search needs to track debouncedSearch, not raw searchQuery — otherwise page resets before results change
+[00:57:00] Iteratie 17 klaar

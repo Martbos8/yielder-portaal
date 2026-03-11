@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
+import { useDebouncedValue } from "@/lib/hooks/use-debounce";
 import Link from "next/link";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
@@ -291,15 +292,16 @@ interface HardwareClientProps {
 
 export function HardwareClient({ assets }: HardwareClientProps) {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [groupMode, setGroupMode] = useState<GroupMode>("type");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const upgradeCount = useMemo(() => countAssetsNeedingUpgrade(assets), [assets]);
 
-  // Filter by search
+  // Filter by search (debounced for performance)
   const filtered = useMemo(() => {
-    if (!search) return assets;
-    const q = search.toLowerCase();
+    if (!debouncedSearch) return assets;
+    const q = debouncedSearch.toLowerCase();
     return assets.filter(
       (a) =>
         a.name.toLowerCase().includes(q) ||
@@ -308,19 +310,28 @@ export function HardwareClient({ assets }: HardwareClientProps) {
         (a.manufacturer?.toLowerCase().includes(q) ?? false) ||
         (a.model?.toLowerCase().includes(q) ?? false)
     );
-  }, [assets, search]);
+  }, [assets, debouncedSearch]);
 
   // Group filtered assets
   const groups = useMemo(() => groupAssets(filtered, groupMode), [filtered, groupMode]);
+
+  // Memoize health scores per asset (expensive computation)
+  const healthScores = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const asset of assets) {
+      map.set(asset.id, computeHealthScore(asset));
+    }
+    return map;
+  }, [assets]);
 
   // Summary stats
   const stats = useMemo(() => {
     const total = assets.length;
     const expired = assets.filter((a) => getWarrantyStatus(a.warranty_expiry) === "expired").length;
     const expiring = assets.filter((a) => getWarrantyStatus(a.warranty_expiry) === "expiring").length;
-    const avgHealth = total > 0 ? Math.round(assets.reduce((sum, a) => sum + computeHealthScore(a), 0) / total) : 0;
+    const avgHealth = total > 0 ? Math.round(assets.reduce((sum, a) => sum + (healthScores.get(a.id) ?? 0), 0) / total) : 0;
     return { total, expired, expiring, avgHealth };
-  }, [assets]);
+  }, [assets, healthScores]);
 
   // Selection handlers
   const toggleSelect = useCallback((id: string) => {
@@ -483,7 +494,7 @@ export function HardwareClient({ assets }: HardwareClientProps) {
                 const config = warrantyStatusConfig[warranty];
                 const upgradeInfo = getHardwareUpgradeInfo(asset.warranty_expiry, null, null);
                 const warrantyText = formatWarrantyText(asset.warranty_expiry);
-                const health = computeHealthScore(asset);
+                const health = healthScores.get(asset.id) ?? computeHealthScore(asset);
                 const isSelected = selectedIds.has(asset.id);
 
                 return (

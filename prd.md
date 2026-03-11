@@ -231,7 +231,7 @@ Per iteratie:
   - Skip-to-content link
   - Reduced motion: `prefers-reduced-motion` media query respecteren
 
-### Taak 18: Performance optimalisatie [not started]
+### Taak 18: Performance optimalisatie [done]
 - Audit en optimaliseer:
   - Lazy load componenten die below-the-fold zijn (React.lazy + Suspense)
   - Recharts: dynamic import (geen SSR nodig)

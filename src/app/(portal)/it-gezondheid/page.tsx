@@ -9,7 +9,7 @@ import {
 } from "@/lib/health-scores";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
-import { HealthTrendChart } from "@/components/health-charts";
+import { LazyHealthTrendChart } from "@/components/lazy-charts";
 import { MetricRing } from "@/components/data-display";
 
 function getOverallBadge(score: number): {
@@ -123,7 +123,7 @@ export default async function ITGezondheidPage() {
         <h2 className="text-sm font-semibold text-foreground mb-4">
           Trend afgelopen 6 maanden
         </h2>
-        <HealthTrendChart data={trends} />
+        <LazyHealthTrendChart data={trends} />
       </div>
 
       {/* Tips */}

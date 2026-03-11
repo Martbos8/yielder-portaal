@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useDebouncedValue } from "@/lib/hooks/use-debounce";
 import {
   Table,
   TableBody,
@@ -321,8 +322,9 @@ export function DataTable<T>({
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDirection>("asc");
 
-  // -- Search state --
+  // -- Search state (debounced for performance) --
   const [searchQuery, setSearchQuery] = useState("");
+  const debouncedSearch = useDebouncedValue(searchQuery, 300);
 
   // -- Column filter state --
   const [columnFilters, setColumnFilters] = useState<Record<string, string>>(
@@ -369,11 +371,15 @@ export function DataTable<T>({
     [sortKey]
   );
 
-  // -- Search handler --
+  // -- Search handler (page reset happens via debouncedSearch effect) --
   const handleSearch = useCallback((value: string) => {
     setSearchQuery(value);
-    setPage(0);
   }, []);
+
+  // Reset to first page when debounced search changes
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
 
   // -- Page size handler --
   const handlePageSizeChange = useCallback((size: number) => {
@@ -391,9 +397,9 @@ export function DataTable<T>({
   const processedData = useMemo(() => {
     let result = data;
 
-    // Global search
-    if (searchQuery && searchFields) {
-      const query = searchQuery.toLowerCase();
+    // Global search (uses debounced value for performance)
+    if (debouncedSearch && searchFields) {
+      const query = debouncedSearch.toLowerCase();
       result = result.filter((row) => {
         const fields = searchFields(row);
         return fields.some((f) => f.toLowerCase().includes(query));
@@ -429,7 +435,7 @@ export function DataTable<T>({
     return result;
   }, [
     data,
-    searchQuery,
+    debouncedSearch,
     searchFields,
     filterableColumns,
     columnFilters,
@@ -469,7 +475,7 @@ export function DataTable<T>({
 
   // -- Has active filters? --
   const hasFilters = Boolean(
-    searchQuery || Object.keys(columnFilters).length > 0
+    debouncedSearch || Object.keys(columnFilters).length > 0
   );
 
   return (
