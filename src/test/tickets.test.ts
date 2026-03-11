@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import type { Ticket, TicketStatus, TicketPriority } from "@/types/database";
 
 describe("Tickets tabel", () => {
   const columnHeaders = [
@@ -99,5 +100,139 @@ describe("Tickets formatDate", () => {
     const result = formatDate("2026-03-12T10:00:00Z");
     expect(result).toContain("2026");
     expect(result).toContain("12");
+  });
+});
+
+describe("Ticket filter options", () => {
+  const statusOptions = [
+    { value: "", label: "Alle statussen" },
+    { value: "open", label: "Open" },
+    { value: "in_progress", label: "In behandeling" },
+    { value: "closed", label: "Gesloten" },
+  ];
+
+  const priorityOptions = [
+    { value: "", label: "Alle prioriteiten" },
+    { value: "urgent", label: "Urgent" },
+    { value: "high", label: "Hoog" },
+    { value: "normal", label: "Normaal" },
+    { value: "low", label: "Laag" },
+  ];
+
+  it("has status filter options including 'Alle'", () => {
+    expect(statusOptions).toHaveLength(4);
+    expect(statusOptions[0].label).toBe("Alle statussen");
+  });
+
+  it("has priority filter options including 'Alle'", () => {
+    expect(priorityOptions).toHaveLength(5);
+    expect(priorityOptions[0].label).toBe("Alle prioriteiten");
+  });
+
+  it("status options map to valid TicketStatus values", () => {
+    const validStatuses: TicketStatus[] = ["open", "in_progress", "closed"];
+    statusOptions.slice(1).forEach((opt) => {
+      expect(validStatuses).toContain(opt.value);
+    });
+  });
+
+  it("priority options map to valid TicketPriority values", () => {
+    const validPriorities: TicketPriority[] = [
+      "urgent",
+      "high",
+      "normal",
+      "low",
+    ];
+    priorityOptions.slice(1).forEach((opt) => {
+      expect(validPriorities).toContain(opt.value);
+    });
+  });
+});
+
+describe("Ticket client-side filtering logic", () => {
+  function makeTicket(
+    overrides: Partial<Ticket> & { summary: string }
+  ): Ticket {
+    return {
+      id: "1",
+      company_id: "c1",
+      cw_ticket_id: null,
+      summary: overrides.summary,
+      description: null,
+      status: overrides.status ?? "open",
+      priority: overrides.priority ?? "normal",
+      contact_name: null,
+      source: null,
+      is_closed: false,
+      cw_created_at: null,
+      cw_updated_at: null,
+      created_at: "2026-01-01",
+      updated_at: "2026-01-01",
+      ...overrides,
+    };
+  }
+
+  function filterTickets(
+    tickets: Ticket[],
+    search: string,
+    statusFilter: string,
+    priorityFilter: string
+  ): Ticket[] {
+    return tickets.filter((ticket) => {
+      if (
+        search &&
+        !ticket.summary.toLowerCase().includes(search.toLowerCase())
+      )
+        return false;
+      if (statusFilter && ticket.status !== statusFilter) return false;
+      if (priorityFilter && ticket.priority !== priorityFilter) return false;
+      return true;
+    });
+  }
+
+  const tickets = [
+    makeTicket({ id: "1", summary: "Printer werkt niet", status: "open", priority: "high" }),
+    makeTicket({ id: "2", summary: "Email probleem", status: "in_progress", priority: "normal" }),
+    makeTicket({ id: "3", summary: "VPN verbinding storing", status: "closed", priority: "urgent" }),
+    makeTicket({ id: "4", summary: "Nieuwe printer installeren", status: "open", priority: "low" }),
+  ];
+
+  it("returns all tickets with no filters", () => {
+    expect(filterTickets(tickets, "", "", "")).toHaveLength(4);
+  });
+
+  it("filters by search term (case-insensitive)", () => {
+    const result = filterTickets(tickets, "printer", "", "");
+    expect(result).toHaveLength(2);
+    expect(result[0].summary).toBe("Printer werkt niet");
+    expect(result[1].summary).toBe("Nieuwe printer installeren");
+  });
+
+  it("filters by status", () => {
+    const result = filterTickets(tickets, "", "open", "");
+    expect(result).toHaveLength(2);
+    result.forEach((t) => expect(t.status).toBe("open"));
+  });
+
+  it("filters by priority", () => {
+    const result = filterTickets(tickets, "", "", "urgent");
+    expect(result).toHaveLength(1);
+    expect(result[0].priority).toBe("urgent");
+  });
+
+  it("combines search and status filter", () => {
+    const result = filterTickets(tickets, "printer", "open", "");
+    expect(result).toHaveLength(2);
+  });
+
+  it("combines all filters", () => {
+    const result = filterTickets(tickets, "printer", "open", "high");
+    expect(result).toHaveLength(1);
+    expect(result[0].summary).toBe("Printer werkt niet");
+  });
+
+  it("returns empty when no matches", () => {
+    const result = filterTickets(tickets, "onbekend", "", "");
+    expect(result).toHaveLength(0);
   });
 });
