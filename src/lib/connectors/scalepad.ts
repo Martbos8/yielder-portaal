@@ -71,7 +71,7 @@ class SlidingWindowLimiter {
     this.timestamps = this.timestamps.filter((t) => now - t < this.windowMs);
 
     if (this.timestamps.length >= this.maxRequests) {
-      const oldest = this.timestamps[0];
+      const oldest = this.timestamps[0] ?? now;
       const waitMs = this.windowMs - (now - oldest) + 10;
       await new Promise((resolve) => setTimeout(resolve, waitMs));
     }
@@ -89,8 +89,8 @@ export class ScalePadApiClient {
   private limiter = new SlidingWindowLimiter(50, 5000);
 
   constructor() {
-    const baseUrl = process.env.SCALEPAD_BASE_URL;
-    const apiKey = process.env.SCALEPAD_API_KEY;
+    const baseUrl = process.env['SCALEPAD_BASE_URL'];
+    const apiKey = process.env['SCALEPAD_API_KEY'];
 
     if (!baseUrl || !apiKey) {
       this.config = null;
@@ -156,12 +156,12 @@ export class ScalePadApiClient {
       };
 
       if (cursor) {
-        queryParams.cursor = cursor;
+        queryParams["cursor"] = cursor;
       }
 
       const page = await this.request<CursorPage<T>>(endpoint, queryParams);
       results.push(...page.data);
-      cursor = page.hasMore ? page.cursor : null;
+      cursor = page.hasMore ? (page.cursor ?? null) : null;
     } while (cursor);
 
     return results;
