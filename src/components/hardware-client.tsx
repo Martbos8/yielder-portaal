@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
+import { useDebouncedValue } from "@/lib/hooks/use-debounce";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -260,12 +261,13 @@ interface HardwareClientProps {
 
 export function HardwareClient({ assets, upgradeCount }: HardwareClientProps) {
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [groupBy, setGroupBy] = useState<GroupBy>("type");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const filteredAssets = useMemo(
-    () => (search ? assets.filter((a) => assetMatchesSearch(a, search)) : assets),
-    [assets, search]
+    () => (debouncedSearch ? assets.filter((a) => assetMatchesSearch(a, debouncedSearch)) : assets),
+    [assets, debouncedSearch]
   );
 
   const groups = useMemo(
