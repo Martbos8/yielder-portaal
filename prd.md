@@ -181,7 +181,7 @@ Per iteratie:
   - Per aanbeveling: "Waarom dit belangrijk is" uitleg tekst
   - CTA: "Plan een gesprek" button die contact modal opent met pre-filled product
 
-### Taak 13: Hardware pagina verbeteren [not started]
+### Taak 13: Hardware pagina verbeteren [done]
 - Lees `src/app/(portal)/hardware/page.tsx`
 - Verbeter:
   - Visuele lifecycle indicator per device (progress bar van aankoop tot end-of-life)

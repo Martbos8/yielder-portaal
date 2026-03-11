@@ -354,3 +354,30 @@
 - Geleerd: Native HTML <details> element is better than client-side state for collapsible content — SSR-friendly, accessible, no JS needed
 - Geleerd: Linter auto-applied improvements before file write — must re-read file after linter runs
 [00:29:00] Iteratie 12 klaar
+[00:30:17] Iteratie 12 klaar
+[00:30:17] Iteratie 13 gestart
+
+[00:31:00] Taak 13 VOLTOOID — Hardware pagina verbeteren
+- Created hardware-client.tsx: full client component with all interactive features
+- Summary stats strip: total devices, expired warranty, expiring soon, average health score
+- Search bar: filters on name, serial number, assigned_to, manufacturer, model
+- Grouping toggle: 3 modes — per type (default), per warranty status, per assigned user
+  - Toggle buttons with yielder-navy active state, icons per mode
+- Bulk selection: per-card checkboxes + select-all, selection count shown
+- CSV export: client-side Blob download with BOM for Excel compat
+  - Exports selected items only when selection active, otherwise all filtered
+  - Columns: name, type, manufacturer, model, serial, assigned, warranty, health
+- Hardware health score per device: 0-100 based on warranty status + remaining time
+  - Color-coded: green (≥80), yellow (≥60), orange (≥40), red (<40)
+  - Shown as numeric indicator + mini health bar on each card
+- Lifecycle progress bar per device: visual from created_at → warranty_expiry
+  - Color-coded: green (normal), orange (>75%), red (past expiry)
+  - Remaining time label: "Nog 2+ jaar", "Nog 6 mnd", "45 dagen verlopen"
+- "Vervangingsadvies" badge on cards needing upgrade → links to /upgrade
+- Server page simplified to thin data-fetching wrapper
+- Upgrade banner: dynamic singular/plural text
+- 471 tests pass, build + lint groen
+- Geleerd: BOM (\uFEFF) prefix in CSV ensures Excel opens it with correct UTF-8 encoding
+- Geleerd: Set-based selection with toggle pattern is clean for bulk operations
+- Geleerd: stopPropagation on checkbox click prevents HardwareDetailModal from opening
+[00:31:30] Iteratie 13 klaar
