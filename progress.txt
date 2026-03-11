@@ -256,3 +256,34 @@
 - Geleerd: filterType "select" + filterValue accessor pattern cleanly decouples filter UI from data shape
 - Geleerd: Sort buttons inside TableHead work better for a11y than making the entire th clickable (clear focus target)
 [00:16:00] Iteratie 10 klaar
+
+[00:16:00] Taak 10 VOLTOOID — Data table component (enterprise-grade)
+- Enhanced DataTable<T> in src/components/data-display/data-table.tsx:
+  - Client-side sorting on any column with sort indicators (unfold_more / arrow_up/down)
+  - Column-level filtering: text input or select dropdown per column
+  - Global search bar with configurable search fields per row
+  - Pagination with configurable page sizes (10/25/50), first/prev/next/last buttons
+  - Loading state with shimmer skeletons
+  - Empty state for no data + filtered-no-results state
+  - Responsive: hideBelow prop per column (sm/md/lg breakpoints)
+  - Keyboard navigation: Enter/Space on clickable rows, aria-labels on all controls
+  - Toolbar slot for extra content above filters
+  - Caption slot for result counts
+  - nl-NL locale-aware sorting with numeric collation
+  - Null values always sort last
+- Refactored ticket-filters.tsx: replaced 177 lines with DataTable config (~100 lines)
+  - Sorting on all columns including priority (custom sort order: urgent → low)
+  - Status + priority select filters
+  - Global search on summary + contact name
+  - Pagination at 25 rows default
+- Refactored license-filters.tsx: replaced 231 lines with DataTable config (~140 lines)
+  - Sorting on all 7 columns including seat usage percentage
+  - Vendor (dynamic from data) + status select filters
+  - Global search on product + vendor
+  - Toolbar with StatCardCompact summary strip
+  - Pagination at 25 rows default
+- Net reduction: ~170 lines removed, all table rendering now centralized
+- 471 tests pass, build + lint groen
+- Geleerd: useMemo on columns array with dynamic filterOptions (vendorOptions) prevents re-renders
+- Geleerd: compareValues with nl-NL locale and numeric:true handles mixed alphanumeric sorting correctly
+- Geleerd: Stale .next cache continues to cause ENOENT — rm -rf .next is reliable fix
