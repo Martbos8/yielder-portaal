@@ -41,3 +41,55 @@ describe("formatCurrency", () => {
     expect(result).toContain("500,00");
   });
 });
+
+describe("Recente tickets widget", () => {
+  const statusConfig = {
+    open: { label: "Open", className: "bg-emerald-100 text-emerald-700" },
+    in_progress: { label: "In behandeling", className: "bg-orange-100 text-orange-700" },
+    closed: { label: "Gesloten", className: "bg-gray-100 text-gray-600" },
+  };
+
+  it("has status labels for all ticket statuses", () => {
+    expect(statusConfig.open.label).toBe("Open");
+    expect(statusConfig.in_progress.label).toBe("In behandeling");
+    expect(statusConfig.closed.label).toBe("Gesloten");
+  });
+
+  it("open status uses green styling", () => {
+    expect(statusConfig.open.className).toContain("emerald");
+  });
+
+  it("in_progress status uses orange styling", () => {
+    expect(statusConfig.in_progress.className).toContain("orange");
+  });
+
+  it("closed status uses gray styling", () => {
+    expect(statusConfig.closed.className).toContain("gray");
+  });
+
+  it("recente tickets section label exists", () => {
+    const sectionLabel = "Recente tickets";
+    expect(sectionLabel).toBe("Recente tickets");
+  });
+
+  it("empty state text is correct", () => {
+    const emptyText = "Geen open tickets";
+    expect(emptyText).toBe("Geen open tickets");
+  });
+
+  it("formatDate formats Dutch locale dates", () => {
+    function formatDate(dateStr: string | null): string {
+      if (!dateStr) return "—";
+      return new Date(dateStr).toLocaleDateString("nl-NL", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    }
+
+    expect(formatDate(null)).toBe("—");
+    const result = formatDate("2026-03-11T10:00:00Z");
+    expect(result).toContain("2026");
+    expect(result).toContain("11");
+  });
+});

@@ -111,5 +111,6 @@ describe("Query functions", () => {
     expect(typeof queries.getHardwareAssets).toBe("function");
     expect(typeof queries.getAgreements).toBe("function");
     expect(typeof queries.getDashboardStats).toBe("function");
+    expect(typeof queries.getRecentTickets).toBe("function");
   });
 });

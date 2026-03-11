@@ -48,6 +48,18 @@ export async function getUserCompany(): Promise<Company | null> {
   return company as Company | null;
 }
 
+export async function getRecentTickets(limit = 5): Promise<Ticket[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("tickets")
+    .select("*")
+    .eq("is_closed", false)
+    .order("cw_created_at", { ascending: false })
+    .limit(limit);
+
+  return (data ?? []) as Ticket[];
+}
+
 export async function getTickets(): Promise<Ticket[]> {
   const supabase = await createClient();
   const { data } = await supabase
