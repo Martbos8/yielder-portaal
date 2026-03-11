@@ -232,6 +232,24 @@ export type SyncLog = {
   created_at: string;
 };
 
+// Contact Request types
+
+export type ContactRequestUrgency = "normaal" | "hoog";
+export type ContactRequestStatus = "new" | "read" | "replied";
+
+export type ContactRequest = {
+  id: string;
+  company_id: string;
+  user_id: string;
+  subject: string;
+  message: string | null;
+  product_id: string | null;
+  urgency: ContactRequestUrgency;
+  status: ContactRequestStatus;
+  created_at: string;
+  updated_at: string;
+};
+
 // Recommendation Feedback types
 
 export type FeedbackAction = "shown" | "clicked" | "contacted" | "purchased" | "dismissed";

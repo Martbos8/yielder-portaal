@@ -4,6 +4,7 @@ import { getBestPrice } from "@/lib/distributors";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { ContactModal } from "@/components/contact-modal";
 
 function computeItScore(recommendations: Recommendation[]): number {
   if (recommendations.length === 0) return 100;
@@ -192,7 +193,7 @@ export default async function UpgradePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {criticalItems.map((rec) => (
-              <RecommendationCard key={rec.product.id} rec={rec} price={prices.get(rec.product.id)} />
+              <RecommendationCard key={rec.product.id} rec={rec} price={prices.get(rec.product.id)} companyId={companyId} />
             ))}
           </div>
         </section>
@@ -207,7 +208,7 @@ export default async function UpgradePage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {otherItems.map((rec) => (
-              <RecommendationCard key={rec.product.id} rec={rec} price={prices.get(rec.product.id)} />
+              <RecommendationCard key={rec.product.id} rec={rec} price={prices.get(rec.product.id)} companyId={companyId} />
             ))}
           </div>
         </section>
@@ -232,9 +233,11 @@ export default async function UpgradePage() {
 function RecommendationCard({
   rec,
   price,
+  companyId,
 }: {
   rec: Recommendation;
   price?: number;
+  companyId: string;
 }) {
   const isCritical = rec.severity === "critical";
 
@@ -272,15 +275,23 @@ function RecommendationCard({
         </div>
       )}
 
-      <button
-        className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
-          isCritical
-            ? "bg-red-600 text-white hover:bg-red-700"
-            : "bg-yielder-navy text-white hover:bg-yielder-navy/90"
-        }`}
-      >
-        {rec.ctaText}
-      </button>
+      <ContactModal
+        productName={rec.product.name}
+        productId={rec.product.id}
+        companyId={companyId}
+        defaultUrgency={isCritical ? "hoog" : "normaal"}
+        trigger={
+          <button
+            className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              isCritical
+                ? "bg-red-600 text-white hover:bg-red-700"
+                : "bg-yielder-navy text-white hover:bg-yielder-navy/90"
+            }`}
+          >
+            {rec.ctaText}
+          </button>
+        }
+      />
     </Card>
   );
 }
