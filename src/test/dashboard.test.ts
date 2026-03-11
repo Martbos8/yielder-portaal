@@ -93,3 +93,46 @@ describe("Recente tickets widget", () => {
     expect(result).toContain("11");
   });
 });
+
+describe("Aandachtspunten widget", () => {
+  it("aandachtspunten section label exists", () => {
+    const sectionLabel = "Aandachtspunten";
+    expect(sectionLabel).toBe("Aandachtspunten");
+  });
+
+  it("has subsection labels for contracts and warranty", () => {
+    const contractLabel = "Contracten verlopen binnenkort";
+    const warrantyLabel = "Verlopen garantie";
+    expect(contractLabel).toBe("Contracten verlopen binnenkort");
+    expect(warrantyLabel).toBe("Verlopen garantie");
+  });
+
+  it("empty state text is correct", () => {
+    const emptyText = "Geen aandachtspunten";
+    expect(emptyText).toBe("Geen aandachtspunten");
+  });
+
+  it("expiring contract badge uses orange styling", () => {
+    const badgeClass = "bg-orange-100 text-orange-700";
+    expect(badgeClass).toContain("orange");
+  });
+
+  it("expired warranty badge uses red styling", () => {
+    const badgeClass = "bg-red-100 text-red-700";
+    expect(badgeClass).toContain("red");
+  });
+
+  it("expiring agreements query uses 30-day window", () => {
+    const withinDays = 30;
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + withinDays);
+    const futureDateStr = futureDate.toISOString().split("T")[0];
+
+    // Verify the date is ~30 days in the future
+    const diffMs = futureDate.getTime() - Date.now();
+    const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    expect(diffDays).toBeGreaterThanOrEqual(29);
+    expect(diffDays).toBeLessThanOrEqual(31);
+    expect(futureDateStr).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});

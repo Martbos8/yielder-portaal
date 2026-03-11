@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { getDashboardStats, getRecentTickets } from "@/lib/queries";
+import {
+  getDashboardStats,
+  getRecentTickets,
+  getExpiringAgreements,
+  getExpiredWarrantyHardware,
+} from "@/lib/queries";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import type { TicketStatus } from "@/types/database";
@@ -40,10 +45,13 @@ const statusConfig: Record<
 };
 
 export default async function DashboardPage() {
-  const [stats, recentTickets] = await Promise.all([
-    getDashboardStats(),
-    getRecentTickets(5),
-  ]);
+  const [stats, recentTickets, expiringAgreements, expiredWarranty] =
+    await Promise.all([
+      getDashboardStats(),
+      getRecentTickets(5),
+      getExpiringAgreements(30),
+      getExpiredWarrantyHardware(),
+    ]);
 
   const kpis = [
     {
@@ -151,14 +159,70 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        {/* Aandachtspunten placeholder */}
+        {/* Aandachtspunten */}
         <div className="bg-card rounded-2xl p-6 shadow-card border border-border">
           <h2 className="text-sm font-semibold text-foreground mb-4">
             Aandachtspunten
           </h2>
-          <p className="text-sm text-muted-foreground">
-            Wordt gevuld met live data.
-          </p>
+
+          {expiringAgreements.length === 0 && expiredWarranty.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <MaterialIcon
+                name="check_circle"
+                className="text-emerald-500 mb-2"
+                size={32}
+              />
+              <p className="text-sm">Geen aandachtspunten</p>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              {expiringAgreements.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                    Contracten verlopen binnenkort
+                  </h3>
+                  <ul className="space-y-2">
+                    {expiringAgreements.map((agreement) => (
+                      <li
+                        key={agreement.id}
+                        className="flex items-center justify-between gap-3 py-1.5 border-b border-border last:border-0"
+                      >
+                        <span className="text-sm font-medium text-foreground truncate">
+                          {agreement.name}
+                        </span>
+                        <Badge className="shrink-0 bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                          Verloopt {formatDate(agreement.end_date)}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {expiredWarranty.length > 0 && (
+                <div>
+                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">
+                    Verlopen garantie
+                  </h3>
+                  <ul className="space-y-2">
+                    {expiredWarranty.map((asset) => (
+                      <li
+                        key={asset.id}
+                        className="flex items-center justify-between gap-3 py-1.5 border-b border-border last:border-0"
+                      >
+                        <span className="text-sm font-medium text-foreground truncate">
+                          {asset.name}
+                        </span>
+                        <Badge className="shrink-0 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                          Verlopen {formatDate(asset.warranty_expiry)}
+                        </Badge>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

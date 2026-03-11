@@ -91,6 +91,39 @@ export async function getAgreements(): Promise<Agreement[]> {
   return (data ?? []) as Agreement[];
 }
 
+export async function getExpiringAgreements(
+  withinDays = 30
+): Promise<Agreement[]> {
+  const supabase = await createClient();
+  const futureDate = new Date();
+  futureDate.setDate(futureDate.getDate() + withinDays);
+  const futureDateStr = futureDate.toISOString().split("T")[0];
+
+  const { data } = await supabase
+    .from("agreements")
+    .select("*")
+    .eq("status", "active")
+    .not("end_date", "is", null)
+    .lte("end_date", futureDateStr)
+    .order("end_date", { ascending: true });
+
+  return (data ?? []) as Agreement[];
+}
+
+export async function getExpiredWarrantyHardware(): Promise<HardwareAsset[]> {
+  const supabase = await createClient();
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  const { data } = await supabase
+    .from("hardware_assets")
+    .select("*")
+    .not("warranty_expiry", "is", null)
+    .lt("warranty_expiry", todayStr)
+    .order("warranty_expiry", { ascending: true });
+
+  return (data ?? []) as HardwareAsset[];
+}
+
 export async function getDashboardStats(): Promise<DashboardStats> {
   const supabase = await createClient();
 
