@@ -10,8 +10,10 @@ const navItems = [
   { href: "/dashboard", icon: "space_dashboard", label: "Dashboard" },
   { href: "/upgrade", icon: "rocket_launch", label: "Upgrade" },
   { href: "/hardware", icon: "laptop_mac", label: "Hardware" },
+  { href: "/software", icon: "key", label: "Software" },
   { href: "/tickets", icon: "confirmation_number", label: "Tickets" },
   { href: "/contracten", icon: "verified_user", label: "Contracten" },
+  { href: "/supportcontracten", icon: "support_agent", label: "Support SLA" },
   { href: "/facturen", icon: "receipt_long", label: "Facturen" },
 ];
 

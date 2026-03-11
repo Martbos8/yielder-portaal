@@ -6,6 +6,10 @@ import type {
   HardwareAsset,
   Agreement,
   DashboardStats,
+  License,
+  Contact,
+  Notification,
+  SyncLog,
 } from "@/types/database";
 
 export async function getUserProfile(): Promise<Profile | null> {
@@ -191,4 +195,53 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     activeContracts: activeAgreements.length,
     monthlyAmount,
   };
+}
+
+export async function getLicenses(): Promise<License[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("licenses")
+    .select("*")
+    .order("vendor", { ascending: true })
+    .order("product_name", { ascending: true });
+
+  return (data ?? []) as License[];
+}
+
+export async function getContacts(): Promise<Contact[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("contacts")
+    .select("*")
+    .order("full_name", { ascending: true });
+
+  return (data ?? []) as Contact[];
+}
+
+export async function getNotifications(
+  unreadOnly = false
+): Promise<Notification[]> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("notifications")
+    .select("*")
+    .order("created_at", { ascending: false });
+
+  if (unreadOnly) {
+    query = query.eq("is_read", false);
+  }
+
+  const { data } = await query;
+  return (data ?? []) as Notification[];
+}
+
+export async function getSyncStatus(): Promise<SyncLog[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("sync_logs")
+    .select("*")
+    .order("started_at", { ascending: false })
+    .limit(10);
+
+  return (data ?? []) as SyncLog[];
 }

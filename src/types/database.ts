@@ -152,6 +152,86 @@ export type ClientProduct = {
   updated_at: string;
 };
 
+// License types
+
+export type LicenseStatus = "active" | "expiring" | "expired";
+
+export type License = {
+  id: string;
+  company_id: string;
+  vendor: string;
+  product_name: string;
+  license_type: string | null;
+  seats_total: number;
+  seats_used: number;
+  expiry_date: string | null;
+  status: LicenseStatus;
+  cost_per_seat: number | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// Notification types
+
+export type NotificationType = "info" | "warning" | "alert" | "success";
+
+export type Notification = {
+  id: string;
+  company_id: string;
+  user_id: string | null;
+  title: string;
+  message: string;
+  type: NotificationType;
+  is_read: boolean;
+  link: string | null;
+  created_at: string;
+};
+
+// Document types
+
+export type DocumentCategory =
+  | "handleiding"
+  | "contract"
+  | "whitepaper"
+  | "rapport"
+  | "overig";
+
+export type Document = {
+  id: string;
+  company_id: string;
+  title: string;
+  category: DocumentCategory;
+  file_url: string | null;
+  file_size: number | null;
+  uploaded_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+// Sync Log types
+
+export type SyncEntityType =
+  | "companies"
+  | "tickets"
+  | "agreements"
+  | "hardware"
+  | "contacts"
+  | "licenses";
+
+export type SyncStatus = "running" | "completed" | "failed";
+
+export type SyncLog = {
+  id: string;
+  entity_type: SyncEntityType;
+  status: SyncStatus;
+  records_synced: number;
+  records_failed: number;
+  error_message: string | null;
+  started_at: string;
+  completed_at: string | null;
+  created_at: string;
+};
+
 // Recommendation Feedback types
 
 export type FeedbackAction = "shown" | "clicked" | "contacted" | "purchased" | "dismissed";
