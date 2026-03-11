@@ -314,3 +314,21 @@
 - Geleerd: Linter auto-applies dashboard page improvements before write — must re-read and fix remaining issues
 - Geleerd: .catch(() => fallback) on Promise.all entries is cleaner than try/catch wrappers for optional data
 [00:25:50] Iteratie 9 klaar
+[00:26:35] Iteratie 11 klaar
+[00:26:35] Iteratie 12 gestart
+
+[00:28:00] Taak 12 VOLTOOID — Upgrade pagina verbeteren
+- IT Score ring: larger size (160px, strokeWidth 10), with recommendation count below
+- Score per categorie: horizontal progress bars per category with percentage, color-coded (green/orange/red)
+  - computeCategoryScores() groups recommendations by category, calculates sub-scores
+  - Sorted worst-to-best for visual urgency
+- Collapsible detail on all recommendation cards: native <details>/<summary> for "Waarom dit belangrijk is"
+  - getImportanceText() returns severity-specific Dutch explanation
+  - Expand icon rotates on open (CSS transition via group-open)
+- CTA buttons enhanced: calendar icon + text, rounded-xl
+- Section counters: item count shown next to section headers
+- Fixed Map iteration error: Map.entries() not iterable without downlevelIteration — used Array.from()
+- 471 tests pass, build + lint groen
+- Geleerd: Map iterator requires downlevelIteration or target es2015+ — Array.from(map.entries()) is the safe alternative
+- Geleerd: Native <details>/<summary> is perfect for collapsible cards — zero JS, accessible by default
+[00:28:50] Iteratie 12 klaar

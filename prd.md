@@ -171,7 +171,7 @@ Per iteratie:
   - Recente activiteit feed (laatste 10 events uit audit_log of tickets)
   - Responsive grid: 4 kolommen desktop → 2 tablet → 1 mobile
 
-### Taak 12: Upgrade pagina verbeteren [not started]
+### Taak 12: Upgrade pagina verbeteren [done]
 - Lees `src/app/(portal)/upgrade/page.tsx`
 - Verbeter:
   - IT Score ring: grotere ring, animatie bij laden, breakdown per categorie
