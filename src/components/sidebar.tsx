@@ -14,7 +14,12 @@ const navItems = [
   { href: "/tickets", icon: "confirmation_number", label: "Tickets" },
   { href: "/contracten", icon: "verified_user", label: "Contracten" },
   { href: "/supportcontracten", icon: "support_agent", label: "Support SLA" },
+  { href: "/it-gezondheid", icon: "health_and_safety", label: "IT-gezondheid" },
+  { href: "/prestaties", icon: "monitoring", label: "Prestaties" },
   { href: "/facturen", icon: "receipt_long", label: "Facturen" },
+  { href: "/documenten", icon: "folder_open", label: "Documenten" },
+  { href: "/contact", icon: "contact_support", label: "Contact" },
+  { href: "/shop", icon: "storefront", label: "IT-oplossingen" },
 ];
 
 interface SidebarProps {
