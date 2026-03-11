@@ -403,3 +403,23 @@
 - Geleerd: Supabase query chaining — .eq() must come before .order()/.limit() (type narrowing prevents calling filter methods on transform builders)
 - Geleerd: Promise.all with .catch(() => fallback) is clean for optional parallel data fetching
 [00:37:00] Iteratie 14 klaar
+[00:37:32] Iteratie 11 klaar
+[00:37:32] Iteratie 12 gestart
+
+[00:37:00] Taak 14 VOLTOOID — Tickets pagina naar helpdesk-niveau
+- Ticket detail page: 2-column layout with main content (2/3) + metadata sidebar (1/3)
+- Timeline view: chronological events (created, updated/closed, in_progress) with colored icons and relative time
+- Collapsible description: native <details> element with expand/collapse animation
+- Priority color coding: urgent=red with animate-pulse, high=orange, normal=blue, low=gray
+  - PriorityIndicator dot component in list view with pulse on urgent
+  - Priority icon in detail header with pulse on urgent badge
+- Metadata sidebar: contactpersoon, bron, prioriteit, status, aangemaakt/bijgewerkt dates
+- Vergelijkbare tickets section: same source tickets with priority badges and status
+  - Uses getSimilarTickets() repository function (already existed)
+- Response time indicator: average response time and resolution time in header + sidebar stats card
+  - Uses getTicketStats() repository function (already existed)
+- Tickets list page: toolbar with total/open/urgent counts + avg response time
+  - Urgent count with red background + pulse indicator
+- 471 tests pass, build + lint groen
+- Geleerd: Linter hooks auto-applied most improvements — verify and validate rather than rewrite
+- Geleerd: getSimilarTickets and getTicketStats were already in the repository from iteration 4 — good forward planning
