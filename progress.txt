@@ -105,3 +105,23 @@
 - Build + lint + 429 tests groen
 - Geleerd: ContactForm had no backend mutation at all — it was purely cosmetic
 - Geleerd: getUserCompanyId() returns string|null — must handle null case in server components
+[23:39:31] Iteratie 3 klaar
+[23:39:31] Iteratie 4 gestart
+[23:39:36] Iteratie 5 klaar
+[23:39:36] Iteratie 6 gestart
+
+[23:42:00] Taak 6 VOLTOOID — Middleware chain verbeteren
+- Created src/lib/middleware/ module with 4 submodules:
+  - request-id.ts — crypto.randomUUID() for request tracing
+  - security-headers.ts — Permissions-Policy, HSTS, COOP, CORP, X-DNS-Prefetch-Control, X-Request-Id
+  - cors.ts — origin-based CORS for /api/* routes, preflight handling
+  - route-rate-limit.ts — sliding window rate limiting per IP+route prefix with cleanup
+- Route rate limits: /api/sync (10/min), /api/ (100/min), /login (30/min)
+- Rate limit responses include X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After headers
+- Enhanced supabase/middleware.ts: integrated all middleware modules, security headers on all responses including redirects
+- Redirect optimization: exact match on /login (not startsWith) to avoid /login/callback conflicts
+- 11 new tests (440 total), build + lint groen
+- Geleerd: Map iteration with `for...of` requires downlevelIteration or es2015 target — use .forEach() to avoid tsconfig changes
+- Geleerd: Stale .next cache can cause ENOENT errors on build — rm -rf .next fixes it
+- Geleerd: Static security headers (CSP, X-Frame-Options) belong in next.config.mjs, dynamic/per-request headers (X-Request-Id, rate limit) belong in middleware
+[23:42:00] Iteratie 6 klaar

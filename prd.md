@@ -92,7 +92,7 @@ Per iteratie:
 - Elke action: auth check, validatie, sanitize, rate limit, audit log, return typed result
 - Update frontend components om deze actions te gebruiken
 
-### Taak 6: Middleware chain verbeteren [not started]
+### Taak 6: Middleware chain verbeteren [done]
 - Lees `src/middleware.ts`
 - Verbeter:
   - Rate limiting op route-niveau (niet alleen per endpoint)
