@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { syncAll } from "@/lib/connectwise/sync";
+import { AuthError, isAppError, toErrorResponse } from "@/lib/errors";
 
 /**
  * POST /api/sync/connectwise
@@ -10,7 +11,9 @@ export async function POST(request: NextRequest) {
   const expectedSecret = process.env['SYNC_SECRET'];
 
   if (!expectedSecret || secret !== expectedSecret) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const err = new AuthError("Ongeldige sync credentials");
+    const response = toErrorResponse(err);
+    return NextResponse.json({ error: response.error }, { status: response.statusCode });
   }
 
   try {
@@ -24,10 +27,11 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ message: "Sync voltooid", results });
-  } catch {
+  } catch (error) {
+    const response = toErrorResponse(error);
     return NextResponse.json(
-      { error: "Sync mislukt" },
-      { status: 500 }
+      { error: response.error, code: response.code },
+      { status: isAppError(error) ? error.statusCode : 500 }
     );
   }
 }

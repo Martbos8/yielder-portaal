@@ -2,6 +2,8 @@
 // Uses Basic auth: companyId+publicKey:privateKey
 // Requires clientId header for API access
 
+import { ExternalServiceError } from "@/lib/errors";
+
 type CWClientConfig = {
   baseUrl: string;
   companyId: string;
@@ -72,7 +74,7 @@ export class ConnectWiseClient {
       });
 
       if (!response.ok) {
-        throw new Error(`CW API error: ${response.status} ${response.statusText}`);
+        throw new ExternalServiceError("ConnectWise", `API error: ${response.status} ${response.statusText}`);
       }
 
       const data = (await response.json()) as T[];
