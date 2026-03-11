@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
+import { ToastProvider } from "@/components/toast";
 import { useRealtime } from "@/hooks/use-realtime";
 import type { Notification } from "@/types/database";
 
@@ -50,27 +51,29 @@ export function PortalShell({ user, openTicketCount, criticalUpgradeCount = 0, n
   ]);
 
   return (
-    <div className="relative h-screen w-full flex flex-col overflow-hidden">
-      <Header
-        onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
-        companyName={user.companyName}
-        initials={user.initials}
-        openTicketCount={openTicketCount}
-        notifications={notifications}
-      />
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-          fullName={user.fullName}
+    <ToastProvider>
+      <div className="relative h-screen w-full flex flex-col overflow-hidden">
+        <Header
+          onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
           companyName={user.companyName}
           initials={user.initials}
-          criticalUpgradeCount={criticalUpgradeCount}
+          openTicketCount={openTicketCount}
+          notifications={notifications}
         />
-        <main className="flex-1 overflow-y-auto p-6 md:p-10">
-          <div className="max-w-6xl mx-auto page-enter">{children}</div>
-        </main>
+        <div className="flex flex-1 overflow-hidden">
+          <Sidebar
+            isOpen={sidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+            fullName={user.fullName}
+            companyName={user.companyName}
+            initials={user.initials}
+            criticalUpgradeCount={criticalUpgradeCount}
+          />
+          <main className="flex-1 overflow-y-auto p-6 md:p-10">
+            <div className="max-w-6xl mx-auto page-enter">{children}</div>
+          </main>
+        </div>
       </div>
-    </div>
+    </ToastProvider>
   );
 }

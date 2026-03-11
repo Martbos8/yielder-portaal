@@ -100,7 +100,7 @@ export function NotificationPanel({
       >
         <MaterialIcon name="notifications" size={22} />
         {badgeCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 flex items-center justify-center bg-rose-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white px-1">
+          <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 flex items-center justify-center bg-rose-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white px-1 animate-badge-pulse">
             {badgeCount > 99 ? "99+" : badgeCount}
           </span>
         )}

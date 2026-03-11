@@ -209,7 +209,7 @@ Per iteratie:
   - "Besparingspotentieel" als er betere deals zijn (link naar upgrade)
   - Contracten vergelijken (side-by-side)
 
-### Taak 16: Animaties en micro-interacties [not started]
+### Taak 16: Animaties en micro-interacties [done]
 - Voeg toe (ZONDER externe dependencies, gebruik Tailwind + CSS):
   - Page transition: fade-in + subtle slide-up (al in globals.css, verifieer werking)
   - Card hover: subtle lift + shadow transition (200ms ease)

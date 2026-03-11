@@ -137,7 +137,7 @@ export function StatCard({ label, value, icon, suffix, description, trend, trend
  */
 export function StatCardCompact({ label, value, icon, suffix }: StatCardProps) {
   return (
-    <div className="bg-card rounded-2xl p-4 shadow-card border border-border">
+    <div className="bg-card rounded-2xl p-4 shadow-card border border-border card-interactive">
       <div className="flex items-center gap-2 mb-1">
         {icon && (
           <MaterialIcon

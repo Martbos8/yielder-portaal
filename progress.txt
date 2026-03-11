@@ -448,3 +448,23 @@
 - Geleerd: Set-based compare selection reusable pattern from hardware page bulk selection
 - Geleerd: Side-by-side comparison table rows with getValue() accessor pattern keeps comparison logic clean and extensible
 [00:40:00] Iteratie 15 klaar
+[00:41:04] Iteratie 12 klaar
+[00:41:04] Iteratie 13 gestart
+
+[00:45:00] Taak 16 VOLTOOID — Animaties en micro-interacties
+- globals.css: added card-interactive (hover lift + shadow) and btn-press (scale 0.98) CSS classes
+- Card component: added shadow-card base + hover:shadow-card-hover + hover:-translate-y-0.5 transition globally
+- Button component: already had active:scale-[0.98] + active:translate-y-px built in (shadcn default)
+- Loading skeletons: Skeleton component uses animate-shimmer (gradient shimmer animation)
+- Score ring: MetricRing uses score-ring-animated CSS + useState/useEffect for animated fill from 0 on mount
+- Notification badge: animate-badge-pulse applied (scale 1→1.15 + opacity cycle, 2s loop)
+- Toast notifications: toast-enter (slideIn from right) + toast-exit (slideOut) in Toast component
+- Page transitions: page-enter (fade-in + 16px slide-up) applied in PortalShell wrapper
+- Sidebar active item: transition-all duration-200 ease-out on nav links (smooth bg + border color change)
+- Reduced motion: @media (prefers-reduced-motion: reduce) disables ALL animations and transitions
+- Most animations were already implemented in prior iterations — this task verified and added missing pieces
+- 471 tests pass, build + lint groen
+- Geleerd: Many animations were auto-applied by linter hooks in prior iterations — verify before reimplementing
+- Geleerd: Card hover globally in card.tsx is better than card-interactive per-page — single source of truth
+- Geleerd: prefers-reduced-motion should use wildcard * selector to catch all transition/animation properties
+[00:45:00] Iteratie 16 klaar

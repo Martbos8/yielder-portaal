@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
 /** Props for the MetricRing component. */
 interface MetricRingProps {
   /** Score value (0-100). */
@@ -23,7 +27,7 @@ function getScoreColors(score: number) {
 
 /**
  * SVG-based circular progress ring for score/percentage display.
- * Used on the upgrade page for IT score and other metric visualizations.
+ * Animates the fill on first render using CSS transitions.
  */
 export function MetricRing({
   score,
@@ -33,7 +37,18 @@ export function MetricRing({
   description,
 }: MetricRingProps) {
   const colors = getScoreColors(score);
-  const dashArray = `${(score / 100) * CIRCUMFERENCE} ${CIRCUMFERENCE}`;
+  const [animated, setAnimated] = useState(false);
+  const ref = useRef<SVGCircleElement>(null);
+
+  // Trigger animation after mount
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setAnimated(true));
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  const dashArray = animated
+    ? `${(score / 100) * CIRCUMFERENCE} ${CIRCUMFERENCE}`
+    : `0 ${CIRCUMFERENCE}`;
 
   return (
     <div className="flex flex-col items-center">
@@ -54,6 +69,7 @@ export function MetricRing({
             className="text-muted/20"
           />
           <circle
+            ref={ref}
             cx="64"
             cy="64"
             r="56"
@@ -61,7 +77,7 @@ export function MetricRing({
             strokeWidth={strokeWidth}
             strokeLinecap="round"
             strokeDasharray={dashArray}
-            className={colors.stroke}
+            className={`${colors.stroke} score-ring-animated`}
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">

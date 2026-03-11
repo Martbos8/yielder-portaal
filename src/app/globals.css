@@ -98,6 +98,120 @@
       transform: translateY(0);
     }
   }
+
+  /* Card hover: subtle lift + shadow transition */
+  .card-interactive {
+    @apply transition-all duration-200 ease-out;
+  }
+  .card-interactive:hover {
+    @apply shadow-card-hover -translate-y-0.5;
+  }
+
+  /* Button press: scale feedback */
+  .btn-press {
+    @apply transition-transform duration-100 ease-out;
+  }
+  .btn-press:active {
+    transform: scale(0.98);
+  }
+
+  /* Shimmer skeleton animation */
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(31, 59, 97, 0.04) 25%,
+      rgba(31, 59, 97, 0.08) 50%,
+      rgba(31, 59, 97, 0.04) 75%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
+  /* Score ring fill animation */
+  .score-ring-animated {
+    transition: stroke-dasharray 1s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  /* Notification badge pulse */
+  @keyframes badge-pulse {
+    0%, 100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.15);
+      opacity: 0.85;
+    }
+  }
+  .animate-badge-pulse {
+    animation: badge-pulse 2s ease-in-out infinite;
+  }
+
+  /* Toast slide-in */
+  @keyframes toast-slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  @keyframes toast-slide-out {
+    from {
+      opacity: 1;
+      transform: translateX(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateX(100%);
+    }
+  }
+  .toast-enter {
+    animation: toast-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .toast-exit {
+    animation: toast-slide-out 0.2s ease-in forwards;
+  }
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter,
+  .toast-enter,
+  .toast-exit {
+    animation: none !important;
+  }
+  .card-interactive,
+  .btn-press {
+    transition: none !important;
+    transform: none !important;
+  }
+  .animate-shimmer {
+    animation: none !important;
+  }
+  .animate-badge-pulse {
+    animation: none !important;
+  }
+  .score-ring-animated {
+    transition: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @layer utilities {

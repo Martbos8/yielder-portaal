@@ -89,7 +89,7 @@ export function Sidebar({ isOpen, onClose, fullName, companyName, initials, crit
                   onClick={onClose}
                   className={`
                     relative flex items-center gap-3 px-3 py-2 rounded-lg
-                    font-medium transition-colors cursor-pointer
+                    font-medium transition-all duration-200 ease-out cursor-pointer
                     border-l-2
                     ${
                       isActive
