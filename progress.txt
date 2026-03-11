@@ -28,3 +28,14 @@
 - 19 tabellen, 395 tests pass, build + lint groen
 - Geleerd: TypeScript indexed access types (Type["field"]) perfect voor het afleiden van union types uit DB schema
 [23:24:00] Iteratie 2 klaar
+[23:23:15] Iteratie 2 klaar
+[23:23:15] Iteratie 3 gestart
+
+[23:27:00] Taak 3 VOLTOOID — Error handling systematisch maken
+- Created src/lib/errors.ts met AppError hierarchy (7 error classes)
+- AuthError, NotFoundError, ValidationError, RateLimitError, DatabaseError, ExternalServiceError
+- isAppError() type guard en toErrorResponse() helper voor API routes
+- Refactored ConnectWise client en ScalePad connector naar ExternalServiceError
+- Sync API route nu met proper error response formatting
+- Bestaande silent-fail patterns (audit, layout recommendations) bewust ongemoeid gelaten — die zijn correct
+- Build + test groen (395 tests pass)

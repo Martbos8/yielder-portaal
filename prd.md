@@ -52,7 +52,7 @@ Per iteratie:
 - Voeg generics toe aan Supabase client calls: `supabase.from('tickets').select('*').returns<Ticket[]>()`
 - Zorg dat ELKE query return type compile-time geverifieerd is
 
-### Taak 3: Error handling systematisch maken [not started]
+### Taak 3: Error handling systematisch maken [done]
 - Maak `src/lib/errors.ts`:
   - Custom error classes: `AppError`, `AuthError`, `NotFoundError`, `ValidationError`, `RateLimitError`
   - Elk met: message, code, statusCode, isOperational flag
