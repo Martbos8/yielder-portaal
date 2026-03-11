@@ -161,7 +161,7 @@ Per iteratie:
 - Pas toe op: tickets lijst, hardware lijst, audit log, licenties
 - Dit vervangt handmatige tabel implementaties
 
-### Taak 11: Dashboard verbeteren naar executive-niveau [not started]
+### Taak 11: Dashboard verbeteren naar executive-niveau [done]
 - Lees `src/app/(portal)/dashboard/page.tsx`
 - Verbeter naar Stripe/Vercel dashboard niveau:
   - KPI cards met trend indicator (↑ 12% vs vorige maand) — berekend uit data

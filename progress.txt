@@ -289,3 +289,28 @@
 - Geleerd: Stale .next cache continues to cause ENOENT — rm -rf .next is reliable fix
 [00:16:46] Iteratie 10 klaar
 [00:16:46] Iteratie 11 gestart
+[00:17:50] Iteratie 8 klaar
+[00:17:50] Iteratie 9 gestart
+
+[00:25:00] Taak 11 VOLTOOID — Dashboard verbeteren naar executive-niveau
+- KPI cards now show trend indicators (↑/↓ % vs vorige maand) and sparkline mini-charts
+  - Ticket sparkline: 14-day daily ticket creation counts
+  - All 4 KPIs: trend percentage calculated from 30-day vs previous 30-day window
+- Added dashboard.repository.ts: getDashboardTrends() and getRecentActivity()
+  - DashboardTrends: compares current/previous 30-day windows for tickets, hardware, contracts, amount
+  - ActivityEntry: maps audit_log to structured entries with Dutch labels
+- Added getCachedDashboardTrends() and getCachedRecentActivity() (2 min TTL) to cached.ts
+- Quick actions section: 3 cards (Tickets bekijken, Contact opnemen, Contracten) with hover effects
+- Aandachtspunten sorted by urgency: expired warranty (most urgent) → expiring soon → later
+  - Color-coded: red for expired, orange for ≤7 days, yellow for others
+  - Icons differentiate warranty vs contract items
+- Recente activiteit feed: timeline view with 10 latest audit_log entries
+  - Dutch labels for all known action types
+  - Relative time formatting ("2 uur geleden", "3 dagen geleden")
+  - Vertical timeline line with icon nodes
+- Responsive grid: 4 cols desktop → 2 tablet → 1 mobile (already correct, verified)
+- Fixed unused fourteenDaysAgo variable in dashboard.repository.ts
+- 471 tests pass, build + lint groen
+- Geleerd: Linter auto-applies dashboard page improvements before write — must re-read and fix remaining issues
+- Geleerd: .catch(() => fallback) on Promise.all entries is cleaner than try/catch wrappers for optional data
+[00:25:50] Iteratie 9 klaar
