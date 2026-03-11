@@ -13,10 +13,11 @@ interface UserContext {
 interface PortalShellProps {
   user: UserContext;
   openTicketCount: number;
+  criticalUpgradeCount?: number;
   children: React.ReactNode;
 }
 
-export function PortalShell({ user, openTicketCount, children }: PortalShellProps) {
+export function PortalShell({ user, openTicketCount, criticalUpgradeCount = 0, children }: PortalShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
@@ -34,6 +35,7 @@ export function PortalShell({ user, openTicketCount, children }: PortalShellProp
           fullName={user.fullName}
           companyName={user.companyName}
           initials={user.initials}
+          criticalUpgradeCount={criticalUpgradeCount}
         />
         <main className="flex-1 overflow-y-auto p-6 md:p-10">
           <div className="max-w-6xl mx-auto page-enter">{children}</div>

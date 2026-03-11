@@ -1,4 +1,5 @@
-import { getUserProfile, getUserCompany, getOpenTicketCount } from "@/lib/queries";
+import { getUserProfile, getUserCompany, getUserCompanyId, getOpenTicketCount } from "@/lib/queries";
+import { getRecommendations } from "@/lib/engine/recommendation";
 import { PortalShell } from "@/components/portal-shell";
 
 function getInitials(name: string | null): string {
@@ -14,18 +15,29 @@ export default async function PortalLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [profile, company, openTicketCount] = await Promise.all([
+  const [profile, company, openTicketCount, companyId] = await Promise.all([
     getUserProfile(),
     getUserCompany(),
     getOpenTicketCount(),
+    getUserCompanyId(),
   ]);
+
+  let criticalUpgradeCount = 0;
+  if (companyId) {
+    try {
+      const recs = await getRecommendations(companyId);
+      criticalUpgradeCount = recs.filter((r) => r.severity === "critical").length;
+    } catch {
+      // Silently fail — tables may not exist yet
+    }
+  }
 
   const fullName = profile?.full_name ?? "Gebruiker";
   const companyName = company?.name ?? "";
   const initials = getInitials(profile?.full_name ?? null);
 
   return (
-    <PortalShell user={{ fullName, initials, companyName }} openTicketCount={openTicketCount}>
+    <PortalShell user={{ fullName, initials, companyName }} openTicketCount={openTicketCount} criticalUpgradeCount={criticalUpgradeCount}>
       {children}
     </PortalShell>
   );

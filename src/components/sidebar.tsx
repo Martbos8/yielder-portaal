@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   { href: "/dashboard", icon: "space_dashboard", label: "Dashboard" },
+  { href: "/upgrade", icon: "rocket_launch", label: "Upgrade" },
   { href: "/hardware", icon: "laptop_mac", label: "Hardware" },
   { href: "/tickets", icon: "confirmation_number", label: "Tickets" },
   { href: "/contracten", icon: "verified_user", label: "Contracten" },
@@ -20,9 +21,10 @@ interface SidebarProps {
   fullName: string;
   companyName: string;
   initials: string;
+  criticalUpgradeCount?: number;
 }
 
-export function Sidebar({ isOpen, onClose, fullName, companyName, initials }: SidebarProps) {
+export function Sidebar({ isOpen, onClose, fullName, companyName, initials, criticalUpgradeCount = 0 }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -98,6 +100,11 @@ export function Sidebar({ isOpen, onClose, fullName, companyName, initials }: Si
                     }
                   />
                   <span className="text-sm">{item.label}</span>
+                  {item.href === "/upgrade" && criticalUpgradeCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full size-5 flex items-center justify-center">
+                      {criticalUpgradeCount}
+                    </span>
+                  )}
                 </Link>
               );
             })}

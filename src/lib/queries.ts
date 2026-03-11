@@ -24,6 +24,22 @@ export async function getUserProfile(): Promise<Profile | null> {
   return data as Profile | null;
 }
 
+export async function getUserCompanyId(): Promise<string | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data } = await supabase
+    .from("user_company_mapping")
+    .select("company_id")
+    .eq("user_id", user.id)
+    .single();
+
+  return data?.company_id ?? null;
+}
+
 export async function getUserCompany(): Promise<Company | null> {
   const supabase = await createClient();
   const {
