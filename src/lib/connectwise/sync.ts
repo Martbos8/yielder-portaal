@@ -1,8 +1,9 @@
 // ConnectWise sync functions — fetches data from CW API and upserts into Supabase
-// In demo mode (no API keys), logs a message and returns early
+// In demo mode (no API keys), returns early
 
 import { ConnectWiseClient } from "./client";
 import { ExternalServiceError } from "@/lib/errors";
+import { createLogger } from "@/lib/logger";
 import { invalidateAllCaches } from "@/lib/repositories/cached";
 import type {
   CWCompany,
@@ -11,6 +12,8 @@ import type {
   CWConfiguration,
   CWSyncResult,
 } from "./types";
+
+const log = createLogger("connectwise:sync");
 
 /**
  * Transforms CW ticket status to our internal status.
@@ -63,15 +66,22 @@ export async function syncAll(): Promise<CWSyncResult[]> {
   const client = new ConnectWiseClient();
 
   if (!client.isConfigured()) {
+    log.info("Sync skipped — ConnectWise API not configured");
     return [];
   }
 
   const results: CWSyncResult[] = [];
 
-  results.push(await syncCompanies(client));
-  results.push(await syncTickets(client));
-  results.push(await syncAgreements(client));
-  results.push(await syncConfigurations(client));
+  for (const syncFn of [syncCompanies, syncTickets, syncAgreements, syncConfigurations]) {
+    const result = await syncFn(client);
+    log.info(`Synced ${result.entity}`, {
+      synced: result.synced,
+      errors: result.errors,
+      skipped: result.skipped,
+      durationMs: result.duration_ms,
+    });
+    results.push(result);
+  }
 
   // Invalidate all caches after sync — data has changed
   invalidateAllCaches();

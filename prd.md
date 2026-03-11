@@ -117,7 +117,7 @@ Per iteratie:
   - Company info: 30 min TTL
   - Dashboard stats: 2 min TTL
 
-### Taak 8: Logging & observability [not started]
+### Taak 8: Logging & observability [done]
 - Maak `src/lib/logger.ts`:
   - Structured logging (JSON format)
   - Log levels: debug, info, warn, error

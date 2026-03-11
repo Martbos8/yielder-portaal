@@ -7,6 +7,9 @@ import {
   checkRouteRateLimit,
   getRateLimitHeaders,
 } from "@/lib/middleware";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("middleware");
 
 export async function middleware(request: NextRequest) {
   // 1. Generate a unique request ID for tracing
@@ -27,6 +30,7 @@ export async function middleware(request: NextRequest) {
   // 3. Route-level rate limiting (returns 429 if exceeded)
   const rateLimitResponse = checkRouteRateLimit(request);
   if (rateLimitResponse) {
+    log.warn("Rate limit exceeded", { requestId, route: request.nextUrl.pathname, ip: getClientIp(request) });
     applySecurityHeaders(rateLimitResponse, requestId);
     return rateLimitResponse;
   }

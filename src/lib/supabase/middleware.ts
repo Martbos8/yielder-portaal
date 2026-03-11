@@ -1,5 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { createLogger } from "@/lib/logger";
+
+const log = createLogger("auth");
 
 /** Public paths that don't require authentication. */
 const PUBLIC_PATHS = ["/login", "/auth"] as const;
@@ -44,6 +47,7 @@ export async function updateSession(request: NextRequest) {
 
   // Not logged in and not on a public page → redirect to login
   if (!user && !isPublicPath(pathname)) {
+    log.debug("Unauthenticated access — redirecting to login", { route: pathname });
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
@@ -51,6 +55,7 @@ export async function updateSession(request: NextRequest) {
 
   // Logged in and on login or root → redirect to dashboard (single hop)
   if (user && (pathname === "/" || pathname.startsWith("/login"))) {
+    log.debug("Authenticated user on login page — redirecting to dashboard", { userId: user.id });
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

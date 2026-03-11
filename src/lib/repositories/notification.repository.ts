@@ -1,22 +1,27 @@
 import { createClient } from "@/lib/supabase/server";
 import { DatabaseError } from "@/lib/errors";
+import { createLogger, withTiming } from "@/lib/logger";
 import type { Notification } from "@/types/database";
+
+const log = createLogger("repo:notifications");
 
 const NOTIFICATION_COLUMNS = "id, company_id, user_id, title, message, type, is_read, link, created_at" as const;
 
 /** Fetch notifications, optionally filtered to unread only. */
 export async function getNotifications(unreadOnly = false): Promise<Notification[]> {
-  const supabase = await createClient();
-  let query = supabase
-    .from("notifications")
-    .select(NOTIFICATION_COLUMNS)
-    .order("created_at", { ascending: false });
+  return withTiming(log, "getNotifications", async () => {
+    const supabase = await createClient();
+    let query = supabase
+      .from("notifications")
+      .select(NOTIFICATION_COLUMNS)
+      .order("created_at", { ascending: false });
 
-  if (unreadOnly) {
-    query = query.eq("is_read", false);
-  }
+    if (unreadOnly) {
+      query = query.eq("is_read", false);
+    }
 
-  const { data, error } = await query.returns<Notification[]>();
-  if (error) throw new DatabaseError(`Failed to fetch notifications: ${error.message}`);
-  return data ?? [];
+    const { data, error } = await query.returns<Notification[]>();
+    if (error) throw new DatabaseError(`Failed to fetch notifications: ${error.message}`);
+    return data ?? [];
+  }, { unreadOnly: String(unreadOnly) });
 }

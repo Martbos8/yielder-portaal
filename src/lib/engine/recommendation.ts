@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createLogger } from "@/lib/logger";
 import type {
   Product,
   ProductDependency,
@@ -7,6 +8,8 @@ import type {
 } from "@/types/database";
 import { computeGaps, type GapResult, type GapSeverity } from "./gap-analysis";
 import { computePatterns, type PatternResult } from "./pattern-matching";
+
+const log = createLogger("engine:recommendation");
 
 export type Recommendation = {
   product: Product;
@@ -45,7 +48,10 @@ export async function getRecommendations(
     ]);
 
   const company = companyRes.data as Company | null;
-  if (!company) return [];
+  if (!company) {
+    log.warn("Company not found for recommendations", { companyId });
+    return [];
+  }
 
   const allCompanies = (companiesRes.data ?? []) as Company[];
   const allClientProducts = (clientProductsRes.data ?? []) as ClientProduct[];
@@ -61,10 +67,20 @@ export async function getRecommendations(
     (cp) => cp.company_id === companyId
   );
 
+  const start = Date.now();
   const gaps = computeGaps(companyClientProducts, dependencies, allProducts);
   const patterns = computePatterns(company, allCompanies, allClientProducts, allProducts);
+  const recommendations = computeRecommendations(gaps, patterns, categoryMap);
 
-  return computeRecommendations(gaps, patterns, categoryMap);
+  log.debug("Recommendations computed", {
+    companyId,
+    gaps: gaps.length,
+    patterns: patterns.length,
+    recommendations: recommendations.length,
+    durationMs: Date.now() - start,
+  });
+
+  return recommendations;
 }
 
 /**

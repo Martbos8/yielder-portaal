@@ -151,3 +151,40 @@
 - Geleerd: Cache key patterns met prefix:* wildcards geven flexibele invalidation — per-domain of globaal
 - Geleerd: Serverless functions krijgen per invocation een verse cache — in-memory cache is vooral nuttig voor dev server en edge runtime (persistent worker)
 [23:48:00] Iteratie 7 klaar
+[23:48:16] Iteratie 5 klaar
+[23:48:16] Iteratie 6 gestart
+
+[23:50:00] Taak 7 aanvulling — Full page-level cache integration
+- Layout now uses getCachedUserCompany, getCachedUserCompanyId, getCachedRecommendations (was raw queries)
+- Contact page now uses getCachedUserCompany, getCachedUserCompanyId (was raw queries)
+- Dashboard cleaned up: deduplicated imports, all calls use cached versions
+- Added Next.js route-level revalidate: dashboard (120s), upgrade (300s), hardware (300s), contracten (300s)
+- Added invalidateRecommendationCache() helper + exported from repositories/index.ts
+- ConnectWise sync.ts now calls invalidateAllCaches() after sync completes
+- 453 tests pass, build + lint groen
+- Geleerd: Next.js `export const revalidate` sets ISR-style page-level caching — complements in-memory cache for multi-level strategy
+- Geleerd: Cache invalidation after sync is critical — without it, stale data persists until TTL expires
+[23:50:00] Iteratie 7b klaar
+[23:50:10] Iteratie 7 klaar
+[23:50:10] Iteratie 8 gestart
+
+[23:56:00] Taak 8 VOLTOOID — Logging & observability
+- Created src/lib/logger.ts: structured logging module with Logger class
+  - Log levels: debug, info, warn, error with env-based filtering (debug in dev, info in prod, warn in test)
+  - JSON output in production, pretty-printed colored output in development
+  - Automatic PII redaction: passwords, tokens, secrets, API keys, emails, bank accounts
+  - Context support: requestId, userId, companyId, route, service + arbitrary key/values
+  - Child loggers: merge parent context with additional context
+  - withTiming() helper: measures async function execution, warns on slow ops (>500ms)
+- Integrated logging across codebase:
+  - API route (sync/connectwise): request lifecycle, auth failures, sync duration/results
+  - ConnectWise sync: per-entity sync results with synced/errors/skipped counts
+  - Recommendation engine: computation timing, gap/pattern counts
+  - Auth middleware: unauthenticated access redirects, authenticated user redirects
+  - Main middleware: rate limit exceeded events with IP + route context
+  - All 8 repository modules: wrapped with withTiming() for slow query detection (>500ms auto-warns)
+- 18 new tests (471 total), build + lint groen
+- Geleerd: ReadonlySet kan niet ge-iterated worden zonder downlevelIteration — gebruik const array in plaats van Set
+- Geleerd: Error cast naar Record<string, unknown> faalt met strict types — gebruik `"code" in error` type narrowing
+- Geleerd: Linter hooks kunnen automatisch code transformeren (wrapping met withTiming) — imports moeten consistent blijven
+[23:56:00] Iteratie 8 klaar
