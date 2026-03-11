@@ -151,3 +151,16 @@ export type ClientProduct = {
   created_at: string;
   updated_at: string;
 };
+
+// Recommendation Feedback types
+
+export type FeedbackAction = "shown" | "clicked" | "contacted" | "purchased" | "dismissed";
+
+export type RecommendationFeedback = {
+  id: string;
+  company_id: string;
+  product_id: string;
+  recommendation_score: number;
+  action: FeedbackAction;
+  created_at: string;
+};
