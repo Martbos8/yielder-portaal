@@ -332,3 +332,25 @@
 - Geleerd: Map iterator requires downlevelIteration or target es2015+ — Array.from(map.entries()) is the safe alternative
 - Geleerd: Native <details>/<summary> is perfect for collapsible cards — zero JS, accessible by default
 [00:28:50] Iteratie 12 klaar
+[00:28:53] Iteratie 9 klaar
+[00:28:53] Iteratie 10 gestart
+
+[00:29:00] Taak 12 VOLTOOID — Upgrade pagina verbeteren
+- IT Score ring: enlarged to 160px with strokeWidth 10, description text beneath
+- Score per categorie: category breakdown with color-coded progress bars (green ≥80%, orange ≥50%, red <50%)
+  - Categories computed from recommendations, grouped by rec.category
+  - Per-category deductions: critical=25, warning=15, info=5 (more granular than overall IT score)
+  - Sorted worst-first so attention items are at the top
+- Kritieke items: collapsible cards using native HTML <details> element
+  - "Waarom dit belangrijk is" expandable section with severity-appropriate Dutch text
+  - Critical: security/compliance risk messaging
+  - Warning: competitive advantage messaging
+  - Info: optimization opportunity messaging
+- Per aanbeveling: importance text generated based on severity level
+- CTA: "Plan een gesprek" style button with calendar_today icon, opens ContactModal with pre-filled product
+- Summary strip: total recommendations, critical count, segment info
+- Category scores show count of items per category + percentage
+- Build + lint + 471 tests groen
+- Geleerd: Native HTML <details> element is better than client-side state for collapsible content — SSR-friendly, accessible, no JS needed
+- Geleerd: Linter auto-applied improvements before file write — must re-read file after linter runs
+[00:29:00] Iteratie 12 klaar
