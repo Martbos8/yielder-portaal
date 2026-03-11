@@ -63,28 +63,28 @@ describe("Rate limiter", () => {
 describe("Audit — PII stripping", () => {
   it("strips password fields", () => {
     const result = stripPii({ username: "jan", password: "secret123" });
-    expect(result.username).toBe("jan");
-    expect(result.password).toBe("[REDACTED]");
+    expect(result["username"]).toBe("jan");
+    expect(result["password"]).toBe("[REDACTED]");
   });
 
   it("strips nested PII fields", () => {
     const result = stripPii({
       user: { name: "Jan", token: "abc123" },
     });
-    expect((result.user as Record<string, unknown>).name).toBe("Jan");
-    expect((result.user as Record<string, unknown>).token).toBe("[REDACTED]");
+    expect((result["user"] as Record<string, unknown>)["name"]).toBe("Jan");
+    expect((result["user"] as Record<string, unknown>)["token"]).toBe("[REDACTED]");
   });
 
   it("strips BSN and IBAN", () => {
     const result = stripPii({ bsn: "123456789", iban: "NL91ABNA041" });
-    expect(result.bsn).toBe("[REDACTED]");
-    expect(result.iban).toBe("[REDACTED]");
+    expect(result["bsn"]).toBe("[REDACTED]");
+    expect(result["iban"]).toBe("[REDACTED]");
   });
 
   it("preserves safe fields", () => {
     const result = stripPii({ action: "login", company_id: "123" });
-    expect(result.action).toBe("login");
-    expect(result.company_id).toBe("123");
+    expect(result["action"]).toBe("login");
+    expect(result["company_id"]).toBe("123");
   });
 
   it("logAudit function is exportable", async () => {

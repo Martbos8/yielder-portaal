@@ -236,7 +236,7 @@ function RecommendationCard({
   companyId,
 }: {
   rec: Recommendation;
-  price?: number;
+  price?: number | undefined;
   companyId: string;
 }) {
   const isCritical = rec.severity === "critical";

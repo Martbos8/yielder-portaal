@@ -13,7 +13,7 @@ import type {
 /**
  * Transforms CW ticket status to our internal status.
  */
-function mapTicketStatus(status?: string, closedFlag?: boolean): string {
+function mapTicketStatus(status?: string, closedFlag?: boolean): "open" | "in_progress" | "closed" {
   if (closedFlag) return "closed";
   if (!status) return "open";
   const lower = status.toLowerCase();
@@ -25,7 +25,7 @@ function mapTicketStatus(status?: string, closedFlag?: boolean): string {
 /**
  * Transforms CW priority to our internal priority.
  */
-function mapPriority(priority?: string): string {
+function mapPriority(priority?: string): "urgent" | "high" | "normal" | "low" {
   if (!priority) return "normal";
   const lower = priority.toLowerCase();
   if (lower.includes("urgent") || lower.includes("critical")) return "urgent";
@@ -37,7 +37,17 @@ function mapPriority(priority?: string): string {
 /**
  * Transforms CW agreement to determine status.
  */
-function mapAgreementStatus(cancelled: boolean, endDate?: string): string {
+function mapConfigType(name?: string): "Desktop" | "Laptop" | "Server" | "Netwerk" | "Overig" {
+  if (!name) return "Overig";
+  const lower = name.toLowerCase();
+  if (lower.includes("desktop") || lower.includes("workstation")) return "Desktop";
+  if (lower.includes("laptop") || lower.includes("notebook")) return "Laptop";
+  if (lower.includes("server")) return "Server";
+  if (lower.includes("netwerk") || lower.includes("network") || lower.includes("switch") || lower.includes("router") || lower.includes("firewall")) return "Netwerk";
+  return "Overig";
+}
+
+function mapAgreementStatus(cancelled: boolean, endDate?: string): "active" | "expired" | "cancelled" {
   if (cancelled) return "cancelled";
   if (endDate && new Date(endDate) < new Date()) return "expired";
   return "active";
@@ -250,7 +260,7 @@ async function syncConfigurations(client: ConnectWiseClient): Promise<CWSyncResu
           company_id: company.id,
           cw_config_id: cw.id,
           name: cw.name,
-          type: cw.type?.name ?? "Overig",
+          type: mapConfigType(cw.type?.name),
           manufacturer: cw.manufacturer?.name ?? null,
           model: cw.model ?? null,
           serial_number: cw.serialNumber ?? null,

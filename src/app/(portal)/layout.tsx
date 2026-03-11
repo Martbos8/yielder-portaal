@@ -6,8 +6,13 @@ function getInitials(name: string | null): string {
   if (!name) return "?";
   const parts = name.trim().split(/\s+/);
   if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0][0].toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  const first = parts[0];
+  if (!first) return "?";
+  if (parts.length === 1) return first[0]?.toUpperCase() ?? "?";
+  const last = parts[parts.length - 1];
+  const firstChar = first[0] ?? "";
+  const lastChar = last?.[0] ?? "";
+  return (firstChar + lastChar).toUpperCase();
 }
 
 export default async function PortalLayout({

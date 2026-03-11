@@ -49,10 +49,10 @@ describe("Recommendation Scorer", () => {
     const recommendations = computeRecommendations(gaps, [], categoryMap);
 
     expect(recommendations.length).toBe(2);
-    expect(recommendations[0].product.id).toBe("p-backup");
-    expect(recommendations[0].score).toBe(100); // critical = 100
-    expect(recommendations[1].product.id).toBe("p-mdm");
-    expect(recommendations[1].score).toBe(20); // info = 20
+    expect(recommendations[0]!.product.id).toBe("p-backup");
+    expect(recommendations[0]!.score).toBe(100); // critical = 100
+    expect(recommendations[1]!.product.id).toBe("p-mdm");
+    expect(recommendations[1]!.score).toBe(20); // info = 20
   });
 
   it("merges gap and pattern for same product and boosts score", () => {
@@ -78,9 +78,9 @@ describe("Recommendation Scorer", () => {
 
     expect(recommendations.length).toBe(1);
     // 100 (critical) + 34 (0.85 * 40 rounded)
-    expect(recommendations[0].score).toBe(134);
-    expect(recommendations[0].adoptionRate).toBe(0.85);
-    expect(recommendations[0].reason).toContain("85%");
+    expect(recommendations[0]!.score).toBe(134);
+    expect(recommendations[0]!.adoptionRate).toBe(0.85);
+    expect(recommendations[0]!.reason).toContain("85%");
   });
 
   it("includes pattern-only recommendations", () => {
@@ -96,10 +96,10 @@ describe("Recommendation Scorer", () => {
     const recommendations = computeRecommendations([], patterns, categoryMap);
 
     expect(recommendations.length).toBe(1);
-    expect(recommendations[0].product.id).toBe("p-sdwan");
-    expect(recommendations[0].score).toBe(30); // 0.75 * 40 = 30
-    expect(recommendations[0].severity).toBeNull();
-    expect(recommendations[0].ctaText).toBe("Neem contact op met het team");
+    expect(recommendations[0]!.product.id).toBe("p-sdwan");
+    expect(recommendations[0]!.score).toBe(30); // 0.75 * 40 = 30
+    expect(recommendations[0]!.severity).toBeNull();
+    expect(recommendations[0]!.ctaText).toBe("Neem contact op met het team");
   });
 
   it("sets ctaText to 'Direct actie vereist' for critical gaps", () => {
@@ -113,7 +113,7 @@ describe("Recommendation Scorer", () => {
     ];
 
     const recommendations = computeRecommendations(gaps, [], categoryMap);
-    expect(recommendations[0].ctaText).toBe("Direct actie vereist");
+    expect(recommendations[0]!.ctaText).toBe("Direct actie vereist");
   });
 
   it("sets ctaText to 'Neem contact op met het team' for non-critical", () => {
@@ -127,7 +127,7 @@ describe("Recommendation Scorer", () => {
     ];
 
     const recommendations = computeRecommendations(gaps, [], categoryMap);
-    expect(recommendations[0].ctaText).toBe("Neem contact op met het team");
+    expect(recommendations[0]!.ctaText).toBe("Neem contact op met het team");
   });
 
   it("limits to max 10 recommendations", () => {
@@ -164,7 +164,7 @@ describe("Recommendation Scorer", () => {
     const recommendations = computeRecommendations(gaps, patterns, categoryMap);
     // Should be 1, not 2
     expect(recommendations.length).toBe(1);
-    expect(recommendations[0].product.id).toBe("p-backup");
+    expect(recommendations[0]!.product.id).toBe("p-backup");
   });
 
   it("assigns correct category from categoryMap", () => {
@@ -178,7 +178,7 @@ describe("Recommendation Scorer", () => {
     ];
 
     const recommendations = computeRecommendations(gaps, [], categoryMap);
-    expect(recommendations[0].category).toBe("Cloud");
+    expect(recommendations[0]!.category).toBe("Cloud");
   });
 
   it("returns empty for no gaps and no patterns", () => {

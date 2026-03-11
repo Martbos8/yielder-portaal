@@ -98,10 +98,10 @@ describe("Pattern Matching Engine", () => {
     );
 
     expect(results.length).toBe(1);
-    expect(results[0].product.id).toBe("p-backup");
-    expect(results[0].adoptionRate).toBe(1);
-    expect(results[0].segmentDescription).toContain("100%");
-    expect(results[0].segmentDescription).toContain("Cloud Backup");
+    expect(results[0]!.product.id).toBe("p-backup");
+    expect(results[0]!.adoptionRate).toBe(1);
+    expect(results[0]!.segmentDescription).toContain("100%");
+    expect(results[0]!.segmentDescription).toContain("Cloud Backup");
   });
 
   it("filters out products below 60% adoption threshold", () => {
@@ -166,10 +166,10 @@ describe("Pattern Matching Engine", () => {
     );
 
     expect(results.length).toBe(2);
-    expect(results[0].product.id).toBe("p-backup");
-    expect(results[0].adoptionRate).toBe(1);
-    expect(results[1].product.id).toBe("p-fw");
-    expect(results[1].adoptionRate).toBe(0.8);
+    expect(results[0]!.product.id).toBe("p-backup");
+    expect(results[0]!.adoptionRate).toBe(1);
+    expect(results[1]!.product.id).toBe("p-fw");
+    expect(results[1]!.adoptionRate).toBe(0.8);
   });
 
   it("segments by company size — large companies are separate", () => {
@@ -253,8 +253,8 @@ describe("Pattern Matching Engine", () => {
       allProducts
     );
 
-    expect(results[0].segmentDescription).toContain("IT-sector");
-    expect(results[0].segmentDescription).toContain("kleine");
+    expect(results[0]!.segmentDescription).toContain("IT-sector");
+    expect(results[0]!.segmentDescription).toContain("kleine");
   });
 
   it("findPatterns function is exportable", async () => {

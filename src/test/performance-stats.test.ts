@@ -98,7 +98,7 @@ describe("getCategoryBreakdown", () => {
   it("uses Overig for null source", () => {
     const tickets = [makeTicket({ source: null })];
     const breakdown = getCategoryBreakdown(tickets);
-    expect(breakdown[0].category).toBe("Overig");
+    expect(breakdown[0]!.category).toBe("Overig");
   });
 
   it("sorts by count descending", () => {
@@ -108,7 +108,7 @@ describe("getCategoryBreakdown", () => {
       makeTicket({ id: "t3", source: "B" }),
     ];
     const breakdown = getCategoryBreakdown(tickets);
-    expect(breakdown[0].category).toBe("B");
+    expect(breakdown[0]!.category).toBe("B");
   });
 
   it("returns empty for no closed tickets", () => {

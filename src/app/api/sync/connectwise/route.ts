@@ -7,7 +7,7 @@ import { syncAll } from "@/lib/connectwise/sync";
  */
 export async function POST(request: NextRequest) {
   const secret = request.headers.get("x-sync-secret");
-  const expectedSecret = process.env.SYNC_SECRET;
+  const expectedSecret = process.env['SYNC_SECRET'];
 
   if (!expectedSecret || secret !== expectedSecret) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

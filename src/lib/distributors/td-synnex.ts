@@ -6,7 +6,7 @@ export class TDSynnexClient extends DistributorClient {
   readonly name: DistributorName = "td-synnex";
 
   isConfigured(): boolean {
-    return !!process.env.TDSYNNEX_API_KEY;
+    return !!process.env['TDSYNNEX_API_KEY'];
   }
 
   async getPrice(sku: string): Promise<DistributorPrice | null> {

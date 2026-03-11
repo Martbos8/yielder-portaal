@@ -1,299 +1,392 @@
-# PRD v2 — Backend: Recommendation Engine + Intelligente IT-Adviseur
+# PRD — Senior Fullstack Software Engineer (Enterprise Grade)
 
-## Visie
-Het portaal wordt een intelligente IT-adviseur voor 8000+ klanten.
-Het analyseert wat een klant heeft, detecteert gaten en risico's,
-vergelijkt met vergelijkbare klanten, haalt live prijzen op bij distributeurs,
-en toont aanbevelingen door het hele portaal heen.
+Je bent een Principal Fullstack Software Engineer met 15+ jaar ervaring bij Microsoft, Google of Stripe-niveau bedrijven. Je bouwt software op het allerhoogste niveau: schaalbaar, veilig, performant, onderhoudbaar, en elegant.
 
-De klant ziet: "Dit raden wij aan" + knop "Neem contact op met het team".
+Dit is het Yielder klantportaal — een Next.js 14 + Supabase + Tailwind applicatie voor 8000+ IT klanten. Het moet op enterprise-niveau komen: de kwaliteit van een Azure Portal, Vercel Dashboard, of Stripe Dashboard.
 
-## Architectuur
+## Werkwijze
 
-```
-ConnectWise Manage API ──→ Supabase (klantdata, producten, agreements)
-                                ↓
-Distributeur APIs ──────→ Supabase (live prijzen, productcatalogus)
-  (Copaco, Ingram Micro,       ↓
-   TD Synnex, Esprinet)   Recommendation Engine
-                                ↓
-                          ┌─────────────────────────┐
-                          │  3 lagen:                │
-                          │  1. Gap Analyse          │
-                          │  2. Patroon Matching     │
-                          │  3. Marktprijs Lookup    │
-                          └─────────────────────────┘
-                                ↓
-                          Portaal (overal geïntegreerd)
-                          + speciale Upgrade pagina
-```
+**BELANGRIJK: Elke iteratie pak je PRECIES ÉÉN taak. Werk die volledig af, test, commit. Ga dan pas naar de volgende.**
 
-## Belangrijke constraints
-- GEEN ConnectWise API key beschikbaar (komt later)
-- GEEN distributeur API keys beschikbaar (komt later)
-- Bouw alles met demo/mock modus zodat het WERKT zonder keys
-- Algoritme moet LEREN over tijd (zelfverbeterend)
-- Kritiekheid bepaalt urgentie: geen backup = ROOD, geen MDM = ORANJE
+Per iteratie:
+1. Lees `prd.md` en `progress.txt`
+2. Kies de hoogste-prioriteit ONVOLTOOIDE taak
+3. Lees ALLE relevante broncode EERST — begrijp de huidige implementatie volledig
+4. Implementeer de verbetering op het hoogste niveau
+5. Run `npm run build && npm run test` — fix ALLES
+6. Commit met duidelijke message
+7. Markeer de taak als [done] in dit bestand
+8. Schrijf geleerde lessen in progress.txt
 
-## Yielder productportfolio (voor het algoritme)
+## Supabase
+- URL: https://aumbbaozmqqgyjhcwzff.supabase.co
+- Anon key in .env.local
 
-### Categorieën
-1. **Cybersecurity** — firewalls, endpoint protection, managed security, backup
-2. **Connectivity** — internet, SD-WAN, netwerken
-3. **Devices** — laptops, desktops, servers, monitoren
-4. **Cloud** — Microsoft 365, Azure, cloud backup, hosted servers
-5. **Voice & Video** — UCaaS, CCaaS, hosted telefonie
-6. **Enterprise Apps** — ERP, CRM, branchespecifiek
-7. **Mobile** — MDM, mobile devices, mobiele abonnementen
-8. **Data** — opslag, backup, disaster recovery
-9. **Pro AV** — audiovisueel, vergaderruimtes
-10. **AI** — AI-tools, copilots, automatisering
-11. **Managed Services** — beheer, monitoring, helpdesk, patch management
-
-### Vendors
-Fortinet, Cisco, HPE, Samsung, Apple, WatchGuard, Microsoft, VMware,
-Odido, Vodafone, KPN, en distributeurs: Copaco, Ingram Micro, TD Synnex, Esprinet
+## Regels
+- Code in het Engels, UI-teksten in het Nederlands
+- TypeScript strict — GEEN any, GEEN as-casts tenzij bewezen noodzakelijk
+- Lees CLAUDE.md voor ALLE conventies — volg ze strikt
+- GEEN nieuwe dependencies tenzij het een duidelijk probleem oplost
+- GEEN console.log in commits
+- Elke wijziging MOET build + test doorstaan
 
 ---
 
-## Taken
+## FASE 1: Code Quality & Architecture (Taak 1-8)
 
-### 1. Product catalogus model
-- **Status:** DONE
-- **Prioriteit:** 1
-- **Beschrijving:** Database structuur voor een productcatalogus die Yielder's portfolio representeert. Dit is de basis voor alle aanbevelingen.
-- **Acceptatiecriteria:**
-  - [ ] Database migration: database/011_product_catalog.sql
-  - [ ] Tabel: product_categories (id, name, slug, icon, description, sort_order)
-  - [ ] Tabel: products (id, category_id, name, vendor, sku, description, type: hardware|software|service, lifecycle_years, is_active)
-  - [ ] Tabel: product_dependencies (product_id, depends_on_product_id, dependency_type: requires|recommended|enhances)
-  - [ ] Tabel: client_products (id, company_id, product_id, quantity, purchase_date, expiry_date, status: active|expiring|expired)
-  - [ ] Seed data: 11 categorieën + minstens 30 producten verspreid over categorieën
-  - [ ] Seed data: dependency regels (firewall → managed security, laptops → MDM, cloud → backup, M365 → MFA, etc.)
-  - [ ] src/types/database.ts updaten met nieuwe types
-  - [ ] Test: build slaagt
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 1: TypeScript strictheid naar maximaal [done]
+- Lees `tsconfig.json` en zet ALLE strict opties aan:
+  - noUncheckedIndexedAccess: true
+  - exactOptionalPropertyTypes: true
+  - noImplicitReturns: true
+  - noFallthroughCasesInSwitch: true
+  - noPropertyAccessFromIndexSignature: true
+- Fix ALLE TypeScript errors die hieruit voortkomen
+- Dit maakt de codebase robuuster tegen runtime errors
+- Run build + test na elke fix
 
-### 2. Gap analyse engine
-- **Status:** DONE
-- **Prioriteit:** 2
-- **Beschrijving:** Algoritme dat analyseert wat een klant MIST op basis van wat ze WEL hebben. Gebruikt de product_dependencies tabel.
-- **Acceptatiecriteria:**
-  - [ ] src/lib/engine/gap-analysis.ts
-  - [ ] Functie: analyzeGaps(companyId) → GapResult[]
-  - [ ] GapResult type: { missingProduct, reason, severity: critical|warning|info, relatedTo }
-  - [ ] Severity logica:
-    - CRITICAL (rood): geen backup, geen firewall, geen antivirus, geen MFA
-    - WARNING (oranje): geen MDM bij >5 mobile devices, geen managed service bij firewall, warranty verlopen, licenties bijna vol
-    - INFO (blauw): upgrade beschikbaar, nieuwer model op de markt
-  - [ ] Gebruikt product_dependencies om gaten te detecteren
-  - [ ] Query: haal client_products op, vergelijk met dependencies, vind ontbrekende
-  - [ ] Test: gap analysis met mock data detecteert ontbrekende backup bij cloud-klant
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 2: Database types genereren en synchroniseren [not started]
+- Lees `src/types/database.ts` — dit zijn handmatige types
+- Maak een `src/types/supabase.ts` met gegenereerde types die EXACT matchen met het database schema
+- Verifieer dat alle queries in `src/lib/queries.ts` correct getypt zijn
+- Voeg generics toe aan Supabase client calls: `supabase.from('tickets').select('*').returns<Ticket[]>()`
+- Zorg dat ELKE query return type compile-time geverifieerd is
 
-### 3. Patroon matching engine — "klanten zoals jij"
-- **Status:** DONE
-- **Prioriteit:** 3
-- **Beschrijving:** Algoritme dat vergelijkt met vergelijkbare klanten. Als 80% van bedrijven van dezelfde grootte en branche product X hebben, en jij niet, dan is dat een aanbeveling.
-- **Acceptatiecriteria:**
-  - [ ] src/lib/engine/pattern-matching.ts
-  - [ ] Functie: findPatterns(companyId) → PatternResult[]
-  - [ ] PatternResult type: { product, adoptionRate, segmentDescription, confidence }
-  - [ ] Segmentatie op: bedrijfsgrootte (klein <20, midden 20-100, groot >100), branche/type, regio
-  - [ ] Berekening: per segment, tel hoeveel bedrijven product X hebben → adoptionRate
-  - [ ] Filter: toon alleen als adoptionRate > 60% EN de klant het product NIET heeft
-  - [ ] Sorteer op adoptionRate DESC (hoogste eerst)
-  - [ ] Beschrijving: "85% van vergelijkbare IT-bedrijven gebruikt cloud backup"
-  - [ ] Test: patroon matching vindt populair product dat klant mist
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 3: Error handling systematisch maken [not started]
+- Maak `src/lib/errors.ts`:
+  - Custom error classes: `AppError`, `AuthError`, `NotFoundError`, `ValidationError`, `RateLimitError`
+  - Elk met: message, code, statusCode, isOperational flag
+  - Helper: `isAppError(error): error is AppError`
+- Refactor ALLE try/catch blokken in de codebase om deze error classes te gebruiken
+- Zorg dat error boundaries correct reageren op elk type
+- Log alleen unexpected errors (niet operational errors)
 
-### 4. Recommendation scorer — combineer gap + patroon
-- **Status:** DONE
-- **Prioriteit:** 4
-- **Beschrijving:** Combineert gap analyse en patroon matching tot één gerankte lijst van aanbevelingen per klant.
-- **Acceptatiecriteria:**
-  - [ ] src/lib/engine/recommendation.ts
-  - [ ] Functie: getRecommendations(companyId) → Recommendation[]
-  - [ ] Recommendation type: { product, score, reason, severity, adoptionRate, category, ctaText }
-  - [ ] Score berekening: gap_severity_weight (critical=100, warning=60, info=20) + adoption_rate_bonus (0-40) + recency_boost (nieuw product op markt = +10)
-  - [ ] Deduplicate: als gap EN patroon hetzelfde product suggereren, merge en verhoog score
-  - [ ] Max 10 aanbevelingen per klant, gesorteerd op score DESC
-  - [ ] ctaText generatie: "Neem contact op met het team" (standaard), "Direct actie vereist" (critical)
-  - [ ] Test: scorer rankt critical gap hoger dan info suggestie
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 4: Query layer refactoren naar repository pattern [not started]
+- Lees `src/lib/queries.ts` — dit is nu één groot bestand
+- Splits op in repositories:
+  - `src/lib/repositories/ticket.repository.ts`
+  - `src/lib/repositories/hardware.repository.ts`
+  - `src/lib/repositories/agreement.repository.ts`
+  - `src/lib/repositories/company.repository.ts`
+  - `src/lib/repositories/notification.repository.ts`
+  - `src/lib/repositories/license.repository.ts`
+  - `src/lib/repositories/product.repository.ts`
+  - `src/lib/repositories/index.ts` (re-exports)
+- Elke repository:
+  - Specifieke .select() kolommen (niet SELECT *)
+  - Correcte .order() en .limit()
+  - Typed return values
+  - Error handling met custom errors
+  - JSDoc op publieke functies
+- Update alle imports in pages die queries.ts gebruiken
+- ALLE bestaande tests moeten blijven slagen
 
-### 5. Leeralgoritme — feedback loop
-- **Status:** DONE
-- **Prioriteit:** 5
-- **Beschrijving:** Het algoritme moet leren. Als een aanbeveling leidt tot een aankoop, wordt die aanbeveling sterker voor vergelijkbare klanten. Als een aanbeveling wordt genegeerd, wordt die zwakker.
-- **Acceptatiecriteria:**
-  - [ ] Tabel: recommendation_feedback (id, company_id, product_id, recommendation_score, action: shown|clicked|contacted|purchased|dismissed, created_at)
-  - [ ] Database migration: database/012_recommendation_feedback.sql
-  - [ ] src/lib/engine/learning.ts
-  - [ ] Functie: recordFeedback(companyId, productId, action) — schrijft naar tabel
-  - [ ] Functie: getConversionRate(productId, segment) — berekent hoe vaak shown→purchased
-  - [ ] Score adjustment: recommendation score × conversion_multiplier (0.5 tot 2.0)
-  - [ ] conversion_multiplier = (purchases / shown) genormaliseerd, met minimum 50 datapunten
-  - [ ] Zolang <50 datapunten: gebruik default score (geen adjustment)
-  - [ ] Audit log bij elke feedback event
-  - [ ] Test: feedback wordt opgeslagen, conversion rate berekening klopt
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 5: Server Actions voor mutaties [not started]
+- Lees alle pagina's die data muteren (contact form, notification read, etc.)
+- Maak `src/lib/actions/` directory:
+  - `contact.actions.ts` — createContactRequest met Zod validatie
+  - `notification.actions.ts` — markAsRead, markAllAsRead
+  - `feedback.actions.ts` — recordRecommendationFeedback
+- Gebruik Zod schemas voor input validatie:
+  - `ContactRequestSchema = z.object({ subject: z.string().min(1).max(200), ... })`
+- Elke action: auth check, validatie, sanitize, rate limit, audit log, return typed result
+- Update frontend components om deze actions te gebruiken
 
-### 6. ConnectWise sync module (demo modus)
-- **Status:** DONE
-- **Prioriteit:** 6
-- **Beschrijving:** Sync klantdata uit ConnectWise. Draait in demo modus zonder API key.
-- **Acceptatiecriteria:**
-  - [ ] src/lib/connectwise/client.ts — API client met auth headers (Basic auth: companyId+publicKey:privateKey)
-  - [ ] src/lib/connectwise/types.ts — CW response types (CWCompany, CWTicket, CWAgreement, CWConfiguration, CWProduct)
-  - [ ] src/lib/connectwise/sync.ts — sync functies per entity
-  - [ ] Sync logica: fetch → transform naar onze types → upsert in Supabase (ON CONFLICT cw_*_id)
-  - [ ] Pagination: CW max 1000 per page, implementeer auto-pagination
-  - [ ] Rate limiting: max 10 requests/seconde
-  - [ ] ENV vars: CW_BASE_URL, CW_COMPANY_ID, CW_PUBLIC_KEY, CW_PRIVATE_KEY, CW_CLIENT_ID
-  - [ ] Als env vars leeg: log "CW sync: demo modus — geen API key" en return
-  - [ ] Sync endpoint: src/app/api/sync/connectwise/route.ts (POST, beveiligd met secret)
-  - [ ] Test: client class instantieert, sync returnt early zonder keys
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 6: Middleware chain verbeteren [not started]
+- Lees `src/middleware.ts`
+- Verbeter:
+  - Rate limiting op route-niveau (niet alleen per endpoint)
+  - Security headers injecteren
+  - Request ID genereren (voor tracing)
+  - Geolocation/IP logging voor audit
+  - CORS configuratie
+  - Redirect chains optimaliseren (geen dubbele redirects)
 
-### 7. Distributeur prijzen module (demo modus)
-- **Status:** DONE
-- **Prioriteit:** 7
-- **Beschrijving:** Haal live productprijzen op bij distributeurs. Demo modus met mock prijzen.
-- **Acceptatiecriteria:**
-  - [ ] src/lib/distributors/types.ts — DistributorPrice type (sku, distributor, price, currency, availability, updated_at)
-  - [ ] src/lib/distributors/client.ts — basis client class met getPrice(sku), searchProducts(query)
-  - [ ] src/lib/distributors/copaco.ts — Copaco client (extends basis, demo modus)
-  - [ ] src/lib/distributors/ingram.ts — Ingram Micro client (extends basis, demo modus)
-  - [ ] src/lib/distributors/td-synnex.ts — TD Synnex client (extends basis, demo modus)
-  - [ ] src/lib/distributors/mock-prices.ts — realistische mock prijzen voor 30+ producten
-  - [ ] Tabel: distributor_prices (id, product_id, distributor, sku, price, currency, availability, fetched_at)
-  - [ ] Database migration: database/013_distributor_prices.sql
-  - [ ] Functie: getBestPrice(productId) — laagste prijs over alle distributeurs
-  - [ ] Cache: prijzen 24 uur geldig, daarna refresh
-  - [ ] Als geen API keys: gebruik mock-prices.ts
-  - [ ] Test: getBestPrice returnt laagste prijs uit mock data
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 7: Caching strategie implementeren [not started]
+- Implementeer multi-level caching:
+  - **In-memory cache** (`src/lib/cache.ts`): generic Map-based cache met TTL
+    - `cache.get<T>(key): T | null`
+    - `cache.set<T>(key, value, ttlMs): void`
+    - `cache.invalidate(pattern): void`
+  - **Next.js fetch cache**: gebruik `next: { revalidate: 300 }` op stabiele data
+  - **Supabase query cache**: wrap repositories met cache layer
+- Cache toepassen op:
+  - Product catalogus: 1 uur TTL
+  - Recommendations: 5 min TTL per company
+  - Distributor prijzen: 24 uur TTL
+  - Company info: 30 min TTL
+  - Dashboard stats: 2 min TTL
 
-### 8. Upgrade pagina — de hoofdpagina voor aanbevelingen
-- **Status:** DONE
-- **Prioriteit:** 8
-- **Beschrijving:** Speciale pagina waar alle aanbevelingen samenkomen. Dit is de belangrijkste pagina van het hele portaal.
-- **Acceptatiecriteria:**
-  - [ ] src/app/(portal)/upgrade/page.tsx — Server Component
-  - [ ] Bovenaan: "Uw IT-score" — percentage van hoe compleet de IT-omgeving is (gebaseerd op gaps)
-  - [ ] Score visualisatie: circulaire progress indicator (bv. 72%) met kleur (rood <50, oranje 50-80, groen >80)
-  - [ ] Sectie "Direct actie vereist" — critical gaps met rode accent
-  - [ ] Sectie "Aanbevelingen" — overige suggesties gesorteerd op score
-  - [ ] Per aanbeveling: Card met productnaam, categorie icon, reden, severity badge, adoptionRate ("85% van vergelijkbare bedrijven"), prijs indicatie (als beschikbaar)
-  - [ ] CTA knop per aanbeveling: "Neem contact op met het team" → opent contact formulier/modal
-  - [ ] "Klanten zoals u" sidebar: korte stats over het segment
-  - [ ] Voeg "Upgrade" toe aan sidebar navigatie (met badge als er critical items zijn)
-  - [ ] Track: recordFeedback bij elke getoonde en geklikte aanbeveling
-  - [ ] Test: upgrade pagina rendert IT-score en aanbevelingen sectie
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 8: Logging & observability [not started]
+- Maak `src/lib/logger.ts`:
+  - Structured logging (JSON format)
+  - Log levels: debug, info, warn, error
+  - Context: requestId, userId, companyId, route
+  - Automatische PII redactie
+  - In development: pretty print
+  - In production: JSON voor log aggregatie
+- Voeg logging toe aan:
+  - Alle API routes (request/response)
+  - Alle repository queries (slow query warning >500ms)
+  - Auth events
+  - Sync operations
+  - Recommendation engine
 
-### 9. Aanbevelingen integratie in dashboard
-- **Status:** DONE
-- **Prioriteit:** 9
-- **Beschrijving:** Dashboard toont een compact aanbevelingen-widget met de top 3 suggesties.
-- **Acceptatiecriteria:**
-  - [ ] Widget "Aanbevelingen voor u" op het dashboard (naast of onder bestaande widgets)
-  - [ ] Toont max 3 aanbevelingen: icon, productnaam, korte reden, severity badge
-  - [ ] Critical items altijd bovenaan met rode indicator
-  - [ ] Link "Bekijk alle aanbevelingen →" naar /upgrade
-  - [ ] Als er geen aanbevelingen zijn: groene "Alles up-to-date" state
-  - [ ] Track: recordFeedback(shown) voor getoonde items
-  - [ ] Test: widget rendert aanbevelingen titel
-- **Checks:** npm run build && npm run lint && npm run test
+## FASE 2: Frontend Excellence (Taak 9-18)
 
-### 10. Aanbevelingen in hardware pagina
-- **Status:** DONE
-- **Prioriteit:** 10
-- **Beschrijving:** Hardware pagina toont per asset een upgrade-suggestie als relevant.
-- **Acceptatiecriteria:**
-  - [ ] Per hardware card: als warranty verlopen OF device ouder dan lifecycle_years → toon upgrade badge
-  - [ ] Badge tekst: "Upgrade beschikbaar" of "Warranty verlopen — actie vereist"
-  - [ ] Klik op badge → detail met aanbevolen vervangend product + indicatieprijs
-  - [ ] Bovenaan hardware pagina: banner als >3 devices upgrade nodig hebben
-  - [ ] Track: recordFeedback bij klik op upgrade badge
-  - [ ] Test: upgrade badge logica correct bij verlopen warranty
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 9: Component architecture verbeteren [not started]
+- Audit alle components in `src/components/`
+- Refactor naar consistent patroon:
+  - Props interfaces met JSDoc
+  - Default props waar logisch
+  - Compound components waar zinvol (bijv. Card.Header, Card.Body, Card.Footer)
+  - Forwardref op interactieve componenten
+- Maak `src/components/data-display/` voor:
+  - `stat-card.tsx` — herbruikbare KPI card
+  - `status-badge.tsx` — universele status badge (ticket, contract, hardware, license)
+  - `data-table.tsx` — generieke tabel met sortering, filtering, paginatie
+  - `empty-state.tsx` — herbruikbare empty state met icoon + tekst + actie
+  - `metric-ring.tsx` — herbruikbare score ring (Recharts)
 
-### 11. Aanbevelingen in contracten pagina
-- **Status:** DONE
-- **Prioriteit:** 11
-- **Beschrijving:** Contracten pagina toont suggesties bij bijna verlopen of ontbrekende managed services.
-- **Acceptatiecriteria:**
-  - [ ] Per contract: als bijna verlopen (< 60 dagen) → toon verlengings-badge
-  - [ ] Als een product WEL een agreement heeft maar GEEN managed service → toon "Managed service aanbevolen" suggestie
-  - [ ] Nieuwe sectie: "Ontbrekende dekking" — producten zonder servicecontract
-  - [ ] Per suggestie: CTA "Neem contact op"
-  - [ ] Track: recordFeedback bij klik
-  - [ ] Test: verlengingsbadge toont bij contract dat bijna verloopt
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 10: Data table component (enterprise-grade) [not started]
+- Maak `src/components/data-display/data-table.tsx`:
+  - Generic: `DataTable<T>` met column definitie
+  - Client-side sortering op elke kolom
+  - Filtering per kolom (tekst, select, date range)
+  - Paginatie (10/25/50 per pagina)
+  - Lege staat
+  - Loading staat
+  - Responsive: horizontaal scrollen op mobile, of kolommen verbergen
+  - Keyboard navigatie (a11y)
+- Pas toe op: tickets lijst, hardware lijst, audit log, licenties
+- Dit vervangt handmatige tabel implementaties
 
-### 12. Contact formulier — "Neem contact op met het team"
-- **Status:** DONE
-- **Prioriteit:** 12
-- **Beschrijving:** Modal/formulier dat opent bij elke "Neem contact op" CTA. Stuurt een bericht naar het Yielder team.
-- **Acceptatiecriteria:**
-  - [ ] src/components/contact-modal.tsx — herbruikbare modal
-  - [ ] Voegt shadcn toe: npx shadcn@latest add dialog textarea --yes
-  - [ ] Velden: onderwerp (voorgevuld met productaanbeveling), bericht (textarea), urgentie (normaal/hoog)
-  - [ ] Automatisch meesturen: klant naam, bedrijf, email, het product waarover het gaat
-  - [ ] Tabel: contact_requests (id, company_id, user_id, subject, message, product_id, urgency, status: new|read|replied, created_at)
-  - [ ] Database migration: database/014_contact_requests.sql
-  - [ ] Na versturen: toast "Uw verzoek is verstuurd, het team neemt contact op"
-  - [ ] Audit log bij elk contact request
-  - [ ] Test: contact modal rendert submit knop
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 11: Dashboard verbeteren naar executive-niveau [not started]
+- Lees `src/app/(portal)/dashboard/page.tsx`
+- Verbeter naar Stripe/Vercel dashboard niveau:
+  - KPI cards met trend indicator (↑ 12% vs vorige maand) — berekend uit data
+  - Sparkline mini-grafieken in KPI cards
+  - Aandachtspunten gesorteerd op urgentie met color-coded severity
+  - "Quick actions" sectie: Nieuw ticket, Contact opnemen, Documenten
+  - Recente activiteit feed (laatste 10 events uit audit_log of tickets)
+  - Responsive grid: 4 kolommen desktop → 2 tablet → 1 mobile
 
-### 13. Realtime Supabase subscriptions
-- **Status:** DONE
-- **Prioriteit:** 13
-- **Beschrijving:** Alle data in het portaal moet realtime updaten zonder pagina refresh.
-- **Acceptatiecriteria:**
-  - [ ] src/hooks/use-realtime.ts — generieke hook voor Supabase Realtime
-  - [ ] Subscriptions op: tickets (INSERT/UPDATE/DELETE), agreements, hardware_assets, recommendations
-  - [ ] Dashboard KPI's updaten live
-  - [ ] Tickets tabel updatet live (nieuwe ticket verschijnt met groene flash)
-  - [ ] Notificatie badge in header updatet live
-  - [ ] Cleanup: alle subscriptions unsubscriben bij unmount
-  - [ ] Test: hook is exporteerbaar
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 12: Upgrade pagina verbeteren [not started]
+- Lees `src/app/(portal)/upgrade/page.tsx`
+- Verbeter:
+  - IT Score ring: grotere ring, animatie bij laden, breakdown per categorie
+  - Score breakdown: security 85%, compliance 72%, performance 91%, etc.
+  - Kritieke items als collapsible cards met detail uitleg
+  - Aanbevelingen: vergelijkingstabel (features, prijs, ROI)
+  - Per aanbeveling: "Waarom dit belangrijk is" uitleg tekst
+  - CTA: "Plan een gesprek" button die contact modal opent met pre-filled product
 
-### 14. Security hardening
-- **Status:** DONE
-- **Prioriteit:** 14
-- **Beschrijving:** Superveilige setup: audit logging, rate limiting, security headers, input sanitization.
-- **Acceptatiecriteria:**
-  - [ ] src/lib/audit.ts — logAudit(userId, action, entityType, entityId, details)
-  - [ ] Audit bij: login, logout, page views, recommendation clicks, contact requests
-  - [ ] src/lib/rate-limit.ts — rate limiter (in-memory + Supabase voor persistence)
-  - [ ] Rate limits: 5 magic links/15 min, 20 contact requests/uur, 100 API calls/min
-  - [ ] Security headers in next.config.mjs: X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy strict-origin, CSP default-src 'self'
-  - [ ] Input sanitization op alle formulieren (contact, ticket aanmaken)
-  - [ ] Geen PII in client-side logs
-  - [ ] Test: rate limiter blokkeert na limiet
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 13: Hardware pagina verbeteren [not started]
+- Lees `src/app/(portal)/hardware/page.tsx`
+- Verbeter:
+  - Visuele lifecycle indicator per device (progress bar van aankoop tot end-of-life)
+  - Groepering toggle: per type / per locatie / per status
+  - Zoekbalk voor hardware (naam, serienummer, toegewezen aan)
+  - Bulk selectie + export naar CSV (client-side)
+  - Hardware health score per device
+  - "Vervangingsadvies" badge met link naar upgrade pagina
 
-### 15. Admin sync dashboard (intern)
-- **Status:** DONE
-- **Prioriteit:** 15
-- **Beschrijving:** Admin-only pagina waar jij (Mart) de sync status kunt zien en handmatig triggers.
-- **Acceptatiecriteria:**
-  - [ ] src/app/(portal)/admin/page.tsx — alleen zichtbaar voor is_yielder=true profiles
-  - [ ] Overzicht: laatste sync per entity (tickets, agreements, hardware), status (success/error), tijdstip
-  - [ ] Knoppen: "Sync tickets nu", "Sync agreements nu", "Sync hardware nu"
-  - [ ] CW API status: groen als key geconfigureerd, rood als niet
-  - [ ] Distributeur API status: per distributeur groen/rood
-  - [ ] Recommendation engine stats: hoeveel aanbevelingen actief, conversion rates
-  - [ ] Audit log viewer: laatste 50 events
-  - [ ] Beveiligd: RLS + is_yielder check, redirect als niet-admin
-  - [ ] Test: admin pagina check is_yielder
-- **Checks:** npm run build && npm run lint && npm run test
+### Taak 14: Tickets pagina naar helpdesk-niveau [not started]
+- Lees tickets pagina's
+- Verbeter:
+  - Timeline view op detail pagina (wanneer aangemaakt, status wijzigingen)
+  - Priority color coding consistent met severity (urgent=rood pulse, high=oranje, etc.)
+  - Ticket detail: collapsible description, metadata sidebar
+  - "Vergelijkbare tickets" sectie (zelfde categorie, recent)
+  - Response time indicator: "Gemiddelde responstijd: 2 uur"
 
-## Status legenda
-- TODO = nog niet begonnen
-- DONE = voltooid en gecommit
+### Taak 15: Contracten pagina verbeteren [not started]
+- Lees contracten pagina
+- Verbeter:
+  - Contract timeline visualisatie (start → nu → einde)
+  - Kosten breakdown: maandelijks/jaarlijks/totaal
+  - Renewal reminder met dagen tot expiry
+  - "Besparingspotentieel" als er betere deals zijn (link naar upgrade)
+  - Contracten vergelijken (side-by-side)
+
+### Taak 16: Animaties en micro-interacties [not started]
+- Voeg toe (ZONDER externe dependencies, gebruik Tailwind + CSS):
+  - Page transition: fade-in + subtle slide-up (al in globals.css, verifieer werking)
+  - Card hover: subtle lift + shadow transition (200ms ease)
+  - Button press: scale(0.98) feedback
+  - Loading skeletons: shimmer animatie
+  - Score ring: animated fill bij eerste render (CSS transition)
+  - Notification badge: subtle pulse animatie
+  - Toast notifications: slide-in van rechts + auto-dismiss
+  - Sidebar active item: smooth background transition
+
+### Taak 17: Accessibility (WCAG 2.1 AA) [not started]
+- Audit alle pagina's:
+  - Alle interactieve elementen: focus-visible ring
+  - ARIA labels op icon-only buttons
+  - Correct heading hierarchy (h1 → h2 → h3, geen skips)
+  - Color contrast: minimaal 4.5:1 voor tekst
+  - Keyboard navigatie: Tab door alle interactieve elementen
+  - Screen reader: `aria-label` op grafieken, `sr-only` tekst waar nodig
+  - Skip-to-content link
+  - Reduced motion: `prefers-reduced-motion` media query respecteren
+
+### Taak 18: Performance optimalisatie [not started]
+- Audit en optimaliseer:
+  - Lazy load componenten die below-the-fold zijn (React.lazy + Suspense)
+  - Recharts: dynamic import (geen SSR nodig)
+  - Images: next/image met blur placeholder waar van toepassing
+  - Bundle size: check met `npx next build` output, identificeer grote chunks
+  - Memoize dure berekeningen (useMemo op health scores, recommendations)
+  - Debounce zoekbalken (300ms)
+  - Virtualiseer lange lijsten als >50 items (zonder dependency, use IntersectionObserver)
+
+## FASE 3: Backend Hardening (Taak 19-26)
+
+### Taak 19: API route middleware pattern [not started]
+- Maak `src/lib/api/middleware.ts`:
+  - `withAuth(handler)` — auth check wrapper
+  - `withRateLimit(handler, profile)` — rate limit wrapper
+  - `withValidation(handler, schema)` — Zod validatie wrapper
+  - `withAudit(handler, action)` — audit logging wrapper
+  - `withErrorHandling(handler)` — catch-all error handler
+  - `createApiHandler(config)` — compose alle middleware
+- Voorbeeld gebruik:
+  ```typescript
+  export const POST = createApiHandler({
+    auth: true,
+    rateLimit: 'contactRequest',
+    validation: ContactRequestSchema,
+    audit: 'contact_request_created',
+    handler: async (req, { user, body }) => { ... }
+  })
+  ```
+- Refactor ALLE bestaande API routes om dit pattern te gebruiken
+
+### Taak 20: Input validatie met Zod schemas [not started]
+- Maak `src/lib/schemas/` directory:
+  - `contact.schema.ts` — ContactRequestSchema
+  - `ticket.schema.ts` — TicketFilterSchema
+  - `sync.schema.ts` — SyncRequestSchema
+  - `feedback.schema.ts` — FeedbackSchema
+  - `common.schema.ts` — UUIDSchema, PaginationSchema, DateRangeSchema
+- Gebruik deze schemas in:
+  - API routes (via middleware)
+  - Server actions
+  - Client-side form validatie
+- Eén schema, drie toepassingen: server validatie, client validatie, TypeScript types
+
+### Taak 21: Database query optimalisatie [not started]
+- Lees alle repositories/queries
+- Optimaliseer:
+  - Compound indexes voorstellen voor veel-gebruikte filters (database/030_indexes.sql)
+  - N+1 queries elimineren (gebruik .select met joins waar mogelijk)
+  - Paginatie: cursor-based i.p.v. offset-based voor grote datasets
+  - Count queries: gebruik .count() met head:true voor efficiency
+  - Materialized views overwegen voor dashboard stats
+
+### Taak 22: ConnectWise sync robuuster maken [not started]
+- Lees `src/lib/connectwise/sync.ts`
+- Verbeter:
+  - Idempotent sync: track sync_id per run, skip duplicaten
+  - Delta sync: alleen gewijzigde records na last_sync timestamp
+  - Conflict resolution: CW data wint bij conflict (source of truth)
+  - Sync queue: als één entity faalt, queue voor retry
+  - Metrics: sync duration, records per seconde, error rate
+  - Webhook support voorbereiden (stub voor CW callback endpoint)
+
+### Taak 23: Recommendation engine v2 [not started]
+- Lees `src/lib/engine/` volledig
+- Verbeter:
+  - Weighted scoring: gap severity × recency × company size factor
+  - Seasonal patterns: bepaalde producten relevanter in Q4 (budget season)
+  - Cross-sell rules: "Klanten die X kochten, kochten ook Y"
+  - Confidence intervals: alleen recommendations met >70% confidence tonen
+  - A/B test framework: track welke recommendation variant beter converteert
+  - Personalisatie: prioriteer categorieën waar klant eerder op klikte
+
+### Taak 24: Background jobs voorbereiden [not started]
+- Maak `src/lib/jobs/` directory:
+  - `sync-scheduler.ts` — scheduled ConnectWise sync
+  - `price-refresher.ts` — ververs distributor prijzen
+  - `notification-generator.ts` — genereer notificaties (contract expiry, warranty, etc.)
+  - `health-calculator.ts` — herbereken health scores
+- Elke job:
+  - Idempotent (safe om dubbel te runnen)
+  - Logging met start/end/duration
+  - Error handling met retry
+- Maak `src/app/api/cron/route.ts`:
+  - POST handler voor Vercel Cron
+  - Auth via CRON_SECRET
+  - Dispatcht naar juiste job op basis van parameter
+
+### Taak 25: Rate limiting verbeteren [not started]
+- Lees `src/lib/rate-limit.ts`
+- Verbeter:
+  - Sliding window algorithm (niet fixed window)
+  - Per-user EN per-IP limiting
+  - Graduated response: warning headers bij 80% limit, block bij 100%
+  - Whitelist voor internal services
+  - Response headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
+  - Retry-After header bij 429
+
+### Taak 26: Comprehensive test suite [not started]
+- Audit bestaande tests en vul aan:
+  - Unit tests voor ELKE repository functie
+  - Unit tests voor ELKE server action
+  - Unit tests voor cache module
+  - Unit tests voor error classes
+  - Unit tests voor Zod schemas (valid + invalid input)
+  - Integration tests voor API routes (mock Supabase)
+  - Edge case tests: null data, empty arrays, max lengths, unicode, XSS payloads
+- Doel: >90% coverage op alle lib/ bestanden
+- Run: `npm run test` moet alles groen zijn
+
+## FASE 4: Polish & Production (Taak 27-30)
+
+### Taak 27: Consistent design system documentatie in code [not started]
+- Maak `src/lib/constants/` directory:
+  - `colors.ts` — alle Yielder kleuren als TypeScript constants
+  - `breakpoints.ts` — responsive breakpoints
+  - `status.ts` — status labels, kleuren, iconen per entity type
+  - `navigation.ts` — sidebar items configuratie (uit sidebar.tsx extracten)
+- Maak `src/components/ui/theme.ts`:
+  - Badge variants per status type (ticket, contract, hardware, license)
+  - Consistent color mapping: success=groen, warning=oranje, error=rood, info=blauw
+
+### Taak 28: SEO en metadata [not started]
+- Voeg per pagina correcte metadata toe:
+  - `generateMetadata()` functie per route
+  - Titel: "Pagina | Mijn Yielder"
+  - Description per pagina
+  - Open Graph tags
+  - Favicon check
+  - robots.txt
+  - sitemap.xml (voor publieke pagina's: login)
+
+### Taak 29: Final integration test [not started]
+- Maak `src/test/integration/` directory:
+  - Test complete user flow: login → dashboard → tickets → detail → terug
+  - Test recommendation flow: upgrade pagina → klik aanbeveling → contact modal
+  - Test admin flow: admin pagina → sync status → audit log
+  - Test error recovery: network error → retry → success
+  - Test empty states: nieuw bedrijf zonder data
+- Alle tests moeten slagen
+
+### Taak 30: Code review en cleanup [not started]
+- Doe een finale code review van de HELE codebase:
+  - Verwijder ongebruikte imports
+  - Verwijder ongebruikte variabelen
+  - Verwijder commented-out code
+  - Consistent formatting
+  - Geen TODO's zonder ticket
+  - Geen hardcoded waarden (extract naar constants)
+  - Type safety: geen type assertions zonder reden
+- Run `npm run build && npm run lint && npm run test`
+- Alles MOET 100% groen zijn
+- Final commit: "chore: enterprise-grade code cleanup"
+
+---
+
+## Na alle taken
+Als ALLE 30 taken [done] zijn, maak een bestand `RALPH_DONE` aan.

@@ -25,7 +25,10 @@ export default function LoginPage() {
         .order("name");
       if (data && data.length > 0) {
         setCompanies(data);
-        setCompanyId(data[0].id);
+        const firstCompany = data[0];
+        if (firstCompany) {
+          setCompanyId(firstCompany.id);
+        }
       }
     }
     fetchCompanies();

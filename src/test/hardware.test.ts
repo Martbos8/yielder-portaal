@@ -35,14 +35,14 @@ describe("getWarrantyStatus", () => {
   it("returns 'expiring' for date within 6 months", () => {
     const soon = new Date();
     soon.setMonth(soon.getMonth() + 3);
-    const dateStr = soon.toISOString().split("T")[0];
+    const dateStr = soon.toISOString().split("T")[0]!;
     expect(getWarrantyStatus(dateStr)).toBe("expiring");
   });
 
   it("returns 'valid' for date more than 6 months away", () => {
     const future = new Date();
     future.setFullYear(future.getFullYear() + 2);
-    const dateStr = future.toISOString().split("T")[0];
+    const dateStr = future.toISOString().split("T")[0]!;
     expect(getWarrantyStatus(dateStr)).toBe("valid");
   });
 });
@@ -101,7 +101,7 @@ describe("getHardwareUpgradeInfo", () => {
   it("returns warning upgrade for expiring warranty", () => {
     const soon = new Date();
     soon.setMonth(soon.getMonth() + 3);
-    const dateStr = soon.toISOString().split("T")[0];
+    const dateStr = soon.toISOString().split("T")[0]!;
     const info = getHardwareUpgradeInfo(dateStr, null, null);
     expect(info.needsUpgrade).toBe(true);
     expect(info.severity).toBe("warning");
@@ -112,10 +112,10 @@ describe("getHardwareUpgradeInfo", () => {
   it("returns warning for device older than lifecycle", () => {
     const future = new Date();
     future.setFullYear(future.getFullYear() + 2);
-    const futureWarranty = future.toISOString().split("T")[0];
+    const futureWarranty = future.toISOString().split("T")[0]!;
     const oldPurchase = new Date();
     oldPurchase.setFullYear(oldPurchase.getFullYear() - 6);
-    const purchaseStr = oldPurchase.toISOString().split("T")[0];
+    const purchaseStr = oldPurchase.toISOString().split("T")[0]!;
     const info = getHardwareUpgradeInfo(futureWarranty, purchaseStr, 5);
     expect(info.needsUpgrade).toBe(true);
     expect(info.severity).toBe("warning");
@@ -125,7 +125,7 @@ describe("getHardwareUpgradeInfo", () => {
   it("returns no upgrade for valid warranty within lifecycle", () => {
     const future = new Date();
     future.setFullYear(future.getFullYear() + 2);
-    const dateStr = future.toISOString().split("T")[0];
+    const dateStr = future.toISOString().split("T")[0]!;
     const info = getHardwareUpgradeInfo(dateStr, null, null);
     expect(info.needsUpgrade).toBe(false);
     expect(info.severity).toBeNull();
@@ -142,10 +142,10 @@ describe("countAssetsNeedingUpgrade", () => {
   it("counts expired and expiring assets", () => {
     const soon = new Date();
     soon.setMonth(soon.getMonth() + 3);
-    const soonStr = soon.toISOString().split("T")[0];
+    const soonStr = soon.toISOString().split("T")[0]!;
     const future = new Date();
     future.setFullYear(future.getFullYear() + 2);
-    const futureStr = future.toISOString().split("T")[0];
+    const futureStr = future.toISOString().split("T")[0]!;
 
     const assets = [
       { warranty_expiry: "2020-01-01" },   // expired
@@ -160,7 +160,7 @@ describe("countAssetsNeedingUpgrade", () => {
   it("returns 0 when no assets need upgrade", () => {
     const future = new Date();
     future.setFullYear(future.getFullYear() + 2);
-    const futureStr = future.toISOString().split("T")[0];
+    const futureStr = future.toISOString().split("T")[0]!;
     const assets = [
       { warranty_expiry: futureStr },
       { warranty_expiry: null },

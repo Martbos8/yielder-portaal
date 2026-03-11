@@ -14,7 +14,7 @@ const htmlEscapeMap: Record<string, string> = {
 };
 
 export function escapeHtml(str: string): string {
-  return str.replace(/[&<>"']/g, (char) => htmlEscapeMap[char]);
+  return str.replace(/[&<>"']/g, (char) => htmlEscapeMap[char] ?? char);
 }
 
 export function formatDate(dateStr: string | null): string {

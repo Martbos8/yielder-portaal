@@ -17,11 +17,11 @@ export class ConnectWiseClient {
   private config: CWClientConfig | null;
 
   constructor() {
-    const baseUrl = process.env.CW_BASE_URL;
-    const companyId = process.env.CW_COMPANY_ID;
-    const publicKey = process.env.CW_PUBLIC_KEY;
-    const privateKey = process.env.CW_PRIVATE_KEY;
-    const clientId = process.env.CW_CLIENT_ID;
+    const baseUrl = process.env['CW_BASE_URL'];
+    const companyId = process.env['CW_COMPANY_ID'];
+    const publicKey = process.env['CW_PUBLIC_KEY'];
+    const privateKey = process.env['CW_PRIVATE_KEY'];
+    const clientId = process.env['CW_CLIENT_ID'];
 
     if (!baseUrl || !companyId || !publicKey || !privateKey || !clientId) {
       this.config = null;

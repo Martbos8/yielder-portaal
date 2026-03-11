@@ -86,8 +86,8 @@ describe("Shop page", () => {
   it("prices increase per tier within each product", () => {
     for (const product of products) {
       for (let i = 1; i < product.tiers.length; i++) {
-        expect(Number(product.tiers[i].price)).toBeGreaterThan(
-          Number(product.tiers[i - 1].price)
+        expect(Number(product.tiers[i]!.price)).toBeGreaterThan(
+          Number(product.tiers[i - 1]!.price)
         );
       }
     }

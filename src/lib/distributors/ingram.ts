@@ -6,7 +6,7 @@ export class IngramClient extends DistributorClient {
   readonly name: DistributorName = "ingram";
 
   isConfigured(): boolean {
-    return !!process.env.INGRAM_API_KEY;
+    return !!process.env['INGRAM_API_KEY'];
   }
 
   async getPrice(sku: string): Promise<DistributorPrice | null> {

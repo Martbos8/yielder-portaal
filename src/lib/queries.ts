@@ -23,9 +23,10 @@ export async function getUserProfile(): Promise<Profile | null> {
     .from("profiles")
     .select("*")
     .eq("id", user.id)
+    .returns<Profile[]>()
     .single();
 
-  return data as Profile | null;
+  return data;
 }
 
 export async function getUserCompanyId(): Promise<string | null> {
@@ -63,9 +64,10 @@ export async function getUserCompany(): Promise<Company | null> {
     .from("companies")
     .select("*")
     .eq("id", data.company_id)
+    .returns<Company[]>()
     .single();
 
-  return company as Company | null;
+  return company;
 }
 
 export async function getRecentTickets(limit = 5): Promise<Ticket[]> {
@@ -75,9 +77,10 @@ export async function getRecentTickets(limit = 5): Promise<Ticket[]> {
     .select("*")
     .eq("is_closed", false)
     .order("cw_created_at", { ascending: false })
-    .limit(limit);
+    .limit(limit)
+    .returns<Ticket[]>();
 
-  return (data ?? []) as Ticket[];
+  return data ?? [];
 }
 
 export async function getTicketById(id: string): Promise<Ticket | null> {
@@ -86,9 +89,10 @@ export async function getTicketById(id: string): Promise<Ticket | null> {
     .from("tickets")
     .select("*")
     .eq("id", id)
+    .returns<Ticket[]>()
     .single();
 
-  return data as Ticket | null;
+  return data;
 }
 
 export async function getTickets(): Promise<Ticket[]> {
@@ -96,9 +100,10 @@ export async function getTickets(): Promise<Ticket[]> {
   const { data } = await supabase
     .from("tickets")
     .select("*")
-    .order("cw_created_at", { ascending: false });
+    .order("cw_created_at", { ascending: false })
+    .returns<Ticket[]>();
 
-  return (data ?? []) as Ticket[];
+  return data ?? [];
 }
 
 export async function getHardwareAssets(): Promise<HardwareAsset[]> {
@@ -106,9 +111,10 @@ export async function getHardwareAssets(): Promise<HardwareAsset[]> {
   const { data } = await supabase
     .from("hardware_assets")
     .select("*")
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .returns<HardwareAsset[]>();
 
-  return (data ?? []) as HardwareAsset[];
+  return data ?? [];
 }
 
 export async function getAgreements(): Promise<Agreement[]> {
@@ -117,9 +123,10 @@ export async function getAgreements(): Promise<Agreement[]> {
     .from("agreements")
     .select("*")
     .order("status", { ascending: true })
-    .order("name", { ascending: true });
+    .order("name", { ascending: true })
+    .returns<Agreement[]>();
 
-  return (data ?? []) as Agreement[];
+  return data ?? [];
 }
 
 export async function getExpiringAgreements(
@@ -135,10 +142,11 @@ export async function getExpiringAgreements(
     .select("*")
     .eq("status", "active")
     .not("end_date", "is", null)
-    .lte("end_date", futureDateStr)
-    .order("end_date", { ascending: true });
+    .lte("end_date", futureDateStr!)
+    .order("end_date", { ascending: true })
+    .returns<Agreement[]>();
 
-  return (data ?? []) as Agreement[];
+  return data ?? [];
 }
 
 export async function getExpiredWarrantyHardware(): Promise<HardwareAsset[]> {
@@ -149,10 +157,11 @@ export async function getExpiredWarrantyHardware(): Promise<HardwareAsset[]> {
     .from("hardware_assets")
     .select("*")
     .not("warranty_expiry", "is", null)
-    .lt("warranty_expiry", todayStr)
-    .order("warranty_expiry", { ascending: true });
+    .lt("warranty_expiry", todayStr!)
+    .order("warranty_expiry", { ascending: true })
+    .returns<HardwareAsset[]>();
 
-  return (data ?? []) as HardwareAsset[];
+  return data ?? [];
 }
 
 export async function getOpenTicketCount(): Promise<number> {
@@ -180,12 +189,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   ]);
 
   const activeAgreements = (agreementsRes.data ?? []).filter(
-    (a: { status: string; bill_amount: number | null }) =>
-      a.status === "active"
+    (a) => a.status === "active"
   );
   const monthlyAmount = activeAgreements.reduce(
-    (sum: number, a: { status: string; bill_amount: number | null }) =>
-      sum + (a.bill_amount ?? 0),
+    (sum, a) => sum + (a.bill_amount ?? 0),
     0
   );
 
@@ -203,9 +210,10 @@ export async function getLicenses(): Promise<License[]> {
     .from("licenses")
     .select("*")
     .order("vendor", { ascending: true })
-    .order("product_name", { ascending: true });
+    .order("product_name", { ascending: true })
+    .returns<License[]>();
 
-  return (data ?? []) as License[];
+  return data ?? [];
 }
 
 export async function getContacts(): Promise<Contact[]> {
@@ -213,9 +221,10 @@ export async function getContacts(): Promise<Contact[]> {
   const { data } = await supabase
     .from("contacts")
     .select("*")
-    .order("full_name", { ascending: true });
+    .order("full_name", { ascending: true })
+    .returns<Contact[]>();
 
-  return (data ?? []) as Contact[];
+  return data ?? [];
 }
 
 export async function getNotifications(
@@ -231,8 +240,8 @@ export async function getNotifications(
     query = query.eq("is_read", false);
   }
 
-  const { data } = await query;
-  return (data ?? []) as Notification[];
+  const { data } = await query.returns<Notification[]>();
+  return data ?? [];
 }
 
 export async function getSyncStatus(): Promise<SyncLog[]> {
@@ -241,7 +250,8 @@ export async function getSyncStatus(): Promise<SyncLog[]> {
     .from("sync_logs")
     .select("*")
     .order("started_at", { ascending: false })
-    .limit(10);
+    .limit(10)
+    .returns<SyncLog[]>();
 
-  return (data ?? []) as SyncLog[];
+  return data ?? [];
 }

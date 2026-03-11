@@ -82,8 +82,8 @@ describe("Agreement sorting", () => {
       return a.name.localeCompare(b.name, "nl-NL");
     });
 
-    expect(sorted[0].status).toBe("active");
-    expect(sorted[0].name).toBe("Zeta");
+    expect(sorted[0]!.status).toBe("active");
+    expect(sorted[0]!.name).toBe("Zeta");
   });
 
   it("sorts by name within same status", () => {
@@ -98,8 +98,8 @@ describe("Agreement sorting", () => {
       return a.name.localeCompare(b.name, "nl-NL");
     });
 
-    expect(sorted[0].name).toBe("Alpha");
-    expect(sorted[1].name).toBe("Zeta");
+    expect(sorted[0]!.name).toBe("Alpha");
+    expect(sorted[1]!.name).toBe("Zeta");
   });
 });
 
@@ -143,7 +143,7 @@ describe("Expiry badge — verlengingsbadge bij bijna verlopen contract", () => 
     // 30 days from now
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 30);
-    const dateStr = futureDate.toISOString().split("T")[0];
+    const dateStr = futureDate.toISOString().split("T")[0]!;
 
     const badge = getExpiryBadge(dateStr);
     expect(badge.show).toBe(true);
@@ -155,7 +155,7 @@ describe("Expiry badge — verlengingsbadge bij bijna verlopen contract", () => 
   it("does not show badge for contract > 60 days away", () => {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 90);
-    const dateStr = futureDate.toISOString().split("T")[0];
+    const dateStr = futureDate.toISOString().split("T")[0]!;
 
     const badge = getExpiryBadge(dateStr);
     expect(badge.show).toBe(false);
@@ -169,7 +169,7 @@ describe("Expiry badge — verlengingsbadge bij bijna verlopen contract", () => 
   it("shows urgent text for contracts expiring within 7 days", () => {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 3);
-    const dateStr = futureDate.toISOString().split("T")[0];
+    const dateStr = futureDate.toISOString().split("T")[0]!;
 
     const badge = getExpiryBadge(dateStr);
     expect(badge.show).toBe(true);
@@ -185,7 +185,7 @@ describe("isExpiringSoon", () => {
   it("returns true for contract expiring within threshold", () => {
     const futureDate = new Date();
     futureDate.setDate(futureDate.getDate() + 45);
-    expect(isExpiringSoon(futureDate.toISOString().split("T")[0], 60)).toBe(true);
+    expect(isExpiringSoon(futureDate.toISOString().split("T")[0]!, 60)).toBe(true);
   });
 
   it("returns false for null end date", () => {
@@ -197,7 +197,7 @@ describe("countExpiringSoon", () => {
   it("counts active agreements expiring within 60 days", () => {
     const soon = new Date();
     soon.setDate(soon.getDate() + 30);
-    const soonStr = soon.toISOString().split("T")[0];
+    const soonStr = soon.toISOString().split("T")[0]!;
 
     const agreements = [
       mockAgreement({ id: "1", status: "active", end_date: soonStr }),

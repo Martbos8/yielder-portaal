@@ -174,7 +174,7 @@ export default async function SupportcontractenPage() {
             SLA-niveau
           </p>
           <p className="text-2xl font-semibold text-yielder-navy">
-            {active.length > 0
+            {active.length > 0 && active[0]
               ? slaTiers[getSLATier(active[0])].label
               : "—"}
           </p>

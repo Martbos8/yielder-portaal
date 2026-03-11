@@ -46,7 +46,7 @@ export function checkRateLimit(
   const currentCount = entry.timestamps.length;
 
   if (currentCount >= config.maxRequests) {
-    const oldestInWindow = entry.timestamps[0];
+    const oldestInWindow = entry.timestamps[0] ?? now;
     const resetInMs = oldestInWindow + config.windowMs - now;
 
     return {

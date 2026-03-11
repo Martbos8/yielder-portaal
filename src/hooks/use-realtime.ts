@@ -50,8 +50,8 @@ export function useRealtime(subscriptions: RealtimeSubscription[]) {
           (payload: Record<string, unknown>) => {
             sub.onEvent({
               eventType: event,
-              new: (payload.new as Record<string, unknown>) ?? {},
-              old: (payload.old as Record<string, unknown>) ?? {},
+              new: (payload['new'] as Record<string, unknown>) ?? {},
+              old: (payload['old'] as Record<string, unknown>) ?? {},
               table: sub.table,
             });
           }

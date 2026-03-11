@@ -6,7 +6,7 @@ export class CopacoClient extends DistributorClient {
   readonly name: DistributorName = "copaco";
 
   isConfigured(): boolean {
-    return !!process.env.COPACO_API_KEY;
+    return !!process.env['COPACO_API_KEY'];
   }
 
   async getPrice(sku: string): Promise<DistributorPrice | null> {
