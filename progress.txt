@@ -287,3 +287,5 @@
 - Geleerd: useMemo on columns array with dynamic filterOptions (vendorOptions) prevents re-renders
 - Geleerd: compareValues with nl-NL locale and numeric:true handles mixed alphanumeric sorting correctly
 - Geleerd: Stale .next cache continues to cause ENOENT — rm -rf .next is reliable fix
+[00:16:46] Iteratie 10 klaar
+[00:16:46] Iteratie 11 gestart

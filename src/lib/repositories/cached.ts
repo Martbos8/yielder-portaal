@@ -17,6 +17,8 @@ import {
   getUserCompanyId,
   getDashboardStats,
 } from "./company.repository";
+import { getDashboardTrends, getRecentActivity } from "./dashboard.repository";
+import type { DashboardTrends, ActivityEntry } from "./dashboard.repository";
 import {
   getRecommendations,
   type Recommendation,
@@ -69,6 +71,18 @@ export function getCachedUserCompanyId(): Promise<string | null> {
 
 export function getCachedDashboardStats(): Promise<DashboardStats> {
   return cached("dashboard:stats", CacheTTL.SHORT, getDashboardStats);
+}
+
+// ─── Dashboard trends cache (2 min TTL — matches stats) ─────────────────
+
+export function getCachedDashboardTrends(): Promise<DashboardTrends> {
+  return cached("dashboard:trends", CacheTTL.SHORT, getDashboardTrends);
+}
+
+// ─── Recent activity cache (2 min TTL) ──────────────────────────────────
+
+export function getCachedRecentActivity(limit = 10): Promise<ActivityEntry[]> {
+  return cached(`dashboard:activity:${limit}`, CacheTTL.SHORT, () => getRecentActivity(limit));
 }
 
 // ─── Recommendations cache (5 min TTL — per company) ─────────────────────

@@ -9,6 +9,8 @@ export { getNotifications } from "./notification.repository";
 export { getLicenses } from "./license.repository";
 export { getActiveProducts, getProductCategories, getProductDependencies, getClientProducts } from "./product.repository";
 export { getSyncStatus } from "./sync.repository";
+export { getDashboardTrends, getRecentActivity } from "./dashboard.repository";
+export type { DashboardTrends, ActivityEntry } from "./dashboard.repository";
 
 // Cached repository wrappers
 export {
@@ -19,6 +21,8 @@ export {
   getCachedUserCompany,
   getCachedUserCompanyId,
   getCachedDashboardStats,
+  getCachedDashboardTrends,
+  getCachedRecentActivity,
   getCachedRecommendations,
   invalidateProductCache,
   invalidateCompanyCache,
