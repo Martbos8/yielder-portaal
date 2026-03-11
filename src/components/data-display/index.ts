@@ -12,3 +12,5 @@ export {
 export type { StatusStyle } from "./status-badge";
 export { EmptyState, EmptyStateInline } from "./empty-state";
 export { MetricRing, getScoreDescription } from "./metric-ring";
+export { DataTable } from "./data-table";
+export type { ColumnDef, FilterOption } from "./data-table";

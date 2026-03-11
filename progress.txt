@@ -220,3 +220,39 @@
 - Geleerd: EmptyState vs EmptyStateInline pattern — card wrapper for standalone sections, inline for nested-in-card contexts
 - Geleerd: Pure SVG MetricRing is more performant and SSR-friendly than Recharts RadialBarChart for simple score rings
 [00:12:00] Iteratie 9 klaar
+[00:12:03] Iteratie 7 klaar
+[00:12:03] Iteratie 8 gestart
+[00:12:39] Iteratie 9 klaar
+[00:12:39] Iteratie 10 gestart
+
+[00:16:00] Taak 10 VOLTOOID — Data table component (enterprise-grade)
+- Enhanced DataTable<T> in src/components/data-display/data-table.tsx:
+  - Generic column definitions with ColumnDef<T> interface
+  - Client-side sorting on any column (sortable + sortValue per column)
+  - Column-level filtering: text filter (search) + select filter (dropdown)
+  - Global search bar across multiple fields (searchFields prop)
+  - Pagination with 10/25/50 per page, first/prev/next/last controls
+  - Loading skeleton state with Skeleton component
+  - Empty state: separate UX for no-data vs no-filter-results
+  - Responsive: hideBelow per column ("sm" | "md" | "lg") + horizontal scroll
+  - Keyboard navigation: tab-to-row + Enter/Space to activate, sort buttons focusable
+  - ARIA attributes: aria-label on filters, aria-sort on sortable headers, role="button" on clickable rows
+  - Toolbar slot for extra content above filters (summary cards etc.)
+  - Caption slot for result count display
+- Refactored TicketFilters to use DataTable:
+  - Removed manual Table/TableHeader/TableBody/TableRow imports
+  - Status + priority as select filters, summary as searchable
+  - Sortable on all columns, priority sorted by severity order
+  - ~100 lines removed from manual table implementation
+- Refactored LicenseFilters to use DataTable:
+  - Removed manual Table + search/filter state management
+  - Vendor (dynamic options) + status as select filters
+  - SeatBar component preserved as custom cell renderer
+  - Summary cards rendered via toolbar prop
+  - ~80 lines removed from manual implementation
+- Exported DataTable, ColumnDef, FilterOption from data-display/index.ts
+- Build + lint + 471 tests groen
+- Geleerd: Dynamic vendor filter options require memoized column definitions (useMemo on vendorOptions dependency)
+- Geleerd: filterType "select" + filterValue accessor pattern cleanly decouples filter UI from data shape
+- Geleerd: Sort buttons inside TableHead work better for a11y than making the entire th clickable (clear focus target)
+[00:16:00] Iteratie 10 klaar

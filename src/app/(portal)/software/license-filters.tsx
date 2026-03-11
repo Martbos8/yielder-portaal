@@ -1,37 +1,15 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import { MaterialIcon } from "@/components/icon";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useMemo } from "react";
 import type { License } from "@/types/database";
 import { formatDate, formatCurrency } from "@/lib/utils";
 import {
+  DataTable,
   StatCardCompact,
   StatusBadge,
-  EmptyStateInline,
   licenseStatusConfig,
 } from "@/components/data-display";
-
-const statusOptions = [
-  { value: "", label: "Alle statussen" },
-  { value: "active", label: "Actief" },
-  { value: "expiring", label: "Verloopt binnenkort" },
-  { value: "expired", label: "Verlopen" },
-];
-
-function getUniqueVendors(licenses: License[]): string[] {
-  const vendors = new Set(licenses.map((l) => l.vendor));
-  return Array.from(vendors).sort((a, b) => a.localeCompare(b, "nl-NL"));
-}
+import type { ColumnDef, FilterOption } from "@/components/data-display";
 
 function SeatBar({ used, total }: { used: number; total: number }) {
   const percentage = total > 0 ? Math.round((used / total) * 100) : 0;
@@ -59,173 +37,138 @@ function SeatBar({ used, total }: { used: number; total: number }) {
   );
 }
 
+const statusFilterOptions: FilterOption[] = [
+  { value: "active", label: "Actief" },
+  { value: "expiring", label: "Verloopt binnenkort" },
+  { value: "expired", label: "Verlopen" },
+];
+
 export function LicenseFilters({ licenses }: { licenses: License[] }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const vendorOptions: FilterOption[] = useMemo(() => {
+    const vendors = new Set(licenses.map((l) => l.vendor));
+    return Array.from(vendors)
+      .sort((a, b) => a.localeCompare(b, "nl-NL"))
+      .map((v) => ({ value: v, label: v }));
+  }, [licenses]);
 
-  const search = searchParams.get("zoek") ?? "";
-  const vendorFilter = searchParams.get("vendor") ?? "";
-  const statusFilter = searchParams.get("status") ?? "";
-
-  const vendors = useMemo(() => getUniqueVendors(licenses), [licenses]);
-
-  const updateParams = useCallback(
-    (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-      router.replace(`?${params.toString()}`, { scroll: false });
-    },
-    [router, searchParams]
+  const columns: ColumnDef<License>[] = useMemo(
+    () => [
+      {
+        key: "vendor",
+        header: "Vendor",
+        cellClassName: "font-medium text-sm",
+        sortable: true,
+        sortValue: (row) => row.vendor,
+        filterType: "select" as const,
+        filterOptions: vendorOptions,
+        filterPlaceholder: "Alle vendors",
+        filterValue: (row) => row.vendor,
+        cell: (row) => row.vendor,
+      },
+      {
+        key: "product",
+        header: "Product",
+        cellClassName: "text-sm",
+        sortable: true,
+        sortValue: (row) => row.product_name,
+        cell: (row) => row.product_name,
+      },
+      {
+        key: "type",
+        header: "Type",
+        headerClassName: "w-[120px]",
+        cellClassName: "text-sm text-muted-foreground",
+        hideBelow: "md" as const,
+        sortable: true,
+        sortValue: (row) => row.license_type ?? "",
+        cell: (row) => row.license_type ?? "—",
+      },
+      {
+        key: "seats",
+        header: "Seats",
+        headerClassName: "w-[160px]",
+        sortable: true,
+        sortValue: (row) =>
+          row.seats_total > 0
+            ? Math.round((row.seats_used / row.seats_total) * 100)
+            : 0,
+        cell: (row) => (
+          <SeatBar used={row.seats_used} total={row.seats_total} />
+        ),
+      },
+      {
+        key: "expiry",
+        header: "Verloopdatum",
+        headerClassName: "w-[130px]",
+        cellClassName: "text-sm text-muted-foreground",
+        hideBelow: "sm" as const,
+        sortable: true,
+        sortValue: (row) => row.expiry_date ?? "",
+        cell: (row) => formatDate(row.expiry_date),
+      },
+      {
+        key: "cost",
+        header: "Prijs/seat",
+        headerClassName: "w-[100px]",
+        cellClassName: "text-sm text-muted-foreground",
+        hideBelow: "md" as const,
+        sortable: true,
+        sortValue: (row) => row.cost_per_seat ?? 0,
+        cell: (row) => formatCurrency(row.cost_per_seat),
+      },
+      {
+        key: "status",
+        header: "Status",
+        headerClassName: "w-[140px]",
+        sortable: true,
+        sortValue: (row) => row.status,
+        filterType: "select" as const,
+        filterOptions: statusFilterOptions,
+        filterPlaceholder: "Alle statussen",
+        filterValue: (row) => row.status,
+        cell: (row) => (
+          <StatusBadge status={row.status} config={licenseStatusConfig} />
+        ),
+      },
+    ],
+    [vendorOptions]
   );
 
-  const filtered = useMemo(() => {
-    return licenses.filter((license) => {
-      if (
-        search &&
-        !license.product_name.toLowerCase().includes(search.toLowerCase()) &&
-        !license.vendor.toLowerCase().includes(search.toLowerCase())
-      ) {
-        return false;
-      }
-      if (vendorFilter && license.vendor !== vendorFilter) {
-        return false;
-      }
-      if (statusFilter && license.status !== statusFilter) {
-        return false;
-      }
-      return true;
-    });
-  }, [licenses, search, vendorFilter, statusFilter]);
-
-  const totalSeats = filtered.reduce((sum, l) => sum + l.seats_total, 0);
-  const usedSeats = filtered.reduce((sum, l) => sum + l.seats_used, 0);
+  const totalSeats = licenses.reduce((sum, l) => sum + l.seats_total, 0);
+  const usedSeats = licenses.reduce((sum, l) => sum + l.seats_used, 0);
+  const monthlyCost = licenses.reduce(
+    (sum, l) => sum + (l.cost_per_seat ?? 0) * l.seats_total,
+    0
+  );
 
   return (
-    <div>
-      {/* Summary strip */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <StatCardCompact label="Totaal licenties" value={String(filtered.length)} />
-        <StatCardCompact
-          label="Seats gebruikt"
-          value={String(usedSeats)}
-          suffix={`/ ${totalSeats}`}
-        />
-        <StatCardCompact
-          label="Maandkosten"
-          value={formatCurrency(
-            filtered.reduce(
-              (sum, l) => sum + (l.cost_per_seat ?? 0) * l.seats_total,
-              0
-            )
-          ) ?? "—"}
-        />
-      </div>
-
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="relative flex-1">
-          <MaterialIcon
-            name="search"
-            size={18}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+    <DataTable<License>
+      columns={columns}
+      data={licenses}
+      rowKey={(row) => row.id}
+      searchable
+      searchPlaceholder="Zoek op product of vendor…"
+      searchFields={(row) => [row.product_name, row.vendor]}
+      emptyIcon="key"
+      emptyMessage="Geen licenties gevonden"
+      defaultPageSize={25}
+      toolbar={
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatCardCompact
+            label="Totaal licenties"
+            value={String(licenses.length)}
           />
-          <Input
-            placeholder="Zoek op product of vendor…"
-            value={search}
-            onChange={(e) => updateParams("zoek", e.target.value)}
-            className="pl-9"
+          <StatCardCompact
+            label="Seats gebruikt"
+            value={String(usedSeats)}
+            suffix={`/ ${totalSeats}`}
+          />
+          <StatCardCompact
+            label="Maandkosten"
+            value={formatCurrency(monthlyCost) ?? "—"}
           />
         </div>
-        <select
-          value={vendorFilter}
-          onChange={(e) => updateParams("vendor", e.target.value)}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          <option value="">Alle vendors</option>
-          {vendors.map((v) => (
-            <option key={v} value={v}>
-              {v}
-            </option>
-          ))}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => updateParams("status", e.target.value)}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <p className="text-sm text-muted-foreground mb-3">
-        {filtered.length} {filtered.length === 1 ? "licentie" : "licenties"}
-      </p>
-
-      {/* Table */}
-      <div className="bg-card rounded-2xl shadow-card border border-border overflow-hidden">
-        {filtered.length === 0 ? (
-          <EmptyStateInline
-            icon="key"
-            message="Geen licenties gevonden"
-            iconClassName="text-muted-foreground/50"
-            iconSize={40}
-          />
-        ) : (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead className="w-[120px] hidden md:table-cell">Type</TableHead>
-                  <TableHead className="w-[160px]">Seats</TableHead>
-                  <TableHead className="w-[130px] hidden sm:table-cell">Verloopdatum</TableHead>
-                  <TableHead className="w-[100px] hidden md:table-cell">Prijs/seat</TableHead>
-                  <TableHead className="w-[140px]">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.map((license) => (
-                  <TableRow key={license.id}>
-                    <TableCell className="font-medium text-sm">
-                      {license.vendor}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {license.product_name}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
-                      {license.license_type ?? "—"}
-                    </TableCell>
-                    <TableCell>
-                      <SeatBar
-                        used={license.seats_used}
-                        total={license.seats_total}
-                      />
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
-                      {formatDate(license.expiry_date)}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
-                      {formatCurrency(license.cost_per_seat)}
-                    </TableCell>
-                    <TableCell>
-                      <StatusBadge status={license.status} config={licenseStatusConfig} />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-      </div>
-    </div>
+      }
+    />
   );
 }

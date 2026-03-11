@@ -148,7 +148,7 @@ Per iteratie:
   - `empty-state.tsx` — herbruikbare empty state met icoon + tekst + actie
   - `metric-ring.tsx` — herbruikbare score ring (Recharts)
 
-### Taak 10: Data table component (enterprise-grade) [not started]
+### Taak 10: Data table component (enterprise-grade) [done]
 - Maak `src/components/data-display/data-table.tsx`:
   - Generic: `DataTable<T>` met column definitie
   - Client-side sortering op elke kolom
