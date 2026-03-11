@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
+import { MaterialIcon } from "@/components/icon";
 import {
   DataTable,
   StatusBadge,
@@ -10,6 +11,7 @@ import {
 } from "@/components/data-display";
 import type { ColumnDef } from "@/components/data-display";
 import type { Ticket } from "@/types/database";
+import type { TicketResponseStats } from "@/lib/repositories";
 
 const statusFilterOptions = [
   { value: "open", label: "Open" },
@@ -23,6 +25,27 @@ const priorityFilterOptions = [
   { value: "normal", label: "Normaal" },
   { value: "low", label: "Laag" },
 ];
+
+/** Priority indicator dot with color + optional pulse for urgent. */
+function PriorityIndicator({ priority }: { priority: string }) {
+  const colorMap: Record<string, string> = {
+    urgent: "bg-red-500 animate-pulse",
+    high: "bg-orange-400",
+    normal: "bg-blue-400",
+    low: "bg-gray-400",
+  };
+  const color = colorMap[priority] ?? "bg-gray-400";
+  return <span className={`inline-block size-2 rounded-full ${color} shrink-0`} />;
+}
+
+/** Format hours into readable Dutch string. */
+function formatResponseTime(hours: number | null): string {
+  if (hours === null) return "—";
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  if (hours < 24) return `${Math.round(hours)} uur`;
+  const days = hours / 24;
+  return `${days.toFixed(1)} dagen`;
+}
 
 const columns: ColumnDef<Ticket>[] = [
   {
@@ -67,7 +90,7 @@ const columns: ColumnDef<Ticket>[] = [
   {
     key: "priority",
     header: "Prioriteit",
-    headerClassName: "w-[120px]",
+    headerClassName: "w-[140px]",
     sortable: true,
     sortValue: (row) => {
       const order: Record<string, number> = {
@@ -83,7 +106,10 @@ const columns: ColumnDef<Ticket>[] = [
     filterPlaceholder: "Alle prioriteiten",
     filterValue: (row) => row.priority,
     cell: (row) => (
-      <StatusBadge status={row.priority} config={ticketPriorityConfig} />
+      <div className="flex items-center gap-2">
+        <PriorityIndicator priority={row.priority} />
+        <StatusBadge status={row.priority} config={ticketPriorityConfig} />
+      </div>
     ),
   },
   {
@@ -108,7 +134,44 @@ const columns: ColumnDef<Ticket>[] = [
   },
 ];
 
-export function TicketFilters({ tickets }: { tickets: Ticket[] }) {
+interface TicketFiltersProps {
+  tickets: Ticket[];
+  stats: TicketResponseStats | null;
+}
+
+export function TicketFilters({ tickets, stats }: TicketFiltersProps) {
+  const openCount = tickets.filter((t) => !t.is_closed).length;
+  const urgentCount = tickets.filter((t) => t.priority === "urgent" && !t.is_closed).length;
+
+  const toolbar = (
+    <div className="flex flex-wrap gap-3 mb-2">
+      <div className="flex items-center gap-2 rounded-xl bg-card border border-border px-4 py-2 text-sm">
+        <MaterialIcon name="confirmation_number" size={16} className="text-muted-foreground" />
+        <span className="text-muted-foreground">Totaal:</span>
+        <span className="font-medium">{tickets.length}</span>
+      </div>
+      <div className="flex items-center gap-2 rounded-xl bg-card border border-border px-4 py-2 text-sm">
+        <MaterialIcon name="radio_button_checked" size={16} className="text-emerald-600" />
+        <span className="text-muted-foreground">Open:</span>
+        <span className="font-medium">{openCount}</span>
+      </div>
+      {urgentCount > 0 && (
+        <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-2 text-sm dark:bg-red-900/20 dark:border-red-800">
+          <span className="size-2 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-red-700 dark:text-red-400">Urgent:</span>
+          <span className="font-medium text-red-700 dark:text-red-400">{urgentCount}</span>
+        </div>
+      )}
+      {stats && stats.avgResponseHours !== null && (
+        <div className="flex items-center gap-2 rounded-xl bg-card border border-border px-4 py-2 text-sm">
+          <MaterialIcon name="schedule" size={16} className="text-muted-foreground" />
+          <span className="text-muted-foreground">Gem. responstijd:</span>
+          <span className="font-medium">{formatResponseTime(stats.avgResponseHours)}</span>
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <DataTable<Ticket>
       columns={columns}
@@ -120,6 +183,7 @@ export function TicketFilters({ tickets }: { tickets: Ticket[] }) {
       emptyIcon="confirmation_number"
       emptyMessage="Geen tickets gevonden"
       defaultPageSize={25}
+      toolbar={toolbar}
     />
   );
 }

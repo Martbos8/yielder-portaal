@@ -1,7 +1,8 @@
 // Repository layer — re-exports all repository functions
 // Replaces the monolithic queries.ts with domain-specific repositories
 
-export { getTickets, getTicketById, getRecentTickets, getOpenTicketCount } from "./ticket.repository";
+export { getTickets, getTicketById, getRecentTickets, getOpenTicketCount, getSimilarTickets, getTicketStats } from "./ticket.repository";
+export type { TicketResponseStats } from "./ticket.repository";
 export { getHardwareAssets, getExpiredWarrantyHardware } from "./hardware.repository";
 export { getAgreements, getExpiringAgreements } from "./agreement.repository";
 export { getUserProfile, getUserCompanyId, getUserCompany, getContacts, getDashboardStats } from "./company.repository";

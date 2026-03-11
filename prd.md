@@ -191,7 +191,7 @@ Per iteratie:
   - Hardware health score per device
   - "Vervangingsadvies" badge met link naar upgrade pagina
 
-### Taak 14: Tickets pagina naar helpdesk-niveau [not started]
+### Taak 14: Tickets pagina naar helpdesk-niveau [done]
 - Lees tickets pagina's
 - Verbeter:
   - Timeline view op detail pagina (wanneer aangemaakt, status wijzigingen)

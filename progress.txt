@@ -383,3 +383,23 @@
 [00:31:30] Iteratie 13 klaar
 [00:32:07] Iteratie 10 klaar
 [00:32:07] Iteratie 11 gestart
+[00:34:35] Iteratie 13 klaar
+[00:34:35] Iteratie 14 gestart
+
+[00:37:00] Taak 14 VOLTOOID — Tickets pagina naar helpdesk-niveau
+- Enhanced ticket detail page with 3-column layout: main content (2/3) + metadata sidebar (1/3)
+- Timeline view: chronological events (created, updated, in_progress, closed) with icons + relative time
+- Collapsible description: native <details> element, open by default
+- Metadata sidebar: all ticket fields in dedicated card (contact, bron, prioriteit, status, dates)
+- Similar tickets section: fetches tickets from same source, shows priority + status badges
+- Response time indicator: average response time + resolution time shown in header
+- Stats card in sidebar: open/closed counts, average response/resolution times
+- Added ticket.repository.ts: getSimilarTickets(), getTicketStats() with TicketResponseStats type
+- List page enhancements:
+  - Summary toolbar: total tickets, open count, urgent count (with pulse), avg response time
+  - Priority column: colored dot indicator with pulse animation for urgent
+  - Priority dot: red (urgent, pulsing), orange (high), blue (normal), gray (low)
+- 471 tests pass, build + lint groen
+- Geleerd: Supabase query chaining — .eq() must come before .order()/.limit() (type narrowing prevents calling filter methods on transform builders)
+- Geleerd: Promise.all with .catch(() => fallback) is clean for optional parallel data fetching
+[00:37:00] Iteratie 14 klaar

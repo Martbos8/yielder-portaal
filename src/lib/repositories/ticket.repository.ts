@@ -71,7 +71,7 @@ export async function getOpenTicketCount(): Promise<number> {
   });
 }
 
-/** Fetch similar tickets (same source or priority, excluding the given ticket). */
+/** Fetch similar tickets (same source, excluding the given ticket). */
 export async function getSimilarTickets(
   ticketId: string,
   companyId: string,
@@ -80,20 +80,21 @@ export async function getSimilarTickets(
 ): Promise<Ticket[]> {
   return withTiming(log, "getSimilarTickets", async () => {
     const supabase = await createClient();
-    const query = supabase
+    let query = supabase
       .from("tickets")
       .select(TICKET_COLUMNS)
       .eq("company_id", companyId)
-      .neq("id", ticketId)
+      .neq("id", ticketId);
+
+    if (source) {
+      query = query.eq("source", source);
+    }
+
+    const { data, error } = await query
       .order("cw_created_at", { ascending: false })
       .limit(limit)
       .returns<Ticket[]>();
 
-    if (source) {
-      query.eq("source", source);
-    }
-
-    const { data, error } = await query;
     if (error) throw new DatabaseError(`Failed to fetch similar tickets: ${error.message}`);
     return data ?? [];
   }, { ticketId });

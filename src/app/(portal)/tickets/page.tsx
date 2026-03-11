@@ -1,10 +1,13 @@
 import { Suspense } from "react";
-import { getTickets } from "@/lib/repositories";
+import { getTickets, getTicketStats } from "@/lib/repositories";
 import { TicketFilters } from "./ticket-filters";
 
 async function TicketsContent() {
-  const tickets = await getTickets();
-  return <TicketFilters tickets={tickets} />;
+  const [tickets, stats] = await Promise.all([
+    getTickets(),
+    getTicketStats().catch(() => null),
+  ]);
+  return <TicketFilters tickets={tickets} stats={stats} />;
 }
 
 export default function TicketsPage() {
