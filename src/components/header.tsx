@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { MaterialIcon } from "./icon";
+import { NotificationPanel } from "./notification-panel";
 import { createClient } from "@/lib/supabase/client";
 import {
   DropdownMenu,
@@ -9,15 +10,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { Notification } from "@/types/database";
 
 interface HeaderProps {
   onMenuToggle: () => void;
   companyName: string;
   initials: string;
   openTicketCount: number;
+  notifications?: Notification[];
 }
 
-export function Header({ onMenuToggle, companyName, initials, openTicketCount }: HeaderProps) {
+export function Header({ onMenuToggle, companyName, initials, openTicketCount, notifications = [] }: HeaderProps) {
   const router = useRouter();
 
   async function handleSignOut() {
@@ -54,14 +57,10 @@ export function Header({ onMenuToggle, companyName, initials, openTicketCount }:
 
       {/* Rechts: notificaties + avatar */}
       <div className="flex items-center justify-end gap-4">
-        <button className="relative flex items-center justify-center size-10 rounded-xl text-slate-400 hover:text-yielder-navy hover:bg-yielder-navy/[0.04] transition-all">
-          <MaterialIcon name="notifications" size={22} />
-          {openTicketCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 flex items-center justify-center bg-rose-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white px-1">
-              {openTicketCount > 99 ? "99+" : openTicketCount}
-            </span>
-          )}
-        </button>
+        <NotificationPanel
+          notifications={notifications}
+          openTicketCount={openTicketCount}
+        />
         <DropdownMenu>
           <DropdownMenuTrigger className="size-10 rounded-xl bg-yielder-navy flex items-center justify-center text-white font-semibold text-sm cursor-pointer hover:bg-yielder-navy-dark transition-colors shadow-[0_2px_8px_rgba(31,59,97,0.2)]">
             {initials}

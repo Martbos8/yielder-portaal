@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "@/components/sidebar";
 import { Header } from "@/components/header";
 import { useRealtime } from "@/hooks/use-realtime";
+import type { Notification } from "@/types/database";
 
 interface UserContext {
   fullName: string;
@@ -16,10 +17,11 @@ interface PortalShellProps {
   user: UserContext;
   openTicketCount: number;
   criticalUpgradeCount?: number;
+  notifications?: Notification[];
   children: React.ReactNode;
 }
 
-export function PortalShell({ user, openTicketCount, criticalUpgradeCount = 0, children }: PortalShellProps) {
+export function PortalShell({ user, openTicketCount, criticalUpgradeCount = 0, notifications = [], children }: PortalShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const router = useRouter();
 
@@ -40,6 +42,11 @@ export function PortalShell({ user, openTicketCount, criticalUpgradeCount = 0, c
       events: ["INSERT", "UPDATE", "DELETE"],
       onEvent: () => router.refresh(),
     },
+    {
+      table: "notifications",
+      events: ["INSERT", "UPDATE"],
+      onEvent: () => router.refresh(),
+    },
   ]);
 
   return (
@@ -49,6 +56,7 @@ export function PortalShell({ user, openTicketCount, criticalUpgradeCount = 0, c
         companyName={user.companyName}
         initials={user.initials}
         openTicketCount={openTicketCount}
+        notifications={notifications}
       />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
