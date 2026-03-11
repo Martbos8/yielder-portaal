@@ -134,7 +134,7 @@ Per iteratie:
 
 ## FASE 2: Frontend Excellence (Taak 9-18)
 
-### Taak 9: Component architecture verbeteren [not started]
+### Taak 9: Component architecture verbeteren [done]
 - Audit alle components in `src/components/`
 - Refactor naar consistent patroon:
   - Props interfaces met JSDoc

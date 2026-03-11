@@ -11,7 +11,7 @@ import {
   CardDescription,
   CardContent,
 } from "@/components/ui/card";
-import type { Agreement, AgreementStatus } from "@/types/database";
+import type { Agreement } from "@/types/database";
 import {
   getExpiryBadge,
   countExpiringSoon,
@@ -19,43 +19,13 @@ import {
   isMissingManagedCoverage,
 } from "@/lib/contract-utils";
 import Link from "next/link";
-
-const statusConfig: Record<
-  AgreementStatus,
-  { label: string; className: string }
-> = {
-  active: {
-    label: "Actief",
-    className:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  },
-  expired: {
-    label: "Verlopen",
-    className:
-      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  },
-  cancelled: {
-    label: "Opgezegd",
-    className:
-      "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  },
-};
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
+import { formatDate, formatCurrency } from "@/lib/utils";
+import {
+  StatCardCompact,
+  StatusBadge,
+  EmptyState,
+  agreementStatusConfig,
+} from "@/components/data-display";
 
 function sortAgreements(agreements: Agreement[]): Agreement[] {
   return [...agreements].sort((a, b) => {
@@ -119,29 +89,16 @@ export default async function ContractenPage() {
       )}
 
       {/* Totaal maandbedrag */}
-      <div className="bg-card rounded-2xl p-6 shadow-card border border-border mb-6">
-        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-          Totaal maandbedrag
-        </p>
-        <p className="text-2xl font-semibold text-yielder-navy">
-          {formatCurrency(totalMonthly)}
-        </p>
+      <div className="mb-6">
+        <StatCardCompact label="Totaal maandbedrag" value={formatCurrency(totalMonthly) ?? "—"} />
       </div>
 
       {sorted.length === 0 ? (
-        <div className="bg-card rounded-2xl p-12 shadow-card border border-border flex flex-col items-center justify-center text-muted-foreground">
-          <MaterialIcon
-            name="description"
-            className="text-muted-foreground/50 mb-3"
-            size={48}
-          />
-          <p className="text-sm">Geen contracten gevonden</p>
-        </div>
+        <EmptyState icon="description" message="Geen contracten gevonden" />
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {sorted.map((agreement) => {
-              const config = statusConfig[agreement.status];
               const expiryBadge = agreement.status === "active"
                 ? getExpiryBadge(agreement.end_date)
                 : { show: false, daysLeft: 0, text: "" };
@@ -177,7 +134,7 @@ export default async function ContractenPage() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <Badge className={config.className}>{config.label}</Badge>
+                      <StatusBadge status={agreement.status} config={agreementStatusConfig} />
                       {agreement.bill_amount != null && (
                         <span className="text-sm font-medium text-foreground">
                           {formatCurrency(agreement.bill_amount)}

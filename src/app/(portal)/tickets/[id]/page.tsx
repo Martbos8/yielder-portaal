@@ -2,61 +2,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getTicketById } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
-import { Badge } from "@/components/ui/badge";
-import type { TicketStatus, TicketPriority } from "@/types/database";
-
-const statusConfig: Record<TicketStatus, { label: string; className: string }> =
-  {
-    open: {
-      label: "Open",
-      className:
-        "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    },
-    in_progress: {
-      label: "In behandeling",
-      className:
-        "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-    },
-    closed: {
-      label: "Gesloten",
-      className:
-        "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-    },
-  };
-
-const priorityConfig: Record<
-  TicketPriority,
-  { label: string; className: string }
-> = {
-  urgent: {
-    label: "Urgent",
-    className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  },
-  high: {
-    label: "Hoog",
-    className:
-      "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  },
-  normal: {
-    label: "Normaal",
-    className:
-      "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  },
-  low: {
-    label: "Laag",
-    className:
-      "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  },
-};
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
+import { formatDate } from "@/lib/utils";
+import {
+  StatusBadge,
+  ticketStatusConfig,
+  ticketPriorityConfig,
+} from "@/components/data-display";
 
 export default async function TicketDetailPage({
   params,
@@ -69,9 +20,6 @@ export default async function TicketDetailPage({
   if (!ticket) {
     notFound();
   }
-
-  const status = statusConfig[ticket.status];
-  const priority = priorityConfig[ticket.priority];
 
   return (
     <div>
@@ -88,8 +36,8 @@ export default async function TicketDetailPage({
           <h1 className="text-xl font-semibold text-foreground flex-1 min-w-0">
             {ticket.summary}
           </h1>
-          <Badge className={status.className}>{status.label}</Badge>
-          <Badge className={priority.className}>{priority.label}</Badge>
+          <StatusBadge status={ticket.status} config={ticketStatusConfig} />
+          <StatusBadge status={ticket.priority} config={ticketPriorityConfig} />
         </div>
 
         {ticket.description && (

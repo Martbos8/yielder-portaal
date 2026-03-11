@@ -188,3 +188,35 @@
 - Geleerd: Error cast naar Record<string, unknown> faalt met strict types — gebruik `"code" in error` type narrowing
 - Geleerd: Linter hooks kunnen automatisch code transformeren (wrapping met withTiming) — imports moeten consistent blijven
 [23:56:00] Iteratie 8 klaar
+[23:56:59] Iteratie 6 klaar
+[23:56:59] Iteratie 7 gestart
+[23:57:09] Iteratie 8 klaar
+[23:57:09] Iteratie 9 gestart
+
+[00:12:00] Taak 9 VOLTOOID — Component architecture verbeteren
+- Created src/components/data-display/ directory with 5 reusable components:
+  - stat-card.tsx — StatCard (KPI card) + StatCardCompact (summary strip variant)
+  - status-badge.tsx — StatusBadge (universal config-driven badge) + SeverityDot + exported config maps for all entity types
+  - empty-state.tsx — EmptyState (card wrapper) + EmptyStateInline (for inside cards/widgets)
+  - metric-ring.tsx — MetricRing (pure SVG score ring, no Recharts dependency) + getScoreDescription helper
+  - data-table.tsx — DataTable<T> generic table with column definitions and empty state
+  - index.ts — barrel exports for all components, configs, and types
+- Refactored 11 page files to use shared data-display components:
+  - Dashboard: StatCard, StatusBadge, SeverityDot, EmptyStateInline (removed 3 severity helper functions)
+  - Prestaties: StatCard with description, EmptyStateInline for chart empty states
+  - Tickets: StatusBadge for status + priority, EmptyStateInline for empty table
+  - Hardware: warrantyStatusConfig from shared, EmptyState for no-data
+  - Contracten: StatCardCompact, StatusBadge, EmptyState, agreementStatusConfig
+  - IT-gezondheid: MetricRing replaces inline SVG ring + Recharts ScoreRing
+  - Software: StatCardCompact, StatusBadge, EmptyStateInline, licenseStatusConfig
+  - Supportcontracten: StatusBadge, EmptyState, agreementStatusConfig
+  - Upgrade: MetricRing, StatusBadge, EmptyState
+  - Ticket detail: StatusBadge
+- Net result: -749 lines removed, +248 lines added across pages (major deduplication)
+- Status config maps (ticketStatus, ticketPriority, agreementStatus, licenseStatus, warrantyStatus, severity) centralized — single source of truth
+- All Props interfaces have JSDoc documentation
+- 471 tests pass, build + lint groen
+- Geleerd: Linter hooks auto-refactoren imported components in consuming pages — must verify both component API AND consumer updates are consistent
+- Geleerd: EmptyState vs EmptyStateInline pattern — card wrapper for standalone sections, inline for nested-in-card contexts
+- Geleerd: Pure SVG MetricRing is more performant and SSR-friendly than Recharts RadialBarChart for simple score rings
+[00:12:00] Iteratie 9 klaar

@@ -5,9 +5,16 @@ import { getCachedUserCompanyId, getCachedRecommendations } from "@/lib/reposito
 import type { Recommendation } from "@/lib/engine/recommendation";
 import { getBestPrice } from "@/lib/distributors";
 import { MaterialIcon } from "@/components/icon";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { ContactModal } from "@/components/contact-modal";
+import { formatCurrency } from "@/lib/utils";
+import {
+  MetricRing,
+  getScoreDescription,
+  StatusBadge,
+  EmptyState,
+  severityConfig,
+} from "@/components/data-display";
 
 function computeItScore(recommendations: Recommendation[]): number {
   if (recommendations.length === 0) return 100;
@@ -16,40 +23,9 @@ function computeItScore(recommendations: Recommendation[]): number {
   const warningCount = recommendations.filter((r) => r.severity === "warning").length;
   const infoCount = recommendations.filter((r) => r.severity === null || r.severity === "info").length;
 
-  // Deduct from 100: critical=-15, warning=-8, info=-3
   const deductions = criticalCount * 15 + warningCount * 8 + infoCount * 3;
   return Math.max(0, Math.min(100, 100 - deductions));
 }
-
-function getScoreColor(score: number): string {
-  if (score < 50) return "text-red-500";
-  if (score < 80) return "text-yielder-orange";
-  return "text-emerald-500";
-}
-
-function getScoreRingColor(score: number): string {
-  if (score < 50) return "stroke-red-500";
-  if (score < 80) return "stroke-yielder-orange";
-  return "stroke-emerald-500";
-}
-
-function getSeverityBadge(severity: string | null) {
-  switch (severity) {
-    case "critical":
-      return <Badge className="bg-red-100 text-red-700 border-red-200">Kritiek</Badge>;
-    case "warning":
-      return <Badge className="bg-orange-100 text-orange-700 border-orange-200">Aanbevolen</Badge>;
-    case "info":
-      return <Badge className="bg-blue-100 text-blue-700 border-blue-200">Suggestie</Badge>;
-    default:
-      return <Badge className="bg-blue-100 text-blue-700 border-blue-200">Suggestie</Badge>;
-  }
-}
-
-const formatPrice = new Intl.NumberFormat("nl-NL", {
-  style: "currency",
-  currency: "EUR",
-});
 
 async function getRecommendationPrices(
   recommendations: Recommendation[]
@@ -107,41 +83,10 @@ export default async function UpgradePage() {
         {/* IT Score Card */}
         <Card className="rounded-2xl p-6 shadow-card border flex flex-col items-center justify-center">
           <p className="text-sm font-medium text-muted-foreground mb-4">Uw IT-score</p>
-          <div className="relative size-32">
-            <svg className="size-32 -rotate-90" viewBox="0 0 128 128">
-              <circle
-                cx="64"
-                cy="64"
-                r="56"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="8"
-                className="text-muted/20"
-              />
-              <circle
-                cx="64"
-                cy="64"
-                r="56"
-                fill="none"
-                strokeWidth="8"
-                strokeLinecap="round"
-                strokeDasharray={`${(itScore / 100) * 351.86} 351.86`}
-                className={getScoreRingColor(itScore)}
-              />
-            </svg>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className={`text-3xl font-bold ${getScoreColor(itScore)}`}>
-                {itScore}%
-              </span>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground mt-4 text-center">
-            {itScore >= 80
-              ? "Uw IT-omgeving is goed op orde"
-              : itScore >= 50
-                ? "Er zijn verbeteringen mogelijk"
-                : "Directe aandacht vereist"}
-          </p>
+          <MetricRing
+            score={itScore}
+            description={getScoreDescription(itScore)}
+          />
         </Card>
 
         {/* Stats Cards */}
@@ -219,15 +164,12 @@ export default async function UpgradePage() {
 
       {/* Empty state */}
       {recommendations.length === 0 && (
-        <Card className="rounded-2xl p-12 shadow-card border text-center">
-          <div className="size-16 rounded-full bg-emerald-50 flex items-center justify-center mx-auto mb-4">
-            <MaterialIcon name="check_circle" className="text-emerald-500" size={32} />
-          </div>
-          <h3 className="text-lg font-semibold text-foreground mb-1">Alles up-to-date</h3>
-          <p className="text-sm text-muted-foreground">
-            Uw IT-omgeving is compleet. Er zijn op dit moment geen aanbevelingen.
-          </p>
-        </Card>
+        <EmptyState
+          icon="check_circle"
+          iconClassName="text-emerald-500"
+          heading="Alles up-to-date"
+          message="Uw IT-omgeving is compleet. Er zijn op dit moment geen aanbevelingen."
+        />
       )}
     </div>
   );
@@ -253,11 +195,11 @@ function RecommendationCard({
       <div className="flex items-start justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-muted-foreground">{rec.category}</span>
-          {getSeverityBadge(rec.severity)}
+          <StatusBadge status={rec.severity ?? "info"} config={severityConfig} />
         </div>
         {price != null && (
           <span className="text-sm font-medium text-yielder-navy whitespace-nowrap">
-            vanaf {formatPrice.format(price)}
+            vanaf {formatCurrency(price)}
           </span>
         )}
       </div>

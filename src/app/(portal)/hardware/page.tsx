@@ -16,9 +16,9 @@ import {
   getWarrantyStatus,
   getHardwareUpgradeInfo,
   countAssetsNeedingUpgrade,
-  type WarrantyStatus,
 } from "@/lib/hardware-utils";
 import { HardwareDetailModal } from "@/components/hardware-detail-modal";
+import { EmptyState, warrantyStatusConfig } from "@/components/data-display";
 import Link from "next/link";
 
 const typeOrder: HardwareAssetType[] = [
@@ -37,31 +37,6 @@ const typeIcons: Record<HardwareAssetType, string> = {
   Overig: "devices_other",
 };
 
-const warrantyConfig: Record<
-  WarrantyStatus,
-  { className: string; icon: string }
-> = {
-  valid: {
-    className:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    icon: "verified",
-  },
-  expiring: {
-    className:
-      "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-    icon: "warning",
-  },
-  expired: {
-    className:
-      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    icon: "error",
-  },
-  unknown: {
-    className:
-      "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-    icon: "help",
-  },
-};
 
 function formatWarrantyText(warrantyExpiry: string | null): string {
   if (!warrantyExpiry) return "Garantie onbekend";
@@ -126,14 +101,7 @@ export default async function HardwarePage() {
       )}
 
       {!hasAssets ? (
-        <div className="bg-card rounded-2xl p-12 shadow-card border border-border flex flex-col items-center justify-center text-muted-foreground">
-          <MaterialIcon
-            name="devices"
-            className="text-muted-foreground/50 mb-3"
-            size={48}
-          />
-          <p className="text-sm">Geen hardware gevonden</p>
-        </div>
+        <EmptyState icon="devices" message="Geen hardware gevonden" />
       ) : (
         <div className="space-y-8">
           {typeOrder.map((type) => {
@@ -159,7 +127,7 @@ export default async function HardwarePage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                   {typeAssets.map((asset) => {
                     const warranty = getWarrantyStatus(asset.warranty_expiry);
-                    const config = warrantyConfig[warranty];
+                    const config = warrantyStatusConfig[warranty];
                     const upgradeInfo = getHardwareUpgradeInfo(
                       asset.warranty_expiry,
                       null, // purchase_date not available on HardwareAsset

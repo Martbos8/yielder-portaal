@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { MaterialIcon } from "@/components/icon";
 import {
   Table,
@@ -13,28 +12,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { License, LicenseStatus } from "@/types/database";
-
-const statusConfig: Record<
-  LicenseStatus,
-  { label: string; className: string }
-> = {
-  active: {
-    label: "Actief",
-    className:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  },
-  expiring: {
-    label: "Verloopt binnenkort",
-    className:
-      "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  },
-  expired: {
-    label: "Verlopen",
-    className:
-      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  },
-};
+import type { License } from "@/types/database";
+import { formatDate, formatCurrency } from "@/lib/utils";
+import {
+  StatCardCompact,
+  StatusBadge,
+  EmptyStateInline,
+  licenseStatusConfig,
+} from "@/components/data-display";
 
 const statusOptions = [
   { value: "", label: "Alle statussen" },
@@ -42,23 +27,6 @@ const statusOptions = [
   { value: "expiring", label: "Verloopt binnenkort" },
   { value: "expired", label: "Verlopen" },
 ];
-
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(amount: number | null): string {
-  if (amount === null || amount === undefined) return "—";
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
 
 function getUniqueVendors(licenses: License[]): string[] {
   const vendors = new Set(licenses.map((l) => l.vendor));
@@ -140,39 +108,21 @@ export function LicenseFilters({ licenses }: { licenses: License[] }) {
     <div>
       {/* Summary strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-card rounded-2xl p-4 shadow-card border border-border">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-            Totaal licenties
-          </p>
-          <p className="text-2xl font-semibold text-yielder-navy">
-            {filtered.length}
-          </p>
-        </div>
-        <div className="bg-card rounded-2xl p-4 shadow-card border border-border">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-            Seats gebruikt
-          </p>
-          <p className="text-2xl font-semibold text-yielder-navy">
-            {usedSeats}{" "}
-            <span className="text-sm font-normal text-muted-foreground">
-              / {totalSeats}
-            </span>
-          </p>
-        </div>
-        <div className="bg-card rounded-2xl p-4 shadow-card border border-border">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-            Maandkosten
-          </p>
-          <p className="text-2xl font-semibold text-yielder-navy">
-            {formatCurrency(
-              filtered.reduce(
-                (sum, l) =>
-                  sum + (l.cost_per_seat ?? 0) * l.seats_total,
-                0
-              )
-            )}
-          </p>
-        </div>
+        <StatCardCompact label="Totaal licenties" value={String(filtered.length)} />
+        <StatCardCompact
+          label="Seats gebruikt"
+          value={String(usedSeats)}
+          suffix={`/ ${totalSeats}`}
+        />
+        <StatCardCompact
+          label="Maandkosten"
+          value={formatCurrency(
+            filtered.reduce(
+              (sum, l) => sum + (l.cost_per_seat ?? 0) * l.seats_total,
+              0
+            )
+          ) ?? "—"}
+        />
       </div>
 
       {/* Filters */}
@@ -222,14 +172,12 @@ export function LicenseFilters({ licenses }: { licenses: License[] }) {
       {/* Table */}
       <div className="bg-card rounded-2xl shadow-card border border-border overflow-hidden">
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <MaterialIcon
-              name="key"
-              className="text-muted-foreground/50 mb-3"
-              size={40}
-            />
-            <p className="text-sm">Geen licenties gevonden</p>
-          </div>
+          <EmptyStateInline
+            icon="key"
+            message="Geen licenties gevonden"
+            iconClassName="text-muted-foreground/50"
+            iconSize={40}
+          />
         ) : (
           <div className="overflow-x-auto">
             <Table>
@@ -245,39 +193,34 @@ export function LicenseFilters({ licenses }: { licenses: License[] }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((license) => {
-                  const config = statusConfig[license.status];
-                  return (
-                    <TableRow key={license.id}>
-                      <TableCell className="font-medium text-sm">
-                        {license.vendor}
-                      </TableCell>
-                      <TableCell className="text-sm">
-                        {license.product_name}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
-                        {license.license_type ?? "—"}
-                      </TableCell>
-                      <TableCell>
-                        <SeatBar
-                          used={license.seats_used}
-                          total={license.seats_total}
-                        />
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
-                        {formatDate(license.expiry_date)}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
-                        {formatCurrency(license.cost_per_seat)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className={config.className}>
-                          {config.label}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {filtered.map((license) => (
+                  <TableRow key={license.id}>
+                    <TableCell className="font-medium text-sm">
+                      {license.vendor}
+                    </TableCell>
+                    <TableCell className="text-sm">
+                      {license.product_name}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
+                      {license.license_type ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      <SeatBar
+                        used={license.seats_used}
+                        total={license.seats_total}
+                      />
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
+                      {formatDate(license.expiry_date)}
+                    </TableCell>
+                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
+                      {formatCurrency(license.cost_per_seat)}
+                    </TableCell>
+                    <TableCell>
+                      <StatusBadge status={license.status} config={licenseStatusConfig} />
+                    </TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
