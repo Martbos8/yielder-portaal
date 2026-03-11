@@ -2,6 +2,7 @@
 // In demo mode (no API keys), logs a message and returns early
 
 import { ConnectWiseClient } from "./client";
+import { ExternalServiceError } from "@/lib/errors";
 import type {
   CWCompany,
   CWTicket,
@@ -61,7 +62,6 @@ export async function syncAll(): Promise<CWSyncResult[]> {
   const client = new ConnectWiseClient();
 
   if (!client.isConfigured()) {
-    console.log("CW sync: demo modus — geen API key geconfigureerd");
     return [];
   }
 
@@ -104,7 +104,8 @@ async function syncCompanies(client: ConnectWiseClient): Promise<CWSyncResult> {
         synced++;
       }
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof ExternalServiceError) throw error;
     errors++;
   }
 
@@ -163,7 +164,8 @@ async function syncTickets(client: ConnectWiseClient): Promise<CWSyncResult> {
         synced++;
       }
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof ExternalServiceError) throw error;
     errors++;
   }
 
@@ -219,7 +221,8 @@ async function syncAgreements(client: ConnectWiseClient): Promise<CWSyncResult> 
         synced++;
       }
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof ExternalServiceError) throw error;
     errors++;
   }
 
@@ -276,7 +279,8 @@ async function syncConfigurations(client: ConnectWiseClient): Promise<CWSyncResu
         synced++;
       }
     }
-  } catch {
+  } catch (error) {
+    if (error instanceof ExternalServiceError) throw error;
     errors++;
   }
 

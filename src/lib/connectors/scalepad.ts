@@ -3,7 +3,7 @@
 // Rate limited: 50 requests per 5 seconds
 // Cursor-based pagination
 
-import { ExternalServiceError } from "@/lib/errors";
+import { ConfigurationError, ExternalServiceError } from "@/lib/errors";
 
 type ScalePadConfig = {
   baseUrl: string;
@@ -113,7 +113,7 @@ export class ScalePadApiClient {
     params?: Record<string, string>
   ): Promise<T> {
     if (!this.config) {
-      throw new ExternalServiceError("ScalePad", "API not configured — missing SCALEPAD_BASE_URL or SCALEPAD_API_KEY");
+      throw new ConfigurationError("ScalePad API not configured — missing SCALEPAD_BASE_URL or SCALEPAD_API_KEY");
     }
 
     await this.limiter.waitForSlot();

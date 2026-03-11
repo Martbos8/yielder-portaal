@@ -31,11 +31,16 @@
 [23:23:15] Iteratie 2 klaar
 [23:23:15] Iteratie 3 gestart
 
-[23:27:00] Taak 3 VOLTOOID — Error handling systematisch maken
-- Created src/lib/errors.ts met AppError hierarchy (7 error classes)
-- AuthError, NotFoundError, ValidationError, RateLimitError, DatabaseError, ExternalServiceError
-- isAppError() type guard en toErrorResponse() helper voor API routes
-- Refactored ConnectWise client en ScalePad connector naar ExternalServiceError
-- Sync API route nu met proper error response formatting
-- Bestaande silent-fail patterns (audit, layout recommendations) bewust ongemoeid gelaten — die zijn correct
-- Build + test groen (395 tests pass)
+[23:30:00] Taak 3 VOLTOOID — Error handling systematisch maken (iteratie 3)
+- Enhanced src/lib/errors.ts: ErrorCode const enum, toJSON(), getErrorMessage(), toAppError()
+- 8 error classes: AppError, AuthError, NotFoundError, ValidationError, RateLimitError, DatabaseError, ExternalServiceError, ConfigurationError
+- Type guards: isAppError(), isOperationalError()
+- Helpers: toErrorResponse() (hides non-operational messages), getErrorMessage(), toAppError()
+- ScalePad: ConfigurationError voor missing config (was ExternalServiceError)
+- ConnectWise sync: catch blocks nu re-throw ExternalServiceError (API down = fail fast)
+- Error boundary: context-aware UI — auth, not-found, rate-limit, generic error each get distinct icon/message
+- Removed console.log from sync.ts (convention: no console.log in commits)
+- 38 new error handling tests (429 tests total), build + lint groen
+- Geleerd: isOperational flag is krachtig — operational errors (auth/validation) tonen hun message aan users, non-operational (db/service) tonen generic fallback
+- Geleerd: Error boundary in Next.js krijgt Error object — message-based detection werkt goed voor type-specific UI
+[23:30:00] Iteratie 3 klaar
