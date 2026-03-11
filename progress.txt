@@ -381,3 +381,5 @@
 - Geleerd: Set-based selection with toggle pattern is clean for bulk operations
 - Geleerd: stopPropagation on checkbox click prevents HardwareDetailModal from opening
 [00:31:30] Iteratie 13 klaar
+[00:32:07] Iteratie 10 klaar
+[00:32:07] Iteratie 11 gestart
