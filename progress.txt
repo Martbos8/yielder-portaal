@@ -118,10 +118,14 @@
   - route-rate-limit.ts — sliding window rate limiting per IP+route prefix with cleanup
 - Route rate limits: /api/sync (10/min), /api/ (100/min), /login (30/min)
 - Rate limit responses include X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, Retry-After headers
-- Enhanced supabase/middleware.ts: integrated all middleware modules, security headers on all responses including redirects
-- Redirect optimization: exact match on /login (not startsWith) to avoid /login/callback conflicts
-- 11 new tests (440 total), build + lint groen
-- Geleerd: Map iteration with `for...of` requires downlevelIteration or es2015 target — use .forEach() to avoid tsconfig changes
+- Refactored architecture: main middleware.ts orchestrates full chain, supabase/middleware.ts handles auth-only
+- Chain order: request ID → CORS preflight → rate limiting → auth → security headers → CORS → rate limit info → IP logging
+- Client IP extracted to X-Client-IP header for audit trail
+- Redirect optimization: root "/" → /dashboard single hop, PUBLIC_PATHS extracted as constant
+- Security headers added: Cross-Origin-Opener-Policy, Cross-Origin-Resource-Policy, X-Permitted-Cross-Domain-Policies
+- CORS module: function overloads for preflight (returns 204) vs regular response mode
+- 440 tests pass, build + lint groen
+- Geleerd: Separation of concerns — auth in supabase middleware, orchestration in main middleware
+- Geleerd: Function overloads work well for middleware handling both preflight and regular responses
 - Geleerd: Stale .next cache can cause ENOENT errors on build — rm -rf .next fixes it
-- Geleerd: Static security headers (CSP, X-Frame-Options) belong in next.config.mjs, dynamic/per-request headers (X-Request-Id, rate limit) belong in middleware
-[23:42:00] Iteratie 6 klaar
+[23:43:00] Iteratie 6 klaar
