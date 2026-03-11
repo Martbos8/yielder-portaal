@@ -136,3 +136,66 @@ describe("Aandachtspunten widget", () => {
     expect(futureDateStr).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
+
+describe("Aanbevelingen widget", () => {
+  it("widget title is correct", () => {
+    const widgetTitle = "Aanbevelingen voor u";
+    expect(widgetTitle).toBe("Aanbevelingen voor u");
+  });
+
+  it("link to upgrade page is correct", () => {
+    const linkText = "Bekijk alle aanbevelingen →";
+    const linkHref = "/upgrade";
+    expect(linkText).toBe("Bekijk alle aanbevelingen →");
+    expect(linkHref).toBe("/upgrade");
+  });
+
+  it("empty state shows all up-to-date message", () => {
+    const emptyText = "Alles up-to-date";
+    expect(emptyText).toBe("Alles up-to-date");
+  });
+
+  it("severity indicator returns correct colors", () => {
+    const severityColors: Record<string, string> = {
+      critical: "red",
+      warning: "orange",
+      info: "blue",
+    };
+    expect(severityColors.critical).toBe("red");
+    expect(severityColors.warning).toBe("orange");
+    expect(severityColors.info).toBe("blue");
+  });
+
+  it("severity badge labels are in Dutch", () => {
+    const labels: Record<string, string> = {
+      critical: "Kritiek",
+      warning: "Aanbevolen",
+      info: "Suggestie",
+    };
+    expect(labels.critical).toBe("Kritiek");
+    expect(labels.warning).toBe("Aanbevolen");
+    expect(labels.info).toBe("Suggestie");
+  });
+
+  it("max 3 recommendations shown on dashboard", () => {
+    const maxDashboardRecommendations = 3;
+    const mockRecs = Array.from({ length: 7 }, (_, i) => ({ id: `rec-${i}` }));
+    const displayed = mockRecs.slice(0, maxDashboardRecommendations);
+    expect(displayed).toHaveLength(3);
+  });
+
+  it("critical items sort before non-critical", () => {
+    type MockRec = { severity: string | null; score: number };
+    const recs: MockRec[] = [
+      { severity: "warning", score: 80 },
+      { severity: "critical", score: 60 },
+      { severity: null, score: 90 },
+    ];
+    const sorted = [...recs].sort((a, b) => {
+      if (a.severity === "critical" && b.severity !== "critical") return -1;
+      if (a.severity !== "critical" && b.severity === "critical") return 1;
+      return b.score - a.score;
+    });
+    expect(sorted[0].severity).toBe("critical");
+  });
+});

@@ -4,7 +4,9 @@ import {
   getRecentTickets,
   getExpiringAgreements,
   getExpiredWarrantyHardware,
+  getUserCompanyId,
 } from "@/lib/queries";
+import { getRecommendations, type Recommendation } from "@/lib/engine/recommendation";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import type { TicketStatus } from "@/types/database";
@@ -44,13 +46,64 @@ const statusConfig: Record<
   },
 };
 
+async function getTopRecommendations(): Promise<Recommendation[]> {
+  try {
+    const companyId = await getUserCompanyId();
+    if (!companyId) return [];
+    const all = await getRecommendations(companyId);
+    // Sort critical first, then take top 3
+    const sorted = [...all].sort((a, b) => {
+      if (a.severity === "critical" && b.severity !== "critical") return -1;
+      if (a.severity !== "critical" && b.severity === "critical") return 1;
+      return b.score - a.score;
+    });
+    return sorted.slice(0, 3);
+  } catch {
+    return [];
+  }
+}
+
+function getSeverityIndicator(severity: string | null) {
+  switch (severity) {
+    case "critical":
+      return <span className="size-2 rounded-full bg-red-500 shrink-0" />;
+    case "warning":
+      return <span className="size-2 rounded-full bg-orange-400 shrink-0" />;
+    default:
+      return <span className="size-2 rounded-full bg-blue-400 shrink-0" />;
+  }
+}
+
+function getSeverityBadgeClass(severity: string | null): string {
+  switch (severity) {
+    case "critical":
+      return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+    case "warning":
+      return "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400";
+    default:
+      return "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400";
+  }
+}
+
+function getSeverityLabel(severity: string | null): string {
+  switch (severity) {
+    case "critical":
+      return "Kritiek";
+    case "warning":
+      return "Aanbevolen";
+    default:
+      return "Suggestie";
+  }
+}
+
 export default async function DashboardPage() {
-  const [stats, recentTickets, expiringAgreements, expiredWarranty] =
+  const [stats, recentTickets, expiringAgreements, expiredWarranty, topRecommendations] =
     await Promise.all([
       getDashboardStats(),
       getRecentTickets(5),
       getExpiringAgreements(30),
       getExpiredWarrantyHardware(),
+      getTopRecommendations(),
     ]);
 
   const kpis = [
@@ -107,6 +160,58 @@ export default async function DashboardPage() {
 
       {/* Widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Aanbevelingen voor u */}
+        <div className="bg-card rounded-2xl p-6 shadow-card border border-border lg:col-span-2">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-foreground">
+              Aanbevelingen voor u
+            </h2>
+            <Link
+              href="/upgrade"
+              className="text-xs text-yielder-navy hover:text-yielder-orange transition-colors font-medium"
+            >
+              Bekijk alle aanbevelingen →
+            </Link>
+          </div>
+
+          {topRecommendations.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <MaterialIcon
+                name="check_circle"
+                className="text-emerald-500 mb-2"
+                size={32}
+              />
+              <p className="text-sm">Alles up-to-date</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {topRecommendations.map((rec) => (
+                <Link
+                  key={rec.product.id}
+                  href="/upgrade"
+                  className="flex flex-col gap-2 p-4 rounded-xl border border-border hover:shadow-card-hover hover:border-yielder-navy/20 transition-all"
+                >
+                  <div className="flex items-center gap-2">
+                    {getSeverityIndicator(rec.severity)}
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {rec.category}
+                    </span>
+                    <Badge className={`ml-auto text-[10px] px-1.5 py-0 ${getSeverityBadgeClass(rec.severity)}`}>
+                      {getSeverityLabel(rec.severity)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">
+                    {rec.product.name}
+                  </p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {rec.reason}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+
         {/* Recente tickets */}
         <div className="bg-card rounded-2xl p-6 shadow-card border border-border">
           <div className="flex items-center justify-between mb-4">
