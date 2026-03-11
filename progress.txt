@@ -8,3 +8,8 @@
   - Taak 7 (.env.example): aangemaakt met alle env vars + CRON_SECRET
   - Taak 9 (admin): distributeur API status nu dynamisch op basis van env vars
   Geleerd: .next cache kan stale types bevatten na file changes, rm -rf .next lost build errors op
+[22:59:00] Iteratie 1 (ralph-deploy) voltooid:
+  - Alle 10 taken geïmplementeerd en geverifieerd
+  - Build OK, 398 tests passing, lint clean
+  - Committed: e4630ed
+  Geleerd: health endpoint kan @supabase/supabase-js direct gebruiken (geen cookies nodig voor API routes zonder auth)

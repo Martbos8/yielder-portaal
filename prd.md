@@ -86,7 +86,7 @@ Je bent een Highlevel Senior Software Engineer gespecialiseerd in deployment en 
 - Voeg .env.example toe aan git (NIET .env.local)
 - Verifieer dat .env.local in .gitignore staat
 
-### Taak 8: Push naar GitHub [not started]
+### Taak 8: Push naar GitHub [done]
 - `git push origin deploy/infrastructure`
 - Verifieer dat alle commits correct gepusht zijn
 
@@ -98,7 +98,7 @@ Je bent een Highlevel Senior Software Engineer gespecialiseerd in deployment en 
 - ConnectWise: "Geconfigureerd" of "Demo modus (geen API keys)"
 - Distributeurs: per distributeur status tonen
 
-### Taak 10: Final build + push [not started]
+### Taak 10: Final build + push [done]
 - `npm run check` moet 100% slagen
 - Commit alle wijzigingen
 - Push naar GitHub
