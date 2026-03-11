@@ -59,7 +59,7 @@ Odido, Vodafone, KPN, en distributeurs: Copaco, Ingram Micro, TD Synnex, Esprine
 ## Taken
 
 ### 1. Product catalogus model
-- **Status:** DONE
+- **Status:** TODO
 - **Prioriteit:** 1
 - **Beschrijving:** Database structuur voor een productcatalogus die Yielder's portfolio representeert. Dit is de basis voor alle aanbevelingen.
 - **Acceptatiecriteria:**
@@ -75,7 +75,7 @@ Odido, Vodafone, KPN, en distributeurs: Copaco, Ingram Micro, TD Synnex, Esprine
 - **Checks:** npm run build && npm run lint && npm run test
 
 ### 2. Gap analyse engine
-- **Status:** DONE
+- **Status:** TODO
 - **Prioriteit:** 2
 - **Beschrijving:** Algoritme dat analyseert wat een klant MIST op basis van wat ze WEL hebben. Gebruikt de product_dependencies tabel.
 - **Acceptatiecriteria:**
@@ -92,7 +92,7 @@ Odido, Vodafone, KPN, en distributeurs: Copaco, Ingram Micro, TD Synnex, Esprine
 - **Checks:** npm run build && npm run lint && npm run test
 
 ### 3. Patroon matching engine — "klanten zoals jij"
-- **Status:** DONE
+- **Status:** TODO
 - **Prioriteit:** 3
 - **Beschrijving:** Algoritme dat vergelijkt met vergelijkbare klanten. Als 80% van bedrijven van dezelfde grootte en branche product X hebben, en jij niet, dan is dat een aanbeveling.
 - **Acceptatiecriteria:**
@@ -108,7 +108,7 @@ Odido, Vodafone, KPN, en distributeurs: Copaco, Ingram Micro, TD Synnex, Esprine
 - **Checks:** npm run build && npm run lint && npm run test
 
 ### 4. Recommendation scorer — combineer gap + patroon
-- **Status:** DONE
+- **Status:** TODO
 - **Prioriteit:** 4
 - **Beschrijving:** Combineert gap analyse en patroon matching tot één gerankte lijst van aanbevelingen per klant.
 - **Acceptatiecriteria:**
