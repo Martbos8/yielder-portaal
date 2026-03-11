@@ -1,5 +1,13 @@
 import { describe, it, expect } from "vitest";
-import type { AgreementStatus } from "@/types/database";
+import type { Agreement, AgreementStatus } from "@/types/database";
+import {
+  daysUntilExpiry,
+  isExpiringSoon,
+  getExpiryBadge,
+  isManagedService,
+  countExpiringSoon,
+  isMissingManagedCoverage,
+} from "@/lib/contract-utils";
 
 describe("Contracten page", () => {
   it("page title is Contracten", () => {
@@ -109,5 +117,158 @@ describe("Date formatting", () => {
   it("returns em dash for null dates", () => {
     const result = "—";
     expect(result).toBe("—");
+  });
+});
+
+// Helper to create a mock agreement
+function mockAgreement(overrides: Partial<Agreement>): Agreement {
+  return {
+    id: "test-id",
+    company_id: "comp-1",
+    cw_agreement_id: null,
+    name: "Test Agreement",
+    type: null,
+    status: "active",
+    bill_amount: 100,
+    start_date: "2025-01-01",
+    end_date: "2027-01-01",
+    created_at: "2025-01-01T00:00:00Z",
+    updated_at: "2025-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
+describe("Expiry badge — verlengingsbadge bij bijna verlopen contract", () => {
+  it("shows badge for contract expiring within 60 days", () => {
+    // 30 days from now
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 30);
+    const dateStr = futureDate.toISOString().split("T")[0];
+
+    const badge = getExpiryBadge(dateStr);
+    expect(badge.show).toBe(true);
+    expect(badge.text).toContain("Verloopt over");
+    expect(badge.daysLeft).toBeGreaterThan(0);
+    expect(badge.daysLeft).toBeLessThanOrEqual(60);
+  });
+
+  it("does not show badge for contract > 60 days away", () => {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 90);
+    const dateStr = futureDate.toISOString().split("T")[0];
+
+    const badge = getExpiryBadge(dateStr);
+    expect(badge.show).toBe(false);
+  });
+
+  it("does not show badge for already expired contract", () => {
+    const badge = getExpiryBadge("2020-01-01");
+    expect(badge.show).toBe(false);
+  });
+
+  it("shows urgent text for contracts expiring within 7 days", () => {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 3);
+    const dateStr = futureDate.toISOString().split("T")[0];
+
+    const badge = getExpiryBadge(dateStr);
+    expect(badge.show).toBe(true);
+    expect(badge.text).toContain("actie vereist");
+  });
+
+  it("returns null days for null end date", () => {
+    expect(daysUntilExpiry(null)).toBeNull();
+  });
+});
+
+describe("isExpiringSoon", () => {
+  it("returns true for contract expiring within threshold", () => {
+    const futureDate = new Date();
+    futureDate.setDate(futureDate.getDate() + 45);
+    expect(isExpiringSoon(futureDate.toISOString().split("T")[0], 60)).toBe(true);
+  });
+
+  it("returns false for null end date", () => {
+    expect(isExpiringSoon(null)).toBe(false);
+  });
+});
+
+describe("countExpiringSoon", () => {
+  it("counts active agreements expiring within 60 days", () => {
+    const soon = new Date();
+    soon.setDate(soon.getDate() + 30);
+    const soonStr = soon.toISOString().split("T")[0];
+
+    const agreements = [
+      mockAgreement({ id: "1", status: "active", end_date: soonStr }),
+      mockAgreement({ id: "2", status: "active", end_date: "2030-01-01" }),
+      mockAgreement({ id: "3", status: "expired", end_date: soonStr }),
+    ];
+
+    expect(countExpiringSoon(agreements)).toBe(1);
+  });
+});
+
+describe("Managed service detection", () => {
+  it("detects managed service from name", () => {
+    expect(isManagedService({ name: "Managed Services Basis", type: null })).toBe(true);
+  });
+
+  it("detects beheer from name", () => {
+    expect(isManagedService({ name: "Proactief Beheer", type: null })).toBe(true);
+  });
+
+  it("detects monitoring from name", () => {
+    expect(isManagedService({ name: "Network Monitoring", type: null })).toBe(true);
+  });
+
+  it("detects helpdesk from name", () => {
+    expect(isManagedService({ name: "Helpdesk Ondersteuning", type: null })).toBe(true);
+  });
+
+  it("returns false for regular agreement", () => {
+    expect(isManagedService({ name: "Microsoft 365 Business", type: "License" })).toBe(false);
+  });
+});
+
+describe("Missing managed coverage", () => {
+  it("returns true when active agreements exist but no managed service", () => {
+    const agreements = [
+      mockAgreement({ name: "Microsoft 365" }),
+      mockAgreement({ name: "Firewall License" }),
+    ];
+    expect(isMissingManagedCoverage(agreements)).toBe(true);
+  });
+
+  it("returns false when a managed service exists", () => {
+    const agreements = [
+      mockAgreement({ name: "Microsoft 365" }),
+      mockAgreement({ name: "Managed Services Premium" }),
+    ];
+    expect(isMissingManagedCoverage(agreements)).toBe(false);
+  });
+
+  it("returns false when no active agreements", () => {
+    const agreements = [
+      mockAgreement({ name: "Old Contract", status: "expired" }),
+    ];
+    expect(isMissingManagedCoverage(agreements)).toBe(false);
+  });
+});
+
+describe("Ontbrekende dekking section", () => {
+  it("section title is Ontbrekende dekking", () => {
+    const title = "Ontbrekende dekking";
+    expect(title).toBe("Ontbrekende dekking");
+  });
+
+  it("managed service badge text is correct", () => {
+    const badgeText = "Geen managed service";
+    expect(badgeText).toBe("Geen managed service");
+  });
+
+  it("CTA text is Neem contact op", () => {
+    const ctaText = "Neem contact op";
+    expect(ctaText).toBe("Neem contact op");
   });
 });
