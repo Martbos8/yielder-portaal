@@ -200,7 +200,7 @@ Per iteratie:
   - "Vergelijkbare tickets" sectie (zelfde categorie, recent)
   - Response time indicator: "Gemiddelde responstijd: 2 uur"
 
-### Taak 15: Contracten pagina verbeteren [not started]
+### Taak 15: Contracten pagina verbeteren [done]
 - Lees contracten pagina
 - Verbeter:
   - Contract timeline visualisatie (start → nu → einde)

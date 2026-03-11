@@ -423,3 +423,28 @@
 - 471 tests pass, build + lint groen
 - Geleerd: Linter hooks auto-applied most improvements — verify and validate rather than rewrite
 - Geleerd: getSimilarTickets and getTicketStats were already in the repository from iteration 4 — good forward planning
+[00:37:57] Iteratie 14 klaar
+[00:37:57] Iteratie 15 gestart
+
+[00:40:00] Taak 15 VOLTOOID — Contracten pagina verbeteren
+- Created contracten-client.tsx: full client component with interactive features
+- Contract timeline visualization: progress bar from start → now → end date
+  - Color-coded: green (active), orange (>80% elapsed), red (expired)
+  - "Nu" marker showing current position in contract lifecycle
+  - Remaining time label: "Nog 2 jaar", "Nog 6 maanden", "45 dagen"
+- Cost breakdown strip: 3 StatCardCompact cards — maandelijks / jaarlijks / totale contractwaarde
+  - Total contract value computed as bill_amount × contract months
+- Renewal reminders: amber alert box on cards expiring within 60 days
+  - Shows exact days remaining with urgency messaging
+- "Besparingspotentieel bekijken" link on each active contract → /upgrade page
+- Contract comparison (side-by-side):
+  - Checkbox on each card to select up to 4 contracts
+  - Compare panel: modal with table comparing all key fields
+  - Includes: status, type, amounts, dates, remaining days, managed service, timeline
+- Summary row: active/inactive counts with colored dots
+- Server page.tsx simplified to thin data-fetching wrapper
+- 471 tests pass, build + lint groen
+- Geleerd: computeTimelineProgress() met percentage-based logic is cleaner than date diff for visual bars
+- Geleerd: Set-based compare selection reusable pattern from hardware page bulk selection
+- Geleerd: Side-by-side comparison table rows with getValue() accessor pattern keeps comparison logic clean and extensible
+[00:40:00] Iteratie 15 klaar
