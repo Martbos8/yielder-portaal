@@ -1,10 +1,15 @@
 // Types for all Supabase database tables
 // Based on database schema with RLS policies
 
+export type CompanySize = "small" | "medium" | "large";
+
 export type Company = {
   id: string;
   name: string;
   cw_company_id: number | null;
+  employee_count: number | null;
+  industry: string | null;
+  region: string | null;
   created_at: string;
   updated_at: string;
 };
