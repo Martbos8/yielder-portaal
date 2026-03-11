@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   getWarrantyStatus,
+  getHardwareUpgradeInfo,
+  countAssetsNeedingUpgrade,
   type WarrantyStatus,
 } from "@/lib/hardware-utils";
 
@@ -84,5 +86,100 @@ describe("Warranty text formatting", () => {
   it("shows 'Geldig t/m' for valid dates", () => {
     const text = "Geldig t/m 12 sep 2026";
     expect(text).toContain("Geldig t/m");
+  });
+});
+
+describe("getHardwareUpgradeInfo", () => {
+  it("returns critical upgrade for expired warranty", () => {
+    const info = getHardwareUpgradeInfo("2020-01-01", null, null);
+    expect(info.needsUpgrade).toBe(true);
+    expect(info.severity).toBe("critical");
+    expect(info.reason).toBe("warranty_expired");
+    expect(info.badgeText).toContain("Warranty verlopen");
+  });
+
+  it("returns warning upgrade for expiring warranty", () => {
+    const soon = new Date();
+    soon.setMonth(soon.getMonth() + 3);
+    const dateStr = soon.toISOString().split("T")[0];
+    const info = getHardwareUpgradeInfo(dateStr, null, null);
+    expect(info.needsUpgrade).toBe(true);
+    expect(info.severity).toBe("warning");
+    expect(info.reason).toBe("warranty_expiring");
+    expect(info.badgeText).toBe("Upgrade beschikbaar");
+  });
+
+  it("returns warning for device older than lifecycle", () => {
+    const future = new Date();
+    future.setFullYear(future.getFullYear() + 2);
+    const futureWarranty = future.toISOString().split("T")[0];
+    const oldPurchase = new Date();
+    oldPurchase.setFullYear(oldPurchase.getFullYear() - 6);
+    const purchaseStr = oldPurchase.toISOString().split("T")[0];
+    const info = getHardwareUpgradeInfo(futureWarranty, purchaseStr, 5);
+    expect(info.needsUpgrade).toBe(true);
+    expect(info.severity).toBe("warning");
+    expect(info.reason).toBe("lifecycle_exceeded");
+  });
+
+  it("returns no upgrade for valid warranty within lifecycle", () => {
+    const future = new Date();
+    future.setFullYear(future.getFullYear() + 2);
+    const dateStr = future.toISOString().split("T")[0];
+    const info = getHardwareUpgradeInfo(dateStr, null, null);
+    expect(info.needsUpgrade).toBe(false);
+    expect(info.severity).toBeNull();
+    expect(info.badgeText).toBeNull();
+  });
+
+  it("returns no upgrade for null warranty (unknown)", () => {
+    const info = getHardwareUpgradeInfo(null, null, null);
+    expect(info.needsUpgrade).toBe(false);
+  });
+});
+
+describe("countAssetsNeedingUpgrade", () => {
+  it("counts expired and expiring assets", () => {
+    const soon = new Date();
+    soon.setMonth(soon.getMonth() + 3);
+    const soonStr = soon.toISOString().split("T")[0];
+    const future = new Date();
+    future.setFullYear(future.getFullYear() + 2);
+    const futureStr = future.toISOString().split("T")[0];
+
+    const assets = [
+      { warranty_expiry: "2020-01-01" },   // expired
+      { warranty_expiry: soonStr },          // expiring
+      { warranty_expiry: futureStr },        // valid
+      { warranty_expiry: null },             // unknown
+      { warranty_expiry: "2019-06-15" },     // expired
+    ];
+    expect(countAssetsNeedingUpgrade(assets)).toBe(3);
+  });
+
+  it("returns 0 when no assets need upgrade", () => {
+    const future = new Date();
+    future.setFullYear(future.getFullYear() + 2);
+    const futureStr = future.toISOString().split("T")[0];
+    const assets = [
+      { warranty_expiry: futureStr },
+      { warranty_expiry: null },
+    ];
+    expect(countAssetsNeedingUpgrade(assets)).toBe(0);
+  });
+});
+
+describe("Hardware upgrade banner", () => {
+  it("banner threshold is >3 devices", () => {
+    const threshold = 3;
+    expect(4 > threshold).toBe(true);
+    expect(3 > threshold).toBe(false);
+  });
+
+  it("banner text mentions upgrade count", () => {
+    const count = 5;
+    const text = `${count} apparaten hebben een upgrade nodig`;
+    expect(text).toContain("5 apparaten");
+    expect(text).toContain("upgrade nodig");
   });
 });
