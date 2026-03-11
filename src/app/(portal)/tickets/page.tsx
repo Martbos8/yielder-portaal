@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getTickets } from "@/lib/queries";
+import { getTickets } from "@/lib/repositories";
 import { TicketFilters } from "./ticket-filters";
 
 async function TicketsContent() {

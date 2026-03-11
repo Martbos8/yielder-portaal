@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { getTicketById } from "@/lib/queries";
+import { getTicketById } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import type { TicketStatus, TicketPriority } from "@/types/database";

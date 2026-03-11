@@ -5,7 +5,7 @@ import {
   getExpiringAgreements,
   getExpiredWarrantyHardware,
   getUserCompanyId,
-} from "@/lib/queries";
+} from "@/lib/repositories";
 import { getRecommendations, type Recommendation } from "@/lib/engine/recommendation";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";

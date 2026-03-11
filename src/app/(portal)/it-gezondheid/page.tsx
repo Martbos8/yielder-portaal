@@ -1,4 +1,4 @@
-import { getTickets, getHardwareAssets } from "@/lib/queries";
+import { getTickets, getHardwareAssets } from "@/lib/repositories";
 import {
   calculateHealthScores,
   generateHealthTrends,

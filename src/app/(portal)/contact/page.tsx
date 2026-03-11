@@ -1,4 +1,4 @@
-import { getContacts, getUserCompany } from "@/lib/queries";
+import { getContacts, getUserCompany } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import ContactForm from "./contact-form";

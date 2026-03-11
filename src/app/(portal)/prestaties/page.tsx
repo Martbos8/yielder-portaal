@@ -1,4 +1,4 @@
-import { getTickets } from "@/lib/queries";
+import { getTickets } from "@/lib/repositories";
 import {
   calculateSLAMetrics,
   getCategoryBreakdown,

@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getLicenses } from "@/lib/queries";
+import { getLicenses } from "@/lib/repositories";
 import { LicenseFilters } from "./license-filters";
 
 async function SoftwareContent() {

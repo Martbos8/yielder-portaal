@@ -1,4 +1,4 @@
-import { getUserCompanyId } from "@/lib/queries";
+import { getUserCompanyId } from "@/lib/repositories";
 import { getRecommendations, type Recommendation } from "@/lib/engine/recommendation";
 import { getBestPrice } from "@/lib/distributors";
 import { MaterialIcon } from "@/components/icon";

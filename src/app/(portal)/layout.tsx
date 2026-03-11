@@ -1,4 +1,4 @@
-import { getUserProfile, getUserCompany, getUserCompanyId, getOpenTicketCount, getNotifications } from "@/lib/queries";
+import { getUserProfile, getUserCompany, getUserCompanyId, getOpenTicketCount, getNotifications } from "@/lib/repositories";
 import { getRecommendations } from "@/lib/engine/recommendation";
 import { PortalShell } from "@/components/portal-shell";
 

@@ -1,4 +1,4 @@
-import { getHardwareAssets } from "@/lib/queries";
+import { getHardwareAssets } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import {

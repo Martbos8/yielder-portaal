@@ -44,3 +44,24 @@
 - Geleerd: isOperational flag is krachtig — operational errors (auth/validation) tonen hun message aan users, non-operational (db/service) tonen generic fallback
 - Geleerd: Error boundary in Next.js krijgt Error object — message-based detection werkt goed voor type-specific UI
 [23:30:00] Iteratie 3 klaar
+[23:30:02] Iteratie 3 klaar
+[23:30:02] Iteratie 4 gestart
+
+[23:35:00] Taak 4 VOLTOOID — Query layer refactoren naar repository pattern
+- Split src/lib/queries.ts (258 lines, 1 monolith) into 7 domain-specific repositories:
+  - ticket.repository.ts — getTickets, getTicketById, getRecentTickets, getOpenTicketCount
+  - hardware.repository.ts — getHardwareAssets, getExpiredWarrantyHardware
+  - agreement.repository.ts — getAgreements, getExpiringAgreements
+  - company.repository.ts — getUserProfile, getUserCompanyId, getUserCompany, getContacts, getDashboardStats
+  - notification.repository.ts — getNotifications
+  - license.repository.ts — getLicenses
+  - sync.repository.ts — getSyncStatus
+- Each repository: specific column selects (no SELECT *), typed returns, DatabaseError on failures
+- Created repositories/index.ts barrel file for clean re-exports
+- queries.ts now re-exports from repositories (backward compat for tests)
+- Updated 12 page files to import from @/lib/repositories directly
+- Linter auto-enhanced all repositories with DatabaseError throws on query failures
+- Build + lint + 429 tests pass
+- Geleerd: Column constants (as const) per repository zorgt ervoor dat je exact weet welke data je ophaalt — geen overbodige kolommen over de wire
+- Geleerd: Barrel re-export in queries.ts voorkomt breaking changes voor bestaande test imports
+[23:35:00] Iteratie 4 klaar

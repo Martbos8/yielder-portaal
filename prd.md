@@ -61,7 +61,7 @@ Per iteratie:
 - Zorg dat error boundaries correct reageren op elk type
 - Log alleen unexpected errors (niet operational errors)
 
-### Taak 4: Query layer refactoren naar repository pattern [not started]
+### Taak 4: Query layer refactoren naar repository pattern [done]
 - Lees `src/lib/queries.ts` — dit is nu één groot bestand
 - Splits op in repositories:
   - `src/lib/repositories/ticket.repository.ts`
