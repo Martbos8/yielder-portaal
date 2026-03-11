@@ -53,6 +53,12 @@ export function PortalShell({ user, openTicketCount, criticalUpgradeCount = 0, n
   return (
     <ToastProvider>
       <div className="relative h-screen w-full flex flex-col overflow-hidden">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:bg-yielder-navy focus:text-white focus:rounded-lg focus:text-sm focus:font-medium focus:outline-none focus:ring-2 focus:ring-yielder-orange"
+        >
+          Ga naar inhoud
+        </a>
         <Header
           onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
           companyName={user.companyName}
@@ -69,7 +75,7 @@ export function PortalShell({ user, openTicketCount, criticalUpgradeCount = 0, n
             initials={user.initials}
             criticalUpgradeCount={criticalUpgradeCount}
           />
-          <main className="flex-1 overflow-y-auto p-6 md:p-10">
+          <main id="main-content" className="flex-1 overflow-y-auto p-6 md:p-10">
             <div className="max-w-6xl mx-auto page-enter">{children}</div>
           </main>
         </div>

@@ -90,7 +90,7 @@ export default async function ITGezondheidPage() {
                 className={getScoreColorClass(score.score)}
                 size={24}
               />
-              <h3 className="font-semibold text-sm">{score.label}</h3>
+              <h2 className="font-semibold text-sm">{score.label}</h2>
               <span
                 className={`ml-auto text-lg font-bold ${getScoreColorClass(score.score)}`}
               >

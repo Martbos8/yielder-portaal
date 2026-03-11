@@ -20,6 +20,7 @@ interface TrendChartProps {
 
 export function SLATrendChart({ data }: TrendChartProps) {
   return (
+    <div role="img" aria-label="SLA trend grafiek: toont opgeloste tickets en SLA compliance percentage over tijd">
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -72,6 +73,7 @@ export function SLATrendChart({ data }: TrendChartProps) {
         />
       </LineChart>
     </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -81,6 +83,7 @@ interface CategoryChartProps {
 
 export function CategoryChart({ data }: CategoryChartProps) {
   return (
+    <div role="img" aria-label="Ticket categorieën grafiek: toont aantal tickets per categorie">
     <ResponsiveContainer width="100%" height={300}>
       <BarChart
         data={data}
@@ -117,5 +120,6 @@ export function CategoryChart({ data }: CategoryChartProps) {
         />
       </BarChart>
     </ResponsiveContainer>
+    </div>
   );
 }

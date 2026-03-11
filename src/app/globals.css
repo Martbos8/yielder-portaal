@@ -218,4 +218,43 @@
   .text-balance {
     text-wrap: balance;
   }
+
+  /* Screen reader only — visually hidden but accessible */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+  }
+
+  /* Skip-to-content link — visible on focus */
+  .skip-to-content {
+    @apply sr-only;
+  }
+  .skip-to-content:focus {
+    position: fixed;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 9999;
+    width: auto;
+    height: auto;
+    padding: 0.75rem 1.5rem;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+    background: #1f3b61;
+    color: #ffffff;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    outline: 2px solid #f5a623;
+    outline-offset: 2px;
+  }
 }

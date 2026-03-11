@@ -58,6 +58,8 @@ export function MetricRing({
           viewBox="0 0 128 128"
           width={size}
           height={size}
+          role="img"
+          aria-label={`${label ? `${label}: ` : ""}${score} procent`}
         >
           <circle
             cx="64"
@@ -80,7 +82,7 @@ export function MetricRing({
             className={`${colors.stroke} score-ring-animated`}
           />
         </svg>
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center" aria-hidden="true">
           <span className={`text-3xl font-bold ${colors.text}`}>
             {score}%
           </span>

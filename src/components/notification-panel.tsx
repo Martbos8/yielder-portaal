@@ -53,7 +53,7 @@ export function NotificationPanel({
   const unreadCount = notifications.filter((n) => !n.is_read).length;
   const badgeCount = unreadCount > 0 ? unreadCount : openTicketCount;
 
-  // Close panel on click outside
+  // Close panel on click outside or Escape key
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -64,10 +64,20 @@ export function NotificationPanel({
       }
     }
 
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
     }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isOpen]);
 
   async function handleMarkAsRead(notificationId: string) {
@@ -96,11 +106,14 @@ export function NotificationPanel({
       {/* Bell trigger */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative flex items-center justify-center size-10 rounded-xl text-slate-400 hover:text-yielder-navy hover:bg-yielder-navy/[0.04] transition-all"
+        className="relative flex items-center justify-center size-10 rounded-xl text-slate-400 hover:text-yielder-navy hover:bg-yielder-navy/[0.04] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label={`Meldingen${badgeCount > 0 ? ` (${badgeCount} ongelezen)` : ""}`}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
         <MaterialIcon name="notifications" size={22} />
         {badgeCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 flex items-center justify-center bg-rose-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white px-1 animate-badge-pulse">
+          <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 flex items-center justify-center bg-rose-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white px-1 animate-badge-pulse" aria-hidden="true">
             {badgeCount > 99 ? "99+" : badgeCount}
           </span>
         )}
@@ -108,7 +121,7 @@ export function NotificationPanel({
 
       {/* Panel */}
       {isOpen && (
-        <div className="absolute right-0 top-12 w-80 sm:w-96 bg-white rounded-2xl shadow-card-hover border border-slate-100 z-50 overflow-hidden">
+        <div role="dialog" aria-label="Meldingen" className="absolute right-0 top-12 w-80 sm:w-96 bg-white rounded-2xl shadow-card-hover border border-slate-100 z-50 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
             <h3 className="text-sm font-semibold text-yielder-navy">
@@ -168,7 +181,8 @@ export function NotificationPanel({
                   </div>
                   {!notification.is_read && (
                     <div className="shrink-0 mt-2">
-                      <span className="size-2 rounded-full bg-yielder-orange block" />
+                      <span className="size-2 rounded-full bg-yielder-orange block" aria-hidden="true" />
+                      <span className="sr-only">Ongelezen</span>
                     </div>
                   )}
                 </button>

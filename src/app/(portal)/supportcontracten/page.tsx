@@ -100,7 +100,7 @@ export default async function SupportcontractenPage() {
                   className={tier.className}
                   size={24}
                 />
-                <h3 className="font-semibold text-sm">{tier.label} SLA</h3>
+                <h2 className="font-semibold text-sm">{tier.label} SLA</h2>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">

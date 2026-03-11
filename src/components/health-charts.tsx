@@ -34,6 +34,7 @@ interface HealthTrendChartProps {
 
 export function HealthTrendChart({ data }: HealthTrendChartProps) {
   return (
+    <div role="img" aria-label="IT-gezondheid trend grafiek: toont uptime, patching, backups en security scores over tijd">
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -78,6 +79,7 @@ export function HealthTrendChart({ data }: HealthTrendChartProps) {
         ))}
       </LineChart>
     </ResponsiveContainer>
+    </div>
   );
 }
 
@@ -93,7 +95,7 @@ export function ScoreRing({ score, label, color }: ScoreRingProps) {
   ];
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center" role="img" aria-label={`${label}: ${score} procent`}>
       <div className="relative w-28 h-28">
         <ResponsiveContainer width="100%" height="100%">
           <RadialBarChart

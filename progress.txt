@@ -468,3 +468,42 @@
 - Geleerd: Card hover globally in card.tsx is better than card-interactive per-page — single source of truth
 - Geleerd: prefers-reduced-motion should use wildcard * selector to catch all transition/animation properties
 [00:45:00] Iteratie 16 klaar
+[00:45:25] Iteratie 15 klaar
+[00:45:25] Iteratie 16 gestart
+[00:45:32] Iteratie 13 klaar
+[00:45:32] Iteratie 14 gestart
+
+[00:52:00] Taak 17 VOLTOOID — Accessibility (WCAG 2.1 AA)
+- Skip-to-content link: added in portal-shell.tsx with sr-only + focus:not-sr-only pattern
+  - "Ga naar inhoud" link jumps to #main-content, styled with yielder-navy bg on focus
+- ARIA labels on all icon-only buttons:
+  - Header hamburger: aria-label="Menu openen"
+  - Notification bell: aria-label with dynamic unread count, aria-expanded, aria-haspopup
+  - Sidebar logout: aria-label="Uitloggen" (in addition to title)
+  - Avatar dropdown trigger: aria-label="Gebruikersmenu"
+  - Upgrade badge in sidebar: aria-label with critical count
+- Heading hierarchy fixed:
+  - Admin page: h3→h2 for API status cards, h4→h3 for sync entity items (was h1→h3 skip)
+  - IT-gezondheid page: h3→h2 for score category headings
+  - Supportcontracten page: h3→h2 for SLA tier headings
+  - Hardware detail modal: fixed mismatched h3/h4 closing tags
+- Focus-visible rings: added focus-visible:ring-2 to hamburger button, notification bell, sidebar logout
+- Keyboard support:
+  - Notification panel: Escape key closes panel (document keydown listener)
+  - Sidebar: Escape key closes mobile sidebar (document keydown listener with useCallback)
+  - Mobile overlay: role="presentation" added
+- Screen reader text:
+  - MetricRing SVG: role="img" + aria-label with score percentage, aria-hidden on visual percentage
+  - HealthTrendChart: role="img" + aria-label describing chart content
+  - ScoreRing: role="img" + aria-label
+  - SLATrendChart + CategoryChart: role="img" + aria-label
+  - Notification unread dot: aria-hidden + sr-only "Ongelezen" text
+  - Notification badge count: aria-hidden (count already in button aria-label)
+  - Header company dot: aria-hidden on decorative element
+- Reduced motion: already comprehensive from Taak 16 — verified @media (prefers-reduced-motion: reduce)
+- sr-only CSS utility class added to globals.css (backup for Tailwind sr-only)
+- 471 tests pass, build + lint groen
+- Geleerd: Linter hooks auto-fix heading hierarchy (h3→h2) but can create mismatched open/close tags (h3 open, h4 close) — must verify
+- Geleerd: aria-label on notification bell should be dynamic: include unread count for screen reader context
+- Geleerd: useCallback on Escape key handler prevents unnecessary re-registration of event listeners
+[00:52:00] Iteratie 17 klaar

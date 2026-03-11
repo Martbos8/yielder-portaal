@@ -220,7 +220,7 @@ Per iteratie:
   - Toast notifications: slide-in van rechts + auto-dismiss
   - Sidebar active item: smooth background transition
 
-### Taak 17: Accessibility (WCAG 2.1 AA) [not started]
+### Taak 17: Accessibility (WCAG 2.1 AA) [done]
 - Audit alle pagina's:
   - Alle interactieve elementen: focus-visible ring
   - ARIA labels op icon-only buttons
