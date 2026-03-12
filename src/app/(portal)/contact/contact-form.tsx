@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MaterialIcon } from "@/components/icon";
 import { createContactRequest } from "@/lib/actions/contact.actions";
 import { getErrorMessage } from "@/lib/errors";
+import { ContactRequestSchema } from "@/lib/schemas";
 
 interface ContactFormProps {
   companyId: string;
@@ -12,15 +13,36 @@ interface ContactFormProps {
 export default function ContactForm({ companyId }: ContactFormProps) {
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setStatus("submitting");
     setErrorMsg("");
 
     const formData = new FormData(e.currentTarget);
     const subject = (formData.get("subject") as string).trim();
     const message = (formData.get("message") as string).trim();
+
+    // Client-side validation with shared schema
+    const validation = ContactRequestSchema.safeParse({
+      companyId,
+      subject,
+      message: message || undefined,
+      urgency: "normaal",
+    });
+
+    if (!validation.success) {
+      const errors: Record<string, string> = {};
+      for (const issue of validation.error.issues) {
+        const path = issue.path.join(".");
+        errors[path] = issue.message;
+      }
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
+    setStatus("submitting");
 
     try {
       const result = await createContactRequest({
@@ -81,11 +103,15 @@ export default function ContactForm({ companyId }: ContactFormProps) {
           name="subject"
           type="text"
           required
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm
+          aria-invalid={!!fieldErrors["subject"]}
+          className={`w-full rounded-lg border bg-background px-3 py-2 text-sm
             focus:outline-none focus:ring-2 focus:ring-yielder-navy/20 focus:border-yielder-navy
-            transition-colors"
+            transition-colors ${fieldErrors["subject"] ? "border-red-500" : "border-border"}`}
           placeholder="Waar gaat het over?"
         />
+        {fieldErrors["subject"] && (
+          <p className="text-xs text-red-600 mt-1">{fieldErrors["subject"]}</p>
+        )}
       </div>
       <div>
         <label
@@ -99,11 +125,15 @@ export default function ContactForm({ companyId }: ContactFormProps) {
           name="message"
           required
           rows={4}
-          className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm
+          aria-invalid={!!fieldErrors["message"]}
+          className={`w-full rounded-lg border bg-background px-3 py-2 text-sm
             focus:outline-none focus:ring-2 focus:ring-yielder-navy/20 focus:border-yielder-navy
-            transition-colors resize-none"
+            transition-colors resize-none ${fieldErrors["message"] ? "border-red-500" : "border-border"}`}
           placeholder="Typ uw bericht..."
         />
+        {fieldErrors["message"] && (
+          <p className="text-xs text-red-600 mt-1">{fieldErrors["message"]}</p>
+        )}
       </div>
 
       {status === "error" && (

@@ -577,3 +577,19 @@
 - Geleerd: createSortSchema() with generic T[] allows typed sort field validation per domain
 - Geleerd: z.coerce.number() is useful for query params that arrive as strings
 - Geleerd: Shared schemas eliminate duplication — same schema validates in actions, API routes, and (future) client forms
+
+[01:07:00] Taak 20 aanvulling — Client-side validatie + tests
+- Added client-side validation to ContactModal using shared ContactRequestSchema
+  - Field-level error display with aria-invalid + red border on invalid fields
+  - Errors clear when user edits the field
+- Added client-side validation to ContactForm (contact page) using shared ContactRequestSchema
+  - Same pattern: safeParse before submit, field-level errors, aria-invalid
+- Created src/test/schemas.test.ts: 46 new tests covering all schemas
+  - Common: UUIDSchema, PaginationSchema, DateRangeSchema, SortDirectionSchema, createSortSchema
+  - Domain: ContactRequestSchema, FeedbackSchema, MarkAsReadSchema, MarkAllAsReadSchema, TicketFilterSchema, SyncRequestSchema
+  - Tests cover: valid input, invalid input, defaults, edge cases (empty strings, boundary values, invalid enums)
+- One schema, three applications achieved: server validation (actions), client validation (forms), TypeScript types
+- 517 tests pass (up from 471), build + lint groen
+- Geleerd: safeParse → fieldErrors pattern works well for client-side Zod validation without additional dependencies
+- Geleerd: aria-invalid on form fields improves accessibility for validation errors
+[01:07:00] Iteratie 19 klaar

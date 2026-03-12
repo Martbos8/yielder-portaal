@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MaterialIcon } from "@/components/icon";
 import { createContactRequest } from "@/lib/actions/contact.actions";
 import { getErrorMessage } from "@/lib/errors";
+import { ContactRequestSchema } from "@/lib/schemas";
 
 type ContactModalProps = {
   productName?: string;
@@ -41,12 +42,31 @@ export function ContactModal({
   const [urgency, setUrgency] = useState<"normaal" | "hoog">(defaultUrgency);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!subject.trim()) return;
+    // Client-side validation with shared schema
+    const validation = ContactRequestSchema.safeParse({
+      companyId,
+      subject: subject.trim(),
+      message: message.trim() || undefined,
+      productId: productId || undefined,
+      urgency,
+    });
 
+    if (!validation.success) {
+      const errors: Record<string, string> = {};
+      for (const issue of validation.error.issues) {
+        const path = issue.path.join(".");
+        errors[path] = issue.message;
+      }
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
     setStatus("submitting");
     setErrorMsg("");
 
@@ -127,10 +147,14 @@ export function ContactModal({
                 <Input
                   id="contact-subject"
                   value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  onChange={(e) => { setSubject(e.target.value); setFieldErrors((prev) => { const next = { ...prev }; delete next["subject"]; return next; }); }}
                   placeholder="Waar gaat uw vraag over?"
                   required
+                  aria-invalid={!!fieldErrors["subject"]}
                 />
+                {fieldErrors["subject"] && (
+                  <p className="text-xs text-red-600">{fieldErrors["subject"]}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -138,10 +162,14 @@ export function ContactModal({
                 <Textarea
                   id="contact-message"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => { setMessage(e.target.value); setFieldErrors((prev) => { const next = { ...prev }; delete next["message"]; return next; }); }}
                   placeholder="Beschrijf uw vraag of wens (optioneel)"
                   rows={4}
+                  aria-invalid={!!fieldErrors["message"]}
                 />
+                {fieldErrors["message"] && (
+                  <p className="text-xs text-red-600">{fieldErrors["message"]}</p>
+                )}
               </div>
 
               <div className="space-y-2">

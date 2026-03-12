@@ -54,7 +54,7 @@ export async function getUserCompanyId(): Promise<string | null> {
   });
 }
 
-/** Fetch the authenticated user's company. */
+/** Fetch the authenticated user's company (single query with join). */
 export async function getUserCompany(): Promise<Company | null> {
   return withTiming(log, "getUserCompany", async () => {
     const supabase = await createClient();
@@ -63,28 +63,20 @@ export async function getUserCompany(): Promise<Company | null> {
     } = await supabase.auth.getUser();
     if (!user) return null;
 
-    const { data, error: mappingError } = await supabase
+    const { data, error } = await supabase
       .from("user_company_mapping")
-      .select("company_id")
+      .select(`company_id, companies(${COMPANY_COLUMNS})`)
       .eq("user_id", user.id)
       .single();
 
-    if (mappingError && mappingError.code !== "PGRST116") {
-      throw new DatabaseError(`Failed to fetch user company mapping: ${mappingError.message}`);
+    if (error && error.code !== "PGRST116") {
+      throw new DatabaseError(`Failed to fetch user company: ${error.message}`);
     }
     if (!data) return null;
 
-    const { data: company, error: companyError } = await supabase
-      .from("companies")
-      .select(COMPANY_COLUMNS)
-      .eq("id", data.company_id)
-      .returns<Company[]>()
-      .single();
-
-    if (companyError && companyError.code !== "PGRST116") {
-      throw new DatabaseError(`Failed to fetch company: ${companyError.message}`);
-    }
-    return company;
+    // Supabase returns joined data as nested object
+    const company = data.companies as unknown as Company | null;
+    return company ?? null;
   });
 }
 
@@ -103,30 +95,39 @@ export async function getContacts(): Promise<Contact[]> {
   });
 }
 
-/** Fetch aggregated dashboard statistics. */
+/** Fetch aggregated dashboard statistics using efficient count queries. */
 export async function getDashboardStats(): Promise<DashboardStats> {
   return withTiming(log, "getDashboardStats", async () => {
     const supabase = await createClient();
 
-    const [ticketsRes, hardwareRes, agreementsRes] = await Promise.all([
+    const [ticketsRes, hardwareRes, activeCountRes, amountRes] = await Promise.all([
+      // Count open tickets (head: true = no data transfer)
       supabase
         .from("tickets")
         .select("id", { count: "exact", head: true })
         .eq("is_closed", false),
+      // Count all hardware
       supabase
         .from("hardware_assets")
         .select("id", { count: "exact", head: true }),
-      supabase.from("agreements").select("status, bill_amount"),
+      // Count active agreements (head: true instead of fetching rows)
+      supabase
+        .from("agreements")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active"),
+      // Only fetch bill_amount for active agreements (for sum)
+      supabase
+        .from("agreements")
+        .select("bill_amount")
+        .eq("status", "active"),
     ]);
 
     if (ticketsRes.error) throw new DatabaseError(`Failed to fetch ticket stats: ${ticketsRes.error.message}`);
     if (hardwareRes.error) throw new DatabaseError(`Failed to fetch hardware stats: ${hardwareRes.error.message}`);
-    if (agreementsRes.error) throw new DatabaseError(`Failed to fetch agreement stats: ${agreementsRes.error.message}`);
+    if (activeCountRes.error) throw new DatabaseError(`Failed to fetch agreement count: ${activeCountRes.error.message}`);
+    if (amountRes.error) throw new DatabaseError(`Failed to fetch agreement amounts: ${amountRes.error.message}`);
 
-    const activeAgreements = (agreementsRes.data ?? []).filter(
-      (a) => a.status === "active"
-    );
-    const monthlyAmount = activeAgreements.reduce(
+    const monthlyAmount = (amountRes.data ?? []).reduce(
       (sum, a) => sum + (a.bill_amount ?? 0),
       0
     );
@@ -134,7 +135,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     return {
       openTickets: ticketsRes.count ?? 0,
       hardwareCount: hardwareRes.count ?? 0,
-      activeContracts: activeAgreements.length,
+      activeContracts: activeCountRes.count ?? 0,
       monthlyAmount,
     };
   });
