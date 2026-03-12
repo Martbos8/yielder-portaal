@@ -1,18 +1,11 @@
 "use server";
 
-import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { AuthError, ValidationError, DatabaseError } from "@/lib/errors";
+import { FeedbackSchema, type FeedbackInput } from "@/lib/schemas";
 
-const FeedbackSchema = z.object({
-  companyId: z.string().uuid(),
-  productId: z.string().uuid(),
-  action: z.enum(["shown", "clicked", "contacted", "purchased", "dismissed"]),
-  recommendationScore: z.number().min(0).max(100).default(0),
-});
-
-export type FeedbackInput = z.input<typeof FeedbackSchema>;
+export type { FeedbackInput };
 
 type ActionResult = {
   success: boolean;

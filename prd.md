@@ -263,7 +263,7 @@ Per iteratie:
   ```
 - Refactor ALLE bestaande API routes om dit pattern te gebruiken
 
-### Taak 20: Input validatie met Zod schemas [not started]
+### Taak 20: Input validatie met Zod schemas [done]
 - Maak `src/lib/schemas/` directory:
   - `contact.schema.ts` — ContactRequestSchema
   - `ticket.schema.ts` — TicketFilterSchema

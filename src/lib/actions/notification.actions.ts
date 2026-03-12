@@ -1,23 +1,20 @@
 "use server";
 
-import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { AuthError, ValidationError, DatabaseError } from "@/lib/errors";
-
-const MarkAsReadSchema = z.object({
-  notificationId: z.string().uuid(),
-});
-
-const MarkAllAsReadSchema = z.object({
-  notificationIds: z.array(z.string().uuid()).min(1, "Geen notificaties opgegeven"),
-});
+import {
+  MarkAsReadSchema,
+  MarkAllAsReadSchema,
+  type MarkAsReadInput,
+  type MarkAllAsReadInput,
+} from "@/lib/schemas";
 
 type ActionResult = {
   success: boolean;
   error?: string;
 };
 
-export async function markNotificationAsRead(input: z.input<typeof MarkAsReadSchema>): Promise<ActionResult> {
+export async function markNotificationAsRead(input: MarkAsReadInput): Promise<ActionResult> {
   const supabase = await createClient();
 
   // Auth check
@@ -45,7 +42,7 @@ export async function markNotificationAsRead(input: z.input<typeof MarkAsReadSch
   return { success: true };
 }
 
-export async function markAllNotificationsAsRead(input: z.input<typeof MarkAllAsReadSchema>): Promise<ActionResult> {
+export async function markAllNotificationsAsRead(input: MarkAllAsReadInput): Promise<ActionResult> {
   const supabase = await createClient();
 
   // Auth check

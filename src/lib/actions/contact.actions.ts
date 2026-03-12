@@ -1,20 +1,12 @@
 "use server";
 
-import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { logAudit } from "@/lib/audit";
 import { AuthError, ValidationError, DatabaseError, RateLimitError } from "@/lib/errors";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { ContactRequestSchema, type ContactRequestInput } from "@/lib/schemas";
 
-const ContactRequestSchema = z.object({
-  companyId: z.string().uuid(),
-  subject: z.string().min(1, "Onderwerp is verplicht").max(200, "Onderwerp mag maximaal 200 tekens zijn"),
-  message: z.string().max(2000, "Bericht mag maximaal 2000 tekens zijn").optional(),
-  productId: z.string().uuid().optional(),
-  urgency: z.enum(["normaal", "hoog"]).default("normaal"),
-});
-
-export type ContactRequestInput = z.input<typeof ContactRequestSchema>;
+export type { ContactRequestInput };
 
 type ActionResult = {
   success: boolean;

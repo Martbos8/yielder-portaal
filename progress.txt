@@ -556,3 +556,24 @@
 - Geleerd: crypto.randomUUID() available in Next.js API routes without import (Web Crypto API)
 - Geleerd: typeof profile === "string" ? RATE_LIMITS[profile] : profile is clean for union config pattern
 [01:02:00] Iteratie 18 klaar
+[01:00:42] Iteratie 18 klaar
+[01:00:42] Iteratie 19 gestart
+
+[01:04:00] Taak 20 VOLTOOID — Input validatie met Zod schemas
+- Created src/lib/schemas/ directory with 7 schema files:
+  - common.schema.ts: UUIDSchema, PaginationSchema, DateRangeSchema, SortDirectionSchema, createSortSchema()
+  - contact.schema.ts: ContactRequestSchema (reuses UUIDSchema)
+  - feedback.schema.ts: FeedbackSchema (reuses UUIDSchema)
+  - notification.schema.ts: MarkAsReadSchema, MarkAllAsReadSchema (reuses UUIDSchema)
+  - ticket.schema.ts: TicketFilterSchema (composes PaginationSchema + createSortSchema)
+  - sync.schema.ts: SyncRequestSchema
+  - index.ts: barrel re-exports all schemas + types
+- Refactored 3 server action files to import schemas from shared location:
+  - contact.actions.ts: removed inline ContactRequestSchema, imports from @/lib/schemas
+  - feedback.actions.ts: removed inline FeedbackSchema, imports from @/lib/schemas
+  - notification.actions.ts: removed inline MarkAsReadSchema/MarkAllAsReadSchema, imports from @/lib/schemas
+- Schema types exported for both server (actions) and potential client (form validation) use
+- 471 tests pass, build + lint groen
+- Geleerd: createSortSchema() with generic T[] allows typed sort field validation per domain
+- Geleerd: z.coerce.number() is useful for query params that arrive as strings
+- Geleerd: Shared schemas eliminate duplication — same schema validates in actions, API routes, and (future) client forms
