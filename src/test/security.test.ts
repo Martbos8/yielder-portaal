@@ -62,13 +62,13 @@ describe("Rate limiter", () => {
 
   it("no warning below 80% usage", () => {
     const config = { maxRequests: 10, windowMs: 60000 };
-    // 7 requests — currentCount will be 7 which is < 8
-    for (let i = 0; i < 7; i++) {
+    // 6 requests — 7th request count (6+1=7) is still below threshold (8)
+    for (let i = 0; i < 6; i++) {
       checkRateLimit("no-warn-test", config);
     }
-    const r8 = checkRateLimit("no-warn-test", config);
-    expect(r8.warning).toBe(false);
-    expect(r8.allowed).toBe(true);
+    const r7 = checkRateLimit("no-warn-test", config);
+    expect(r7.warning).toBe(false);
+    expect(r7.allowed).toBe(true);
   });
 
   it("has predefined rate limit profiles", () => {

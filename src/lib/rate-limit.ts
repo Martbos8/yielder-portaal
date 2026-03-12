@@ -131,7 +131,7 @@ export function checkRateLimit(
   entry.timestamps.push(now);
 
   const remaining = config.maxRequests - currentCount - 1;
-  const warning = currentCount >= warningThresholdCount;
+  const warning = currentCount + 1 >= warningThresholdCount;
 
   return {
     allowed: true,

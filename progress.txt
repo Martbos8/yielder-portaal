@@ -774,3 +774,31 @@
 - Added 7 new tests: buildRateLimitHeaders, warning zone detection, route warning headers
 - All 576 tests pass, build + lint green
 - Geleerd: Set iteration requires downlevelIteration in tsconfig or use Array.from()
+[01:34:47] Iteratie 20 klaar
+[01:34:47] Iteratie 21 gestart
+
+[01:45:00] Taak 26 VOLTOOID — Comprehensive test suite
+- Fixed rate-limit.ts warning threshold bug: used pre-push count (currentCount) instead of post-push (currentCount + 1)
+  - 80% warning now correctly triggers at threshold (e.g., 4th request of 5 max)
+- Fixed repository test infrastructure (repositories.test.ts):
+  - Supabase mock Proxy now returns proxy from all chain methods (select/eq/order/etc.)
+  - Previously chain methods returned raw object, making `await` fail (no .then handler)
+  - Added vi.resetModules() to all describe blocks for clean module isolation
+  - Changed DatabaseError assertions from instanceof to regex (class identity breaks across module resets)
+- Created src/test/edge-cases.test.ts with 55 edge case tests:
+  - XSS payloads: 7 common XSS vectors tested against ContactRequestSchema and TicketFilterSchema
+  - Unicode: Japanese, German, emoji, Russian, Arabic, zero-width spaces, combining characters
+  - Boundary values: exact min/max lengths for subject (200), message (2000), pageSize (1-100), score (0-100)
+  - Null/undefined inputs: all schemas tested with null, undefined, empty object
+  - Type coercion attacks: numbers, arrays, objects passed to string schemas
+  - Prototype pollution: __proto__ injection, extra property stripping
+  - Error handling edge cases: null/undefined/object in toAppError, circular references, empty string resource
+  - Cache edge cases: long keys, special chars, null values, TTL of 0, very large TTL, concurrent cached()
+  - Rate limiting edge cases: maxRequests=1, very large limits, 1ms window, empty keys, warning transitions
+- Fixed pre-existing lint errors in contract-utils.test.ts (unused imports)
+- Removed unused createMockQueryBuilder and DatabaseError import from repositories.test.ts
+- 745 tests pass across 45 test files, build + lint groen
+- Geleerd: vi.resetModules() causes instanceof checks to fail across module boundaries — use regex/name-based assertions
+- Geleerd: Supabase mock chains must return the Proxy itself (not raw object) for await to work correctly
+- Geleerd: Warning threshold should use post-push count (currentCount + 1) to match the user's actual usage at that point
+[01:45:00] Iteratie 21 klaar

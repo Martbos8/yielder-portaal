@@ -330,7 +330,7 @@ Per iteratie:
   - Response headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset
   - Retry-After header bij 429
 
-### Taak 26: Comprehensive test suite [not started]
+### Taak 26: Comprehensive test suite [done]
 - Audit bestaande tests en vul aan:
   - Unit tests voor ELKE repository functie
   - Unit tests voor ELKE server action
