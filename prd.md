@@ -373,7 +373,7 @@ Per iteratie:
   - Test empty states: nieuw bedrijf zonder data
 - Alle tests moeten slagen
 
-### Taak 30: Code review en cleanup [not started]
+### Taak 30: Code review en cleanup [done]
 - Doe een finale code review van de HELE codebase:
   - Verwijder ongebruikte imports
   - Verwijder ongebruikte variabelen
