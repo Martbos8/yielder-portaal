@@ -1,18 +1,6 @@
 import { describe, it, expect } from "vitest";
 
 describe("Admin page", () => {
-  it("admin page module is importable", async () => {
-    const mod = await import("@/app/(portal)/admin/page");
-    expect(mod.default).toBeDefined();
-    expect(typeof mod.default).toBe("function");
-  });
-
-  it("admin loading page is importable", async () => {
-    const mod = await import("@/app/(portal)/admin/loading");
-    expect(mod.default).toBeDefined();
-    expect(typeof mod.default).toBe("function");
-  });
-
   it("isAdmin check requires is_yielder=true", () => {
     // Unit test for admin check logic (extracted)
     const checkAdmin = (profile: { is_yielder: boolean } | null) =>

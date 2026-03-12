@@ -71,7 +71,7 @@ function getClientIp(request: NextRequest): string {
 
 export const config = {
   matcher: [
-    // Match alle routes behalve statische bestanden
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/api/:path*",
+    "/auth/:path*",
   ],
 };

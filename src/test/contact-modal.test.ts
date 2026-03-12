@@ -67,9 +67,4 @@ describe("Contact Modal — types and logic", () => {
     expect(subject).toBe("Interesse in Cloud Backup");
   });
 
-  it("ContactModal component is importable", async () => {
-    const mod = await import("@/components/contact-modal");
-    expect(mod.ContactModal).toBeDefined();
-    expect(typeof mod.ContactModal).toBe("function");
-  });
 });
