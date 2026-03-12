@@ -1,233 +1,189 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { formatDate } from "@/lib/utils";
 import { MaterialIcon } from "@/components/icon";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import type { Ticket, TicketStatus, TicketPriority } from "@/types/database";
+  DataTable,
+  StatusBadge,
+  ticketStatusConfig,
+  ticketPriorityConfig,
+} from "@/components/data-display";
+import type { ColumnDef } from "@/components/data-display";
+import type { Ticket } from "@/types/database";
+import type { TicketResponseStats } from "@/lib/repositories";
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-const statusConfig: Record<TicketStatus, { label: string; className: string }> =
-  {
-    open: {
-      label: "Open",
-      className:
-        "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    },
-    in_progress: {
-      label: "In behandeling",
-      className:
-        "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-    },
-    closed: {
-      label: "Gesloten",
-      className:
-        "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-    },
-  };
-
-const priorityConfig: Record<
-  TicketPriority,
-  { label: string; className: string }
-> = {
-  urgent: {
-    label: "Urgent",
-    className: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  },
-  high: {
-    label: "Hoog",
-    className:
-      "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  },
-  normal: {
-    label: "Normaal",
-    className:
-      "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  },
-  low: {
-    label: "Laag",
-    className: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  },
-};
-
-const statusOptions: { value: string; label: string }[] = [
-  { value: "", label: "Alle statussen" },
+const statusFilterOptions = [
   { value: "open", label: "Open" },
   { value: "in_progress", label: "In behandeling" },
   { value: "closed", label: "Gesloten" },
 ];
 
-const priorityOptions: { value: string; label: string }[] = [
-  { value: "", label: "Alle prioriteiten" },
+const priorityFilterOptions = [
   { value: "urgent", label: "Urgent" },
   { value: "high", label: "Hoog" },
   { value: "normal", label: "Normaal" },
   { value: "low", label: "Laag" },
 ];
 
-export function TicketFilters({ tickets }: { tickets: Ticket[] }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+/** Priority indicator dot with color + optional pulse for urgent. */
+function PriorityIndicator({ priority }: { priority: string }) {
+  const colorMap: Record<string, string> = {
+    urgent: "bg-red-500 animate-pulse",
+    high: "bg-orange-400",
+    normal: "bg-blue-400",
+    low: "bg-gray-400",
+  };
+  const color = colorMap[priority] ?? "bg-gray-400";
+  return <span className={`inline-block size-2 rounded-full ${color} shrink-0`} />;
+}
 
-  const search = searchParams.get("zoek") ?? "";
-  const statusFilter = searchParams.get("status") ?? "";
-  const priorityFilter = searchParams.get("prioriteit") ?? "";
+/** Format hours into readable Dutch string. */
+function formatResponseTime(hours: number | null): string {
+  if (hours === null) return "—";
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  if (hours < 24) return `${Math.round(hours)} uur`;
+  const days = hours / 24;
+  return `${days.toFixed(1)} dagen`;
+}
 
-  const updateParams = useCallback(
-    (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-      router.replace(`?${params.toString()}`, { scroll: false });
+const columns: ColumnDef<Ticket>[] = [
+  {
+    key: "id",
+    header: "#ID",
+    headerClassName: "w-[80px]",
+    cellClassName: "font-mono text-xs text-muted-foreground",
+    hideBelow: "sm",
+    sortable: true,
+    sortValue: (row) => row.cw_ticket_id ?? 0,
+    cell: (row) => row.cw_ticket_id ?? "—",
+  },
+  {
+    key: "summary",
+    header: "Samenvatting",
+    sortable: true,
+    sortValue: (row) => row.summary,
+    cell: (row) => (
+      <Link
+        href={`/tickets/${row.id}`}
+        className="font-medium hover:text-yielder-navy hover:underline transition-colors"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {row.summary}
+      </Link>
+    ),
+  },
+  {
+    key: "status",
+    header: "Status",
+    headerClassName: "w-[140px]",
+    sortable: true,
+    sortValue: (row) => row.status,
+    filterType: "select",
+    filterOptions: statusFilterOptions,
+    filterPlaceholder: "Alle statussen",
+    filterValue: (row) => row.status,
+    cell: (row) => (
+      <StatusBadge status={row.status} config={ticketStatusConfig} />
+    ),
+  },
+  {
+    key: "priority",
+    header: "Prioriteit",
+    headerClassName: "w-[140px]",
+    sortable: true,
+    sortValue: (row) => {
+      const order: Record<string, number> = {
+        urgent: 0,
+        high: 1,
+        normal: 2,
+        low: 3,
+      };
+      return order[row.priority] ?? 4;
     },
-    [router, searchParams]
+    filterType: "select",
+    filterOptions: priorityFilterOptions,
+    filterPlaceholder: "Alle prioriteiten",
+    filterValue: (row) => row.priority,
+    cell: (row) => (
+      <div className="flex items-center gap-2">
+        <PriorityIndicator priority={row.priority} />
+        <StatusBadge status={row.priority} config={ticketPriorityConfig} />
+      </div>
+    ),
+  },
+  {
+    key: "contact",
+    header: "Contactpersoon",
+    headerClassName: "w-[160px]",
+    cellClassName: "text-sm text-muted-foreground",
+    hideBelow: "md",
+    sortable: true,
+    sortValue: (row) => row.contact_name ?? "",
+    cell: (row) => row.contact_name ?? "—",
+  },
+  {
+    key: "created",
+    header: "Aangemaakt",
+    headerClassName: "w-[130px]",
+    cellClassName: "text-sm text-muted-foreground",
+    hideBelow: "sm",
+    sortable: true,
+    sortValue: (row) => row.cw_created_at ?? "",
+    cell: (row) => formatDate(row.cw_created_at),
+  },
+];
+
+interface TicketFiltersProps {
+  tickets: Ticket[];
+  stats: TicketResponseStats | null;
+}
+
+export function TicketFilters({ tickets, stats }: TicketFiltersProps) {
+  const openCount = tickets.filter((t) => !t.is_closed).length;
+  const urgentCount = tickets.filter((t) => t.priority === "urgent" && !t.is_closed).length;
+
+  const toolbar = (
+    <div className="flex flex-wrap gap-3 mb-2">
+      <div className="flex items-center gap-2 rounded-xl bg-card border border-border px-4 py-2 text-sm">
+        <MaterialIcon name="confirmation_number" size={16} className="text-muted-foreground" />
+        <span className="text-muted-foreground">Totaal:</span>
+        <span className="font-medium">{tickets.length}</span>
+      </div>
+      <div className="flex items-center gap-2 rounded-xl bg-card border border-border px-4 py-2 text-sm">
+        <MaterialIcon name="radio_button_checked" size={16} className="text-emerald-600" />
+        <span className="text-muted-foreground">Open:</span>
+        <span className="font-medium">{openCount}</span>
+      </div>
+      {urgentCount > 0 && (
+        <div className="flex items-center gap-2 rounded-xl bg-red-50 border border-red-200 px-4 py-2 text-sm dark:bg-red-900/20 dark:border-red-800">
+          <span className="size-2 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-red-700 dark:text-red-400">Urgent:</span>
+          <span className="font-medium text-red-700 dark:text-red-400">{urgentCount}</span>
+        </div>
+      )}
+      {stats && stats.avgResponseHours !== null && (
+        <div className="flex items-center gap-2 rounded-xl bg-card border border-border px-4 py-2 text-sm">
+          <MaterialIcon name="schedule" size={16} className="text-muted-foreground" />
+          <span className="text-muted-foreground">Gem. responstijd:</span>
+          <span className="font-medium">{formatResponseTime(stats.avgResponseHours)}</span>
+        </div>
+      )}
+    </div>
   );
 
-  const filtered = useMemo(() => {
-    return tickets.filter((ticket) => {
-      if (
-        search &&
-        !ticket.summary.toLowerCase().includes(search.toLowerCase())
-      ) {
-        return false;
-      }
-      if (statusFilter && ticket.status !== statusFilter) {
-        return false;
-      }
-      if (priorityFilter && ticket.priority !== priorityFilter) {
-        return false;
-      }
-      return true;
-    });
-  }, [tickets, search, statusFilter, priorityFilter]);
-
   return (
-    <div>
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="relative flex-1">
-          <MaterialIcon
-            name="search"
-            size={18}
-            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-          />
-          <Input
-            placeholder="Zoek op samenvatting…"
-            value={search}
-            onChange={(e) => updateParams("zoek", e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => updateParams("status", e.target.value)}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          {statusOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-        <select
-          value={priorityFilter}
-          onChange={(e) => updateParams("prioriteit", e.target.value)}
-          className="h-8 rounded-lg border border-input bg-transparent px-2.5 text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
-        >
-          {priorityOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <p className="text-sm text-muted-foreground mb-3">
-        {filtered.length} {filtered.length === 1 ? "ticket" : "tickets"}
-      </p>
-
-      <div className="bg-card rounded-2xl shadow-card border border-border overflow-hidden">
-        {filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <MaterialIcon
-              name="confirmation_number"
-              className="text-muted-foreground/50 mb-3"
-              size={40}
-            />
-            <p className="text-sm">Geen tickets gevonden</p>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[80px] hidden sm:table-cell">#ID</TableHead>
-                <TableHead>Samenvatting</TableHead>
-                <TableHead className="w-[140px]">Status</TableHead>
-                <TableHead className="w-[120px]">Prioriteit</TableHead>
-                <TableHead className="w-[160px] hidden md:table-cell">Contactpersoon</TableHead>
-                <TableHead className="w-[130px] hidden sm:table-cell">Aangemaakt</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.map((ticket) => {
-                const status = statusConfig[ticket.status];
-                const priority = priorityConfig[ticket.priority];
-                return (
-                  <TableRow key={ticket.id}>
-                    <TableCell className="font-mono text-xs text-muted-foreground hidden sm:table-cell">
-                      {ticket.cw_ticket_id ?? "—"}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      <Link
-                        href={`/tickets/${ticket.id}`}
-                        className="hover:text-yielder-navy hover:underline transition-colors"
-                      >
-                        {ticket.summary}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={status.className}>
-                        {status.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={priority.className}>
-                        {priority.label}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground hidden md:table-cell">
-                      {ticket.contact_name ?? "—"}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground hidden sm:table-cell">
-                      {formatDate(ticket.cw_created_at)}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-    </div>
+    <DataTable<Ticket>
+      columns={columns}
+      data={tickets}
+      rowKey={(row) => row.id}
+      searchable
+      searchPlaceholder="Zoek op samenvatting…"
+      searchFields={(row) => [row.summary, row.contact_name ?? ""]}
+      emptyIcon="confirmation_number"
+      emptyMessage="Geen tickets gevonden"
+      defaultPageSize={25}
+      toolbar={toolbar}
+    />
   );
 }

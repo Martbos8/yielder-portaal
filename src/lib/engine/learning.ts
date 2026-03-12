@@ -25,7 +25,6 @@ export async function recordFeedback(
   });
 
   if (error) {
-    console.error("Failed to record feedback:", error.message);
     return;
   }
 

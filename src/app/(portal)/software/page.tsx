@@ -1,5 +1,9 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/software");
+
 import { Suspense } from "react";
-import { getLicenses } from "@/lib/queries";
+import { getLicenses } from "@/lib/repositories";
 import { LicenseFilters } from "./license-filters";
 
 async function SoftwareContent() {

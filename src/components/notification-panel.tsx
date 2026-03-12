@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MaterialIcon } from "./icon";
 import type { Notification } from "@/types/database";
-import { createClient } from "@/lib/supabase/client";
+import { markNotificationAsRead, markAllNotificationsAsRead } from "@/lib/actions/notification.actions";
 
 interface NotificationPanelProps {
   notifications: Notification[];
@@ -53,7 +53,7 @@ export function NotificationPanel({
   const unreadCount = notifications.filter((n) => !n.is_read).length;
   const badgeCount = unreadCount > 0 ? unreadCount : openTicketCount;
 
-  // Close panel on click outside
+  // Close panel on click outside or Escape key
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -64,31 +64,41 @@ export function NotificationPanel({
       }
     }
 
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsOpen(false);
+      }
+    }
+
     if (isOpen) {
       document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("keydown", handleKeyDown);
     }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
   }, [isOpen]);
 
-  async function markAsRead(notificationId: string) {
-    const supabase = createClient();
-    await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .eq("id", notificationId);
+  async function handleMarkAsRead(notificationId: string) {
+    try {
+      await markNotificationAsRead({ notificationId });
+    } catch {
+      // Silently fail — notification state will refresh on next page load
+    }
   }
 
-  async function markAllAsRead() {
-    const supabase = createClient();
+  async function handleMarkAllAsRead() {
     const unreadIds = notifications
       .filter((n) => !n.is_read)
       .map((n) => n.id);
     if (unreadIds.length === 0) return;
 
-    await supabase
-      .from("notifications")
-      .update({ is_read: true })
-      .in("id", unreadIds);
+    try {
+      await markAllNotificationsAsRead({ notificationIds: unreadIds });
+    } catch {
+      // Silently fail — notification state will refresh on next page load
+    }
   }
 
   return (
@@ -96,11 +106,14 @@ export function NotificationPanel({
       {/* Bell trigger */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="relative flex items-center justify-center size-10 rounded-xl text-slate-400 hover:text-yielder-navy hover:bg-yielder-navy/[0.04] transition-all"
+        className="relative flex items-center justify-center size-10 rounded-xl text-slate-400 hover:text-yielder-navy hover:bg-yielder-navy/[0.04] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        aria-label={`Meldingen${badgeCount > 0 ? ` (${badgeCount} ongelezen)` : ""}`}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
         <MaterialIcon name="notifications" size={22} />
         {badgeCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 flex items-center justify-center bg-rose-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white px-1">
+          <span className="absolute -top-0.5 -right-0.5 min-w-5 h-5 flex items-center justify-center bg-rose-500 text-white text-[10px] font-bold rounded-full ring-2 ring-white px-1 animate-badge-pulse" aria-hidden="true">
             {badgeCount > 99 ? "99+" : badgeCount}
           </span>
         )}
@@ -108,7 +121,7 @@ export function NotificationPanel({
 
       {/* Panel */}
       {isOpen && (
-        <div className="absolute right-0 top-12 w-80 sm:w-96 bg-white rounded-2xl shadow-card-hover border border-slate-100 z-50 overflow-hidden">
+        <div role="dialog" aria-label="Meldingen" className="absolute right-0 top-12 w-80 sm:w-96 bg-white rounded-2xl shadow-card-hover border border-slate-100 z-50 overflow-hidden">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
             <h3 className="text-sm font-semibold text-yielder-navy">
@@ -116,7 +129,7 @@ export function NotificationPanel({
             </h3>
             {unreadCount > 0 && (
               <button
-                onClick={markAllAsRead}
+                onClick={handleMarkAllAsRead}
                 className="text-xs text-yielder-orange hover:text-yielder-orange/80 font-medium transition-colors"
               >
                 Alles gelezen
@@ -141,7 +154,7 @@ export function NotificationPanel({
                   key={notification.id}
                   onClick={() => {
                     if (!notification.is_read) {
-                      markAsRead(notification.id);
+                      handleMarkAsRead(notification.id);
                     }
                   }}
                   className={`w-full text-left px-4 py-3 flex gap-3 hover:bg-warm-50 transition-colors border-b border-slate-50 last:border-b-0 ${
@@ -168,7 +181,8 @@ export function NotificationPanel({
                   </div>
                   {!notification.is_read && (
                     <div className="shrink-0 mt-2">
-                      <span className="size-2 rounded-full bg-yielder-orange block" />
+                      <span className="size-2 rounded-full bg-yielder-orange block" aria-hidden="true" />
+                      <span className="sr-only">Ongelezen</span>
                     </div>
                   )}
                 </button>

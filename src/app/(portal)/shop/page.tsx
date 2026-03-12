@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/shop");
+
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 
@@ -206,7 +210,7 @@ function groupByCategory(items: ShopProduct[]): Record<string, ShopProduct[]> {
     if (!groups[item.category]) {
       groups[item.category] = [];
     }
-    groups[item.category].push(item);
+    groups[item.category]!.push(item);
   }
   return groups;
 }

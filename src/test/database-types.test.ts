@@ -20,6 +20,9 @@ describe("Database types", () => {
       id: "1",
       name: "Test B.V.",
       cw_company_id: null,
+      employee_count: null,
+      industry: null,
+      region: null,
       created_at: "2026-01-01",
       updated_at: "2026-01-01",
     };
@@ -30,6 +33,7 @@ describe("Database types", () => {
       email: "test@example.com",
       full_name: "Test User",
       avatar_url: null,
+      is_yielder: false,
       created_at: "2026-01-01",
       updated_at: "2026-01-01",
     };

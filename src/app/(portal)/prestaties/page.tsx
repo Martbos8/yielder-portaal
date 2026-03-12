@@ -1,4 +1,8 @@
-import { getTickets } from "@/lib/queries";
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/prestaties");
+
+import { getTickets } from "@/lib/repositories";
 import {
   calculateSLAMetrics,
   getCategoryBreakdown,
@@ -7,7 +11,8 @@ import {
 } from "@/lib/performance-stats";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
-import { SLATrendChart, CategoryChart } from "@/components/performance-charts";
+import { LazySLATrendChart, LazyCategoryChart } from "@/components/lazy-charts";
+import { StatCard, EmptyStateInline } from "@/components/data-display";
 
 function getComplianceBadge(percent: number): {
   label: string;
@@ -84,27 +89,13 @@ export default async function PrestatiePage() {
       {/* KPI cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {kpis.map((kpi) => (
-          <div
+          <StatCard
             key={kpi.label}
-            className="bg-card rounded-2xl p-5 shadow-card border border-border"
-          >
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-muted-foreground">
-                {kpi.label}
-              </span>
-              <MaterialIcon
-                name={kpi.icon}
-                className="text-yielder-navy/70"
-                size={20}
-              />
-            </div>
-            <span className="text-2xl font-bold text-foreground">
-              {kpi.value}
-            </span>
-            <p className="text-xs text-muted-foreground mt-1">
-              {kpi.description}
-            </p>
-          </div>
+            label={kpi.label}
+            value={kpi.value}
+            icon={kpi.icon}
+            description={kpi.description}
+          />
         ))}
       </div>
 
@@ -116,16 +107,13 @@ export default async function PrestatiePage() {
             Trend afgelopen 6 maanden
           </h2>
           {trends.some((t) => t.resolved > 0) ? (
-            <SLATrendChart data={trends} />
+            <LazySLATrendChart data={trends} />
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <MaterialIcon
-                name="show_chart"
-                className="text-muted-foreground/50 mb-2"
-                size={32}
-              />
-              <p className="text-sm">Nog geen trenddata beschikbaar</p>
-            </div>
+            <EmptyStateInline
+              icon="show_chart"
+              message="Nog geen trenddata beschikbaar"
+              iconClassName="text-muted-foreground/50"
+            />
           )}
         </div>
 
@@ -135,16 +123,13 @@ export default async function PrestatiePage() {
             Tickets per categorie
           </h2>
           {categories.length > 0 ? (
-            <CategoryChart data={categories} />
+            <LazyCategoryChart data={categories} />
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-              <MaterialIcon
-                name="bar_chart"
-                className="text-muted-foreground/50 mb-2"
-                size={32}
-              />
-              <p className="text-sm">Geen categoriedata beschikbaar</p>
-            </div>
+            <EmptyStateInline
+              icon="bar_chart"
+              message="Geen categoriedata beschikbaar"
+              iconClassName="text-muted-foreground/50"
+            />
           )}
         </div>
       </div>

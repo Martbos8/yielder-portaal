@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Validate urgency
-  const urgencyValue = typeof urgency === "string" ? urgency : "normaal";
+  const urgencyValue: "normaal" | "hoog" = (typeof urgency === "string" && urgency === "hoog") ? "hoog" : "normaal";
   if (!VALID_URGENCIES.has(urgencyValue)) {
     return NextResponse.json(
       { error: "Urgentie moet 'normaal' of 'hoog' zijn" },

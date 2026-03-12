@@ -1,98 +1,63 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { syncAll } from "@/lib/connectwise/sync";
-import { logAudit } from "@/lib/audit";
-
-/**
- * Verify sync request authentication.
- * Supports:
- * 1. Vercel Cron: `authorization: Bearer ${CRON_SECRET}`
- * 2. Manual/custom: `x-sync-secret: ${SYNC_SECRET}`
- */
-function isAuthorized(request: NextRequest): boolean {
-  // Check Vercel CRON_SECRET via Authorization header
-  const cronSecret = process.env.CRON_SECRET;
-  if (cronSecret) {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader === `Bearer ${cronSecret}`) {
-      return true;
-    }
-  }
-
-  // Check custom SYNC_SECRET header
-  const syncSecret = process.env.SYNC_SECRET;
-  if (syncSecret) {
-    const headerSecret = request.headers.get("x-sync-secret");
-    if (headerSecret === syncSecret) {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-async function handleSync(request: NextRequest) {
-  if (!isAuthorized(request)) {
-    await logAudit(null, "sync_attempt_unauthorized", "sync", null, {
-      method: request.method,
-      ip: request.headers.get("x-forwarded-for") ?? "unknown",
-    });
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  await logAudit(null, "sync_started", "sync", null, {
-    method: request.method,
-    trigger: request.headers.get("authorization")?.startsWith("Bearer ")
-      ? "vercel_cron"
-      : "manual",
-  });
-
-  try {
-    const results = await syncAll();
-
-    if (results.length === 0) {
-      await logAudit(null, "sync_completed", "sync", null, {
-        mode: "demo",
-        results: [],
-      });
-      return NextResponse.json({
-        message: "Demo modus — geen CW API keys geconfigureerd",
-        results: [],
-      });
-    }
-
-    await logAudit(null, "sync_completed", "sync", null, {
-      results: results.map((r) => ({
-        entity: r.entity,
-        synced: r.synced,
-        errors: r.errors,
-        duration_ms: r.duration_ms,
-      })),
-    });
-
-    return NextResponse.json({ message: "Sync voltooid", results });
-  } catch {
-    await logAudit(null, "sync_failed", "sync", null, {
-      error: "Sync mislukt",
-    });
-    return NextResponse.json(
-      { error: "Sync mislukt" },
-      { status: 500 }
-    );
-  }
-}
-
-/**
- * GET /api/sync/connectwise
- * Used by Vercel Cron jobs.
- */
-export async function GET(request: NextRequest) {
-  return handleSync(request);
-}
+import { invalidateAllCaches } from "@/lib/repositories";
+import { createApiHandler } from "@/lib/api/middleware";
 
 /**
  * POST /api/sync/connectwise
- * Used for manual sync triggers.
+ * Triggers a full ConnectWise sync. Secured with SYNC_SECRET header.
+ * Supports idempotent sync via optional sync_id in body.
  */
-export async function POST(request: NextRequest) {
-  return handleSync(request);
-}
+export const POST = createApiHandler({
+  secretAuth: {
+    headerName: "x-sync-secret",
+    envVar: "SYNC_SECRET",
+  },
+  rateLimit: { maxRequests: 10, windowMs: 60 * 1000 },
+  audit: "connectwise_sync",
+  handler: async (req, { log: reqLog }) => {
+    // Optional sync_id for idempotency
+    let syncId: string | undefined;
+    try {
+      const body = await req.clone().json() as Record<string, unknown>;
+      if (typeof body["sync_id"] === "string") {
+        syncId = body["sync_id"];
+      }
+    } catch {
+      // No body or invalid JSON — proceed without sync_id
+    }
+
+    reqLog.info("ConnectWise sync started", { syncId });
+    const meta = await syncAll(syncId);
+
+    if (meta.entity_results.length === 0 && meta.total_synced === 0) {
+      reqLog.info("Sync skipped — demo mode or already completed", { syncId: meta.sync_id });
+      return NextResponse.json({
+        message: "Sync overgeslagen — niet geconfigureerd of al voltooid",
+        sync_id: meta.sync_id,
+        results: [],
+      });
+    }
+
+    // Invalidate all caches after successful sync — data has changed
+    invalidateAllCaches();
+
+    reqLog.info("ConnectWise sync completed", {
+      syncId: meta.sync_id,
+      totalDurationMs: meta.total_duration_ms,
+      totalSynced: meta.total_synced,
+      totalErrors: meta.total_errors,
+      retryQueueSize: meta.retry_queue.length,
+    });
+
+    return NextResponse.json({
+      message: "Sync voltooid",
+      sync_id: meta.sync_id,
+      total_duration_ms: meta.total_duration_ms,
+      total_synced: meta.total_synced,
+      total_errors: meta.total_errors,
+      results: meta.entity_results,
+      retry_queue: meta.retry_queue,
+    });
+  },
+});

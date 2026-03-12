@@ -1,34 +1,23 @@
-import { getAgreements } from "@/lib/queries";
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/supportcontracten");
+
+import { getAgreements } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
-import { Badge } from "@/components/ui/badge";
 import {
   Card,
   CardHeader,
   CardTitle,
   CardContent,
 } from "@/components/ui/card";
-import type { Agreement, AgreementStatus } from "@/types/database";
-
-const statusConfig: Record<
-  AgreementStatus,
-  { label: string; className: string }
-> = {
-  active: {
-    label: "Actief",
-    className:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  },
-  expired: {
-    label: "Verlopen",
-    className:
-      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-  },
-  cancelled: {
-    label: "Opgezegd",
-    className:
-      "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400",
-  },
-};
+import type { Agreement } from "@/types/database";
+import { formatDate, formatCurrency } from "@/lib/utils";
+import {
+  StatCardCompact,
+  StatusBadge,
+  EmptyState,
+  agreementStatusConfig,
+} from "@/components/data-display";
 
 type SLATier = "premium" | "standaard" | "basis";
 
@@ -69,21 +58,6 @@ const slaTiers: Record<
   },
 };
 
-function formatDate(dateStr: string | null): string {
-  if (!dateStr) return "—";
-  return new Date(dateStr).toLocaleDateString("nl-NL", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat("nl-NL", {
-    style: "currency",
-    currency: "EUR",
-  }).format(amount);
-}
 
 function getSLATier(agreement: Agreement): SLATier {
   const name = agreement.name.toLowerCase();
@@ -130,7 +104,7 @@ export default async function SupportcontractenPage() {
                   className={tier.className}
                   size={24}
                 />
-                <h3 className="font-semibold text-sm">{tier.label} SLA</h3>
+                <h2 className="font-semibold text-sm">{tier.label} SLA</h2>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -153,48 +127,22 @@ export default async function SupportcontractenPage() {
 
       {/* Stats strip */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <div className="bg-card rounded-2xl p-4 shadow-card border border-border">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-            Actieve contracten
-          </p>
-          <p className="text-2xl font-semibold text-yielder-navy">
-            {active.length}
-          </p>
-        </div>
-        <div className="bg-card rounded-2xl p-4 shadow-card border border-border">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-            Maandkosten support
-          </p>
-          <p className="text-2xl font-semibold text-yielder-navy">
-            {formatCurrency(totalMonthly)}
-          </p>
-        </div>
-        <div className="bg-card rounded-2xl p-4 shadow-card border border-border">
-          <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">
-            SLA-niveau
-          </p>
-          <p className="text-2xl font-semibold text-yielder-navy">
-            {active.length > 0
-              ? slaTiers[getSLATier(active[0])].label
-              : "—"}
-          </p>
-        </div>
+        <StatCardCompact label="Actieve contracten" value={String(active.length)} />
+        <StatCardCompact label="Maandkosten support" value={formatCurrency(totalMonthly) ?? "—"} />
+        <StatCardCompact
+          label="SLA-niveau"
+          value={active.length > 0 && active[0]
+            ? slaTiers[getSLATier(active[0])].label
+            : "—"}
+        />
       </div>
 
       {/* Contract cards */}
       {supportAgreements.length === 0 ? (
-        <div className="bg-card rounded-2xl p-12 shadow-card border border-border flex flex-col items-center justify-center text-muted-foreground">
-          <MaterialIcon
-            name="verified_user"
-            className="text-muted-foreground/50 mb-3"
-            size={48}
-          />
-          <p className="text-sm">Geen supportcontracten gevonden</p>
-        </div>
+        <EmptyState icon="verified_user" message="Geen supportcontracten gevonden" />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {supportAgreements.map((agreement) => {
-            const config = statusConfig[agreement.status];
             const tier = slaTiers[getSLATier(agreement)];
             const days = daysRemaining(agreement.end_date);
             const isExpiringSoon =
@@ -214,7 +162,7 @@ export default async function SupportcontractenPage() {
                         {agreement.name}
                       </CardTitle>
                     </div>
-                    <Badge className={config.className}>{config.label}</Badge>
+                    <StatusBadge status={agreement.status} config={agreementStatusConfig} />
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-3">

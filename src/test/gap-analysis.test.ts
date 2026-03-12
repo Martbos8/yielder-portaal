@@ -139,10 +139,10 @@ describe("Gap Analysis Engine", () => {
     const gaps = computeGaps(clientProducts, dependencies, allProducts);
 
     expect(gaps.length).toBe(4);
-    expect(gaps[0].severity).toBe("critical");
-    expect(gaps[1].severity).toBe("critical");
-    expect(gaps[2].severity).toBe("warning");
-    expect(gaps[3].severity).toBe("info");
+    expect(gaps[0]!.severity).toBe("critical");
+    expect(gaps[1]!.severity).toBe("critical");
+    expect(gaps[2]!.severity).toBe("warning");
+    expect(gaps[3]!.severity).toBe("info");
   });
 
   it("generates correct reason text", () => {

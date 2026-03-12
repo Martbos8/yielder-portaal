@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/documenten");
+
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 

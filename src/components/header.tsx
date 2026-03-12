@@ -39,7 +39,9 @@ export function Header({ onMenuToggle, companyName, initials, openTicketCount, n
         <button
           onClick={onMenuToggle}
           className="md:hidden text-slate-500 hover:text-slate-700
-            transition-colors p-1 -ml-1 rounded-lg hover:bg-slate-50"
+            transition-colors p-1 -ml-1 rounded-lg hover:bg-slate-50
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Menu openen"
         >
           <MaterialIcon name="menu" />
         </button>
@@ -49,7 +51,7 @@ export function Header({ onMenuToggle, companyName, initials, openTicketCount, n
       {companyName && (
         <div className="hidden md:flex flex-1 justify-center">
           <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 bg-warm-100 px-4 py-1.5 rounded-full">
-            <span className="size-1.5 rounded-full bg-yielder-navy" />
+            <span className="size-1.5 rounded-full bg-yielder-navy" aria-hidden="true" />
             {companyName}
           </span>
         </div>
@@ -62,7 +64,7 @@ export function Header({ onMenuToggle, companyName, initials, openTicketCount, n
           openTicketCount={openTicketCount}
         />
         <DropdownMenu>
-          <DropdownMenuTrigger className="size-10 rounded-xl bg-yielder-navy flex items-center justify-center text-white font-semibold text-sm cursor-pointer hover:bg-yielder-navy-dark transition-colors shadow-[0_2px_8px_rgba(31,59,97,0.2)]">
+          <DropdownMenuTrigger aria-label="Gebruikersmenu" className="size-10 rounded-xl bg-yielder-navy flex items-center justify-center text-white font-semibold text-sm cursor-pointer hover:bg-yielder-navy-dark transition-colors shadow-[0_2px_8px_rgba(31,59,97,0.2)]">
             {initials}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-44">

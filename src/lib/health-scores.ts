@@ -167,16 +167,16 @@ export function generateHealthTrends(
     return {
       month,
       uptime: Math.round(
-        interpolateScore(scoreMap.uptime ?? 90, progress, 3)
+        interpolateScore(scoreMap['uptime'] ?? 90, progress, 3)
       ),
       patching: Math.round(
-        interpolateScore(scoreMap.patching ?? 80, progress, 5)
+        interpolateScore(scoreMap['patching'] ?? 80, progress, 5)
       ),
       backups: Math.round(
-        interpolateScore(scoreMap.backups ?? 85, progress, 4)
+        interpolateScore(scoreMap['backups'] ?? 85, progress, 4)
       ),
       security: Math.round(
-        interpolateScore(scoreMap.security ?? 88, progress, 3)
+        interpolateScore(scoreMap['security'] ?? 88, progress, 3)
       ),
     };
   });

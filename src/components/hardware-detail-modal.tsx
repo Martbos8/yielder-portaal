@@ -86,9 +86,9 @@ export function HardwareDetailModal({
         <div className="divide-y divide-slate-100">
           {/* Device info */}
           <div className="pb-3">
-            <h4 className="text-xs font-semibold text-yielder-navy/70 uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-semibold text-yielder-navy/70 uppercase tracking-wider mb-1">
               Apparaat
-            </h4>
+            </h3>
             <DetailRow icon="category" label="Type" value={asset.type} />
             <DetailRow icon="business" label="Fabrikant" value={asset.manufacturer} />
             <DetailRow icon="devices" label="Model" value={asset.model} />
@@ -97,9 +97,9 @@ export function HardwareDetailModal({
 
           {/* Assignment */}
           <div className="py-3">
-            <h4 className="text-xs font-semibold text-yielder-navy/70 uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-semibold text-yielder-navy/70 uppercase tracking-wider mb-1">
               Toewijzing
-            </h4>
+            </h3>
             <DetailRow icon="person" label="Toegewezen aan" value={asset.assigned_to} />
             {!asset.assigned_to && (
               <p className="text-xs text-slate-400 italic py-2">Niet toegewezen</p>
@@ -125,9 +125,9 @@ export function HardwareDetailModal({
 
           {/* Metadata */}
           <div className="pt-3">
-            <h4 className="text-xs font-semibold text-yielder-navy/70 uppercase tracking-wider mb-1">
+            <h3 className="text-xs font-semibold text-yielder-navy/70 uppercase tracking-wider mb-1">
               Systeem
-            </h4>
+            </h3>
             <DetailRow icon="schedule" label="Aangemaakt" value={formatDate(asset.created_at)} />
             <DetailRow icon="update" label="Laatst bijgewerkt" value={formatDate(asset.updated_at)} />
             {asset.cw_config_id && (

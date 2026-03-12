@@ -1,4 +1,8 @@
-import { getContacts, getUserCompany } from "@/lib/queries";
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/contact");
+
+import { getContacts, getCachedUserCompany, getCachedUserCompanyId } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
 import ContactForm from "./contact-form";
@@ -35,9 +39,10 @@ const yielderTeam = [
 ];
 
 export default async function ContactPage() {
-  const [contacts, company] = await Promise.all([
+  const [contacts, company, companyId] = await Promise.all([
     getContacts(),
-    getUserCompany(),
+    getCachedUserCompany(),
+    getCachedUserCompanyId(),
   ]);
 
   return (
@@ -148,7 +153,7 @@ export default async function ContactPage() {
         <h2 className="text-sm font-semibold text-foreground mb-4">
           Stuur ons een bericht
         </h2>
-        <ContactForm />
+        {companyId && <ContactForm companyId={companyId} />}
       </div>
     </div>
   );

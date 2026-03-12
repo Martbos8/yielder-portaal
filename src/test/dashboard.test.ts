@@ -161,9 +161,9 @@ describe("Aanbevelingen widget", () => {
       warning: "orange",
       info: "blue",
     };
-    expect(severityColors.critical).toBe("red");
-    expect(severityColors.warning).toBe("orange");
-    expect(severityColors.info).toBe("blue");
+    expect(severityColors["critical"]).toBe("red");
+    expect(severityColors["warning"]).toBe("orange");
+    expect(severityColors["info"]).toBe("blue");
   });
 
   it("severity badge labels are in Dutch", () => {
@@ -172,9 +172,9 @@ describe("Aanbevelingen widget", () => {
       warning: "Aanbevolen",
       info: "Suggestie",
     };
-    expect(labels.critical).toBe("Kritiek");
-    expect(labels.warning).toBe("Aanbevolen");
-    expect(labels.info).toBe("Suggestie");
+    expect(labels["critical"]).toBe("Kritiek");
+    expect(labels["warning"]).toBe("Aanbevolen");
+    expect(labels["info"]).toBe("Suggestie");
   });
 
   it("max 3 recommendations shown on dashboard", () => {
@@ -196,6 +196,6 @@ describe("Aanbevelingen widget", () => {
       if (a.severity !== "critical" && b.severity === "critical") return 1;
       return b.score - a.score;
     });
-    expect(sorted[0].severity).toBe("critical");
+    expect(sorted[0]!.severity).toBe("critical");
   });
 });

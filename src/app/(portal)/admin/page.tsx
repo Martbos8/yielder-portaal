@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/admin");
+
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MaterialIcon } from "@/components/icon";
@@ -156,7 +160,7 @@ export default async function AdminPage() {
         {/* CW API Status */}
         <Card className="rounded-2xl p-5 shadow-card border">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-muted-foreground">ConnectWise API</h3>
+            <h2 className="text-sm font-medium text-muted-foreground">ConnectWise API</h2>
             <div
               className={`size-3 rounded-full ${
                 cwConfigured ? "bg-emerald-500" : "bg-red-500"
@@ -175,7 +179,7 @@ export default async function AdminPage() {
 
         {/* Distributeur API Status */}
         <Card className="rounded-2xl p-5 shadow-card border">
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">Distributeur APIs</h3>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">Distributeur APIs</h2>
           <div className="space-y-2">
             {DISTRIBUTORS.map(({ name, envVar }) => {
               const configured = !!process.env[envVar];
@@ -196,7 +200,7 @@ export default async function AdminPage() {
 
         {/* Recommendation Engine Stats */}
         <Card className="rounded-2xl p-5 shadow-card border">
-          <h3 className="text-sm font-medium text-muted-foreground mb-3">Recommendation Engine</h3>
+          <h2 className="text-sm font-medium text-muted-foreground mb-3">Recommendation Engine</h2>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-foreground">Actieve producten</span>
@@ -227,9 +231,9 @@ export default async function AdminPage() {
             return (
               <Card key={entity} className="rounded-2xl p-4 shadow-card border">
                 <div className="flex items-center justify-between mb-2">
-                  <h4 className="text-sm font-medium capitalize text-foreground">
+                  <h3 className="text-sm font-medium capitalize text-foreground">
                     {entity}
-                  </h4>
+                  </h3>
                   {log ? (
                     <Badge
                       className={

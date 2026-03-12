@@ -102,7 +102,7 @@ describe("License filtering logic", () => {
       l.product_name.toLowerCase().includes(search.toLowerCase())
     );
     expect(filtered).toHaveLength(1);
-    expect(filtered[0].vendor).toBe("Adobe");
+    expect(filtered[0]!.vendor).toBe("Adobe");
   });
 
   it("filters by search term on vendor", () => {
@@ -124,7 +124,7 @@ describe("License filtering logic", () => {
         l.product_name.toLowerCase().includes(search.toLowerCase())
     );
     expect(filtered).toHaveLength(1);
-    expect(filtered[0].product_name).toBe("Microsoft 365 Business");
+    expect(filtered[0]!.product_name).toBe("Microsoft 365 Business");
   });
 
   it("extracts unique vendors", () => {

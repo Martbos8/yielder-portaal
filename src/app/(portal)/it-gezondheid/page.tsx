@@ -1,4 +1,8 @@
-import { getTickets, getHardwareAssets } from "@/lib/queries";
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/it-gezondheid");
+
+import { getTickets, getHardwareAssets } from "@/lib/repositories";
 import {
   calculateHealthScores,
   generateHealthTrends,
@@ -9,7 +13,8 @@ import {
 } from "@/lib/health-scores";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";
-import { HealthTrendChart, ScoreRing } from "@/components/health-charts";
+import { LazyHealthTrendChart } from "@/components/lazy-charts";
+import { MetricRing } from "@/components/data-display";
 
 function getOverallBadge(score: number): {
   label: string;
@@ -56,52 +61,20 @@ export default async function ITGezondheidPage() {
       <div className="bg-card rounded-2xl p-6 shadow-card border border-border mb-6">
         <div className="flex flex-col sm:flex-row items-center gap-6">
           {/* Overall */}
-          <div className="flex flex-col items-center">
-            <div className="relative w-32 h-32 flex items-center justify-center">
-              <svg className="w-32 h-32 -rotate-90" viewBox="0 0 128 128">
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
-                  fill="none"
-                  stroke="#f3f4f6"
-                  strokeWidth="10"
-                />
-                <circle
-                  cx="64"
-                  cy="64"
-                  r="56"
-                  fill="none"
-                  stroke={getScoreRingColor(overall)}
-                  strokeWidth="10"
-                  strokeLinecap="round"
-                  strokeDasharray={`${(overall / 100) * 351.86} 351.86`}
-                />
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span
-                  className={`text-3xl font-bold ${getScoreColorClass(overall)}`}
-                >
-                  {overall}
-                </span>
-                <span className="text-[10px] text-muted-foreground font-medium">
-                  TOTAAL
-                </span>
-              </div>
-            </div>
-            <p className="text-sm font-medium mt-2">
-              {getScoreLabelText(overall)}
-            </p>
-          </div>
+          <MetricRing
+            score={overall}
+            label={getScoreLabelText(overall)}
+            size={128}
+          />
 
           {/* Individual scores */}
           <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {scores.map((score) => (
-              <ScoreRing
+              <MetricRing
                 key={score.category}
                 score={score.score}
                 label={score.label}
-                color={getScoreRingColor(score.score)}
+                size={112}
               />
             ))}
           </div>
@@ -121,7 +94,7 @@ export default async function ITGezondheidPage() {
                 className={getScoreColorClass(score.score)}
                 size={24}
               />
-              <h3 className="font-semibold text-sm">{score.label}</h3>
+              <h2 className="font-semibold text-sm">{score.label}</h2>
               <span
                 className={`ml-auto text-lg font-bold ${getScoreColorClass(score.score)}`}
               >
@@ -154,7 +127,7 @@ export default async function ITGezondheidPage() {
         <h2 className="text-sm font-semibold text-foreground mb-4">
           Trend afgelopen 6 maanden
         </h2>
-        <HealthTrendChart data={trends} />
+        <LazyHealthTrendChart data={trends} />
       </div>
 
       {/* Tips */}

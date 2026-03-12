@@ -15,7 +15,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MaterialIcon } from "@/components/icon";
-import { createClient } from "@/lib/supabase/client";
+import { createContactRequest } from "@/lib/actions/contact.actions";
+import { getErrorMessage } from "@/lib/errors";
+import { ContactRequestSchema } from "@/lib/schemas";
 
 type ContactModalProps = {
   productName?: string;
@@ -39,51 +41,49 @@ export function ContactModal({
   const [message, setMessage] = useState("");
   const [urgency, setUrgency] = useState<"normaal" | "hoog">(defaultUrgency);
   const [status, setStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!subject.trim()) return;
+    // Client-side validation with shared schema
+    const validation = ContactRequestSchema.safeParse({
+      companyId,
+      subject: subject.trim(),
+      message: message.trim() || undefined,
+      productId: productId || undefined,
+      urgency,
+    });
 
+    if (!validation.success) {
+      const errors: Record<string, string> = {};
+      for (const issue of validation.error.issues) {
+        const path = issue.path.join(".");
+        errors[path] = issue.message;
+      }
+      setFieldErrors(errors);
+      return;
+    }
+
+    setFieldErrors({});
     setStatus("submitting");
+    setErrorMsg("");
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setStatus("error");
-        return;
-      }
-
-      const { error } = await supabase.from("contact_requests").insert({
-        company_id: companyId,
-        user_id: user.id,
+      const result = await createContactRequest({
+        companyId,
         subject: subject.trim(),
-        message: message.trim() || null,
-        product_id: productId || null,
+        message: message.trim() || undefined,
+        productId: productId || undefined,
         urgency,
       });
 
-      if (error) {
+      if (!result.success) {
+        setErrorMsg(result.error ?? "Er ging iets mis.");
         setStatus("error");
         return;
       }
-
-      // Log to audit_log
-      await supabase.from("audit_log").insert({
-        action: "contact_request.created",
-        entity_type: "contact_request",
-        entity_id: productId || null,
-        details: {
-          company_id: companyId,
-          subject: subject.trim(),
-          urgency,
-          product_id: productId || null,
-        },
-      });
 
       setStatus("success");
 
@@ -95,7 +95,8 @@ export function ContactModal({
         setMessage("");
         setUrgency(defaultUrgency);
       }, 2000);
-    } catch {
+    } catch (err) {
+      setErrorMsg(getErrorMessage(err, "Er ging iets mis. Probeer het opnieuw."));
       setStatus("error");
     }
   }
@@ -146,10 +147,14 @@ export function ContactModal({
                 <Input
                   id="contact-subject"
                   value={subject}
-                  onChange={(e) => setSubject(e.target.value)}
+                  onChange={(e) => { setSubject(e.target.value); setFieldErrors((prev) => { const next = { ...prev }; delete next["subject"]; return next; }); }}
                   placeholder="Waar gaat uw vraag over?"
                   required
+                  aria-invalid={!!fieldErrors["subject"]}
                 />
+                {fieldErrors["subject"] && (
+                  <p className="text-xs text-red-600">{fieldErrors["subject"]}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -157,10 +162,14 @@ export function ContactModal({
                 <Textarea
                   id="contact-message"
                   value={message}
-                  onChange={(e) => setMessage(e.target.value)}
+                  onChange={(e) => { setMessage(e.target.value); setFieldErrors((prev) => { const next = { ...prev }; delete next["message"]; return next; }); }}
                   placeholder="Beschrijf uw vraag of wens (optioneel)"
                   rows={4}
+                  aria-invalid={!!fieldErrors["message"]}
                 />
+                {fieldErrors["message"] && (
+                  <p className="text-xs text-red-600">{fieldErrors["message"]}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -182,9 +191,7 @@ export function ContactModal({
             {status === "error" && (
               <div className="flex items-center gap-2 text-sm text-red-600 mb-4">
                 <MaterialIcon name="error" size={16} />
-                <span>
-                  Er ging iets mis. Probeer het opnieuw.
-                </span>
+                <span>{errorMsg}</span>
               </div>
             )}
 

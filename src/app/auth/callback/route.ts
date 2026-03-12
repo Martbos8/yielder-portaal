@@ -13,7 +13,7 @@ export async function GET(request: Request) {
       // Koppel user aan bedrijf op basis van metadata uit login
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const companyId = user.user_metadata?.company_id;
+        const companyId = user.user_metadata?.["company_id"] as string | undefined;
         if (companyId) {
           // Verwijder oude mappings en maak nieuwe
           await supabase

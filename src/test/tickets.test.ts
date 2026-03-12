@@ -121,12 +121,12 @@ describe("Ticket filter options", () => {
 
   it("has status filter options including 'Alle'", () => {
     expect(statusOptions).toHaveLength(4);
-    expect(statusOptions[0].label).toBe("Alle statussen");
+    expect(statusOptions[0]!.label).toBe("Alle statussen");
   });
 
   it("has priority filter options including 'Alle'", () => {
     expect(priorityOptions).toHaveLength(5);
-    expect(priorityOptions[0].label).toBe("Alle prioriteiten");
+    expect(priorityOptions[0]!.label).toBe("Alle prioriteiten");
   });
 
   it("status options map to valid TicketStatus values", () => {
@@ -157,10 +157,9 @@ describe("Ticket client-side filtering logic", () => {
       id: "1",
       company_id: "c1",
       cw_ticket_id: null,
-      summary: overrides.summary,
       description: null,
-      status: overrides.status ?? "open",
-      priority: overrides.priority ?? "normal",
+      status: "open",
+      priority: "normal",
       contact_name: null,
       source: null,
       is_closed: false,
@@ -204,8 +203,8 @@ describe("Ticket client-side filtering logic", () => {
   it("filters by search term (case-insensitive)", () => {
     const result = filterTickets(tickets, "printer", "", "");
     expect(result).toHaveLength(2);
-    expect(result[0].summary).toBe("Printer werkt niet");
-    expect(result[1].summary).toBe("Nieuwe printer installeren");
+    expect(result[0]!.summary).toBe("Printer werkt niet");
+    expect(result[1]!.summary).toBe("Nieuwe printer installeren");
   });
 
   it("filters by status", () => {
@@ -217,7 +216,7 @@ describe("Ticket client-side filtering logic", () => {
   it("filters by priority", () => {
     const result = filterTickets(tickets, "", "", "urgent");
     expect(result).toHaveLength(1);
-    expect(result[0].priority).toBe("urgent");
+    expect(result[0]!.priority).toBe("urgent");
   });
 
   it("combines search and status filter", () => {
@@ -228,7 +227,7 @@ describe("Ticket client-side filtering logic", () => {
   it("combines all filters", () => {
     const result = filterTickets(tickets, "printer", "open", "high");
     expect(result).toHaveLength(1);
-    expect(result[0].summary).toBe("Printer werkt niet");
+    expect(result[0]!.summary).toBe("Printer werkt niet");
   });
 
   it("returns empty when no matches", () => {

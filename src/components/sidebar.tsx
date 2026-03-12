@@ -1,26 +1,12 @@
 "use client";
 
+import { useEffect, useCallback } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { MaterialIcon } from "./icon";
 import { createClient } from "@/lib/supabase/client";
-
-const navItems = [
-  { href: "/dashboard", icon: "space_dashboard", label: "Dashboard" },
-  { href: "/upgrade", icon: "rocket_launch", label: "Upgrade" },
-  { href: "/hardware", icon: "laptop_mac", label: "Hardware" },
-  { href: "/software", icon: "key", label: "Software" },
-  { href: "/tickets", icon: "confirmation_number", label: "Tickets" },
-  { href: "/contracten", icon: "verified_user", label: "Contracten" },
-  { href: "/supportcontracten", icon: "support_agent", label: "Support SLA" },
-  { href: "/it-gezondheid", icon: "health_and_safety", label: "IT-gezondheid" },
-  { href: "/prestaties", icon: "monitoring", label: "Prestaties" },
-  { href: "/facturen", icon: "receipt_long", label: "Facturen" },
-  { href: "/documenten", icon: "folder_open", label: "Documenten" },
-  { href: "/contact", icon: "contact_support", label: "Contact" },
-  { href: "/shop", icon: "storefront", label: "IT-oplossingen" },
-];
+import { NAV_ITEMS } from "@/lib/constants/navigation";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -41,12 +27,30 @@ export function Sidebar({ isOpen, onClose, fullName, companyName, initials, crit
     router.push("/login");
   }
 
+  // Close sidebar on Escape key
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    },
+    [onClose],
+  );
+
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, handleKeyDown]);
+
   return (
     <>
       {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden"
+          role="presentation"
           onClick={onClose}
         />
       )}
@@ -79,8 +83,8 @@ export function Sidebar({ isOpen, onClose, fullName, companyName, initials, crit
           </div>
 
           {/* Navigatie */}
-          <nav className="flex flex-col gap-0.5">
-            {navItems.map((item) => {
+          <nav aria-label="Hoofdnavigatie" className="flex flex-col gap-0.5">
+            {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
@@ -89,7 +93,7 @@ export function Sidebar({ isOpen, onClose, fullName, companyName, initials, crit
                   onClick={onClose}
                   className={`
                     relative flex items-center gap-3 px-3 py-2 rounded-lg
-                    font-medium transition-colors cursor-pointer
+                    font-medium transition-all duration-200 ease-out cursor-pointer
                     border-l-2
                     ${
                       isActive
@@ -108,7 +112,10 @@ export function Sidebar({ isOpen, onClose, fullName, companyName, initials, crit
                   />
                   <span className="text-sm">{item.label}</span>
                   {item.href === "/upgrade" && criticalUpgradeCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full size-5 flex items-center justify-center">
+                    <span
+                      className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full size-5 flex items-center justify-center"
+                      aria-label={`${criticalUpgradeCount} kritieke aanbevelingen`}
+                    >
                       {criticalUpgradeCount}
                     </span>
                   )}
@@ -136,8 +143,9 @@ export function Sidebar({ isOpen, onClose, fullName, companyName, initials, crit
             </div>
             <button
               onClick={handleSignOut}
-              className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50"
+              className="text-slate-400 hover:text-red-500 transition-colors p-1 rounded-lg hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               title="Uitloggen"
+              aria-label="Uitloggen"
             >
               <MaterialIcon name="logout" size={20} />
             </button>
