@@ -704,3 +704,5 @@
 - Geleerd: Confidence threshold bugs can silently filter out valid recommendations — gap-based recs need higher base confidence
 - Geleerd: A/B variant features control which scoring modules are active per company, allowing clean comparison
 [01:25:00] Iteratie 18 klaar
+[01:23:00] Iteratie 18 klaar
+[01:23:00] Iteratie 19 gestart
