@@ -243,7 +243,7 @@ Per iteratie:
 
 ## FASE 3: Backend Hardening (Taak 19-26)
 
-### Taak 19: API route middleware pattern [not started]
+### Taak 19: API route middleware pattern [done]
 - Maak `src/lib/api/middleware.ts`:
   - `withAuth(handler)` — auth check wrapper
   - `withRateLimit(handler, profile)` — rate limit wrapper

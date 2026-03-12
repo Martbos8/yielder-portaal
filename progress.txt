@@ -532,3 +532,27 @@
 - Geleerd: useDebouncedValue hook (value + delay → setTimeout/clearTimeout) is cleaner than useCallback-based debounce for React state
 - Geleerd: Page reset on search needs to track debouncedSearch, not raw searchQuery — otherwise page resets before results change
 [00:57:00] Iteratie 17 klaar
+[00:58:12] Iteratie 17 klaar
+[00:58:12] Iteratie 18 gestart
+
+[01:02:00] Taak 19 VOLTOOID — API route middleware pattern
+- Created src/lib/api/middleware.ts: composable createApiHandler() factory
+  - withAuth: Supabase session-based auth, returns userId
+  - secretAuth: header-based service-to-service auth (headerName + envVar)
+  - withRateLimit: integrates with existing rate-limit.ts profiles or custom config
+  - withValidation: Zod schema validation on request body with field-level errors
+  - withAudit: action name logged after successful handler execution
+  - withErrorHandling: catch-all that maps AppError subclasses to proper HTTP responses
+  - Retry-After header automatically added on RateLimitError
+  - X-Request-Id header on all responses
+- HandlerContext<TBody> provides: body, userId, requestId, scoped logger
+- Refactored /api/sync/connectwise route: 58 lines → 38 lines using createApiHandler
+  - secretAuth replaces manual header check
+  - Rate limiting added (10/min) — was missing before
+  - Audit logging via middleware instead of manual
+  - Error handling fully delegated to middleware
+- 471 tests pass, build + lint groen
+- Geleerd: Generic TBody type parameter flows from ZodType<TBody> validation schema through to HandlerContext — full type inference
+- Geleerd: crypto.randomUUID() available in Next.js API routes without import (Web Crypto API)
+- Geleerd: typeof profile === "string" ? RATE_LIMITS[profile] : profile is clean for union config pattern
+[01:02:00] Iteratie 18 klaar
