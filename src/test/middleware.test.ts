@@ -87,6 +87,19 @@ describe("Route-level rate limiting", () => {
     expect(Object.keys(headers).length).toBe(0);
   });
 
+  it("includes warning header when approaching limit", () => {
+    // /api/sync has limit 10; 80% threshold = 8
+    for (let i = 0; i < 8; i++) {
+      checkRouteRateLimit(createRequest("/api/sync/warn-test"));
+    }
+    // 9th request - should be in warning zone
+    const req = createRequest("/api/sync/warn-test");
+    const result = checkRouteRateLimit(req);
+    expect(result).toBeUndefined(); // Still allowed
+    const headers = getRateLimitHeaders(req);
+    expect(headers["X-RateLimit-Warning"]).toBeDefined();
+  });
+
   it("rate limits /login route", () => {
     for (let i = 0; i < 30; i++) {
       const result = checkRouteRateLimit(createRequest("/login"));

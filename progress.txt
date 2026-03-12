@@ -758,3 +758,19 @@
 - Geleerd: Set iteration in TypeScript needs Array.from() when downlevelIteration is off
 - Geleerd: Warning threshold math: floor(max*0.8) means warning triggers when currentCount >= threshold, which is BEFORE adding the current request
 [01:32:00] Iteratie 22 klaar
+[01:32:17] Iteratie 22 klaar
+[01:32:17] Iteratie 23 gestart
+
+[01:33] Taak 25 VOLTOOID — Rate limiting verbeteren
+- Fixed Set iteration build error (for...of on Set not allowed without downlevelIteration)
+- Refactored whitelist from Set to array for ES5 compat
+- Added buildRateLimitHeaders() helper that centralises header generation
+- Graduated response: X-RateLimit-Warning header sent when usage >80%
+- Retry-After header included in blocked responses
+- route-rate-limit.ts now delegates to core checkRateLimit (DRY, consistent behavior)
+- Fixed double-counting bug: getRateLimitHeaders uses cached result from checkRouteRateLimit
+- Per-user AND per-IP compound rate limiting via checkCompoundRateLimit
+- Whitelist bypass for internal services (127.0.0.1, ::1, internal prefix)
+- Added 7 new tests: buildRateLimitHeaders, warning zone detection, route warning headers
+- All 576 tests pass, build + lint green
+- Geleerd: Set iteration requires downlevelIteration in tsconfig or use Array.from()

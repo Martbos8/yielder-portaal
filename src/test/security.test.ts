@@ -6,6 +6,7 @@ import {
   isWhitelisted,
   addToWhitelist,
   removeFromWhitelist,
+  buildRateLimitHeaders,
   RATE_LIMITS,
 } from "@/lib/rate-limit";
 import { stripPii } from "@/lib/audit";
@@ -168,6 +169,43 @@ describe("Rate limiter — compound", () => {
     // User is exhausted even though this IP is fresh
     const r = checkCompoundRateLimit("user-x", "ip-d", "test2", config);
     expect(r.allowed).toBe(false);
+  });
+});
+
+describe("Rate limiter — buildRateLimitHeaders", () => {
+  beforeEach(() => {
+    clearRateLimits();
+  });
+
+  it("includes standard headers for allowed request", () => {
+    const result = checkRateLimit("header-test", { maxRequests: 10, windowMs: 60000 });
+    const headers = buildRateLimitHeaders(result);
+    expect(headers["X-RateLimit-Limit"]).toBe("10");
+    expect(headers["X-RateLimit-Remaining"]).toBe("9");
+    expect(headers["X-RateLimit-Reset"]).toBeDefined();
+    expect(headers["X-RateLimit-Warning"]).toBeUndefined();
+    expect(headers["Retry-After"]).toBeUndefined();
+  });
+
+  it("includes warning header when in warning zone", () => {
+    const config = { maxRequests: 10, windowMs: 60000 };
+    for (let i = 0; i < 8; i++) {
+      checkRateLimit("warn-header-test", config);
+    }
+    const result = checkRateLimit("warn-header-test", config);
+    const headers = buildRateLimitHeaders(result);
+    expect(headers["X-RateLimit-Warning"]).toBe("Rate limit usage exceeds 80%");
+  });
+
+  it("includes Retry-After header when blocked", () => {
+    const config = { maxRequests: 1, windowMs: 60000 };
+    checkRateLimit("blocked-header-test", config);
+    const result = checkRateLimit("blocked-header-test", config);
+    const headers = buildRateLimitHeaders(result);
+    expect(result.allowed).toBe(false);
+    expect(headers["Retry-After"]).toBeDefined();
+    expect(headers["X-RateLimit-Remaining"]).toBe("0");
+    expect(headers["X-RateLimit-Warning"]).toBeDefined();
   });
 });
 
