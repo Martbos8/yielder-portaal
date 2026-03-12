@@ -1,15 +1,46 @@
 [22:53:59] Iteratie 1 gestart
-[22:58:00] Taken 2-7, 9 gereviewed en aangevuld:
-  - Taak 2 (health endpoint): al geïmplementeerd, geverifieerd
-  - Taak 3 (CI/CD): al geïmplementeerd, geverifieerd
-  - Taak 4 (next.config): redirect + security headers al aanwezig, geverifieerd
-  - Taak 5 (vercel.json): al geïmplementeerd, geverifieerd
-  - Taak 6 (sync endpoint): beveiligd met CRON_SECRET + SYNC_SECRET dual-auth, audit logging toegevoegd, GET handler voor Vercel cron
-  - Taak 7 (.env.example): aangemaakt met alle env vars + CRON_SECRET
-  - Taak 9 (admin): distributeur API status nu dynamisch op basis van env vars
-  Geleerd: .next cache kan stale types bevatten na file changes, rm -rf .next lost build errors op
-[22:59:00] Iteratie 1 (ralph-deploy) voltooid:
-  - Alle 10 taken geïmplementeerd en geverifieerd
-  - Build OK, 398 tests passing, lint clean
-  - Committed: e4630ed
-  Geleerd: health endpoint kan @supabase/supabase-js direct gebruiken (geen cookies nodig voor API routes zonder auth)
+
+[Taak 1: Schema verificatie] VOLTOOID
+Tabellen en kolommen volledig begrepen. Bevindingen:
+
+Bedrijfs-IDs:
+- Bakkerij Groot: a1b2c3d4-e5f6-7890-abcd-ef1234567890 (VOLLEDIG)
+- Veldhuis: b2c3d4e5-f6a7-8901-bcde-f12345678901 (alleen client_products)
+- Rensen: c3d4e5f6-a7b8-9012-cdef-123456789012 (alleen client_products)
+
+Tabellen die data nodig hebben per bedrijf (Veldhuis + Rensen):
+- tickets (10/12 stuks)
+- hardware_assets (20/30 stuks)
+- agreements (6/8 stuks)
+- contacts (5/6 stuks)
+- licenses (6/8 stuks)
+- notifications (6/8 stuks)
+- documents (4/5 stuks)
+- client_products: AL AANWEZIG in 000_complete_setup.sql
+
+Globale tabellen (leeg):
+- distributor_prices: leeg, 33 producten nodig x 2-3 distributeurs
+- recommendation_feedback: leeg, per bedrijf 15-25 records
+
+Product SKUs (33 stuks): FG-60F, FC-EP-100, YLD-MFW, WG-T45, MS-MFA,
+KPN-GLAS-1G, FG-SDWAN, YLD-MNS, HP-EB840-G10, HP-PD400-G9, SAM-S27R650,
+HPE-DL380-G11, MS-365-BP, AZ-HOST, VBR-365, VMW-HRZ, MS-TEAMS-TEL,
+OD-UCAAS, MS-DYN365, MS-PWRPLAT, MS-INTUNE, OD-MOB-UNL, APL-IP15P,
+SYN-DS1621, VBR-DRAAS, VBR-STD, MS-TEAMS-ROOM, SAM-FLIP55, MS-COPILOT,
+AZ-AI, YLD-BHR-BAS, YLD-BHR-PRE, YLD-MES
+
+NB: PRD vermeldt andere client_products setup per bedrijf, maar 000_complete_setup.sql
+heeft al strategisch gekozen sets. Veldhuis = compleet (voor peer-matching),
+Rensen = voorbeeldklant (alles + Copilot/Azure). Bakkerij = incompleet (triggert aanbevelingen).
+
+[23:01] Taken 2-8 VOLTOOID:
+  - 020_demo_veldhuis.sql: 10 tickets, 20 hardware, 6 agreements, 5 contacts, 6 licenses, 6 notifications, 4 documents
+  - 021_demo_rensen.sql: 12 tickets, 30 hardware, 8 agreements, 6 contacts, 8 licenses, 8 notifications, 5 documents
+  - 022_distributor_prices.sql: ~80 rijen, 2-3 distributeurs per product, realistische EUR prijzen
+  - 023_recommendation_feedback.sql: 60 records (Bakkerij=20, Veldhuis=18, Rensen=22)
+  - run-all-seeds.sql: master script met verificatie queries
+  - Build pass, lint pass (1 font warning), 395 tests pass
+  - Geleerd: ON CONFLICT (product_id, distributor) DO UPDATE is beter dan DO NOTHING voor distributor_prices
+  - Geleerd: 021 file werd door een linter/hook aangepast met kleine variaties in namen en beschrijvingen
+
+=== ALLE 8 TAKEN PRD DEMO DATA VOLTOOID ===
