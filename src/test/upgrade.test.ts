@@ -38,6 +38,9 @@ function mockRecommendation(overrides: Partial<Recommendation>): Recommendation 
     adoptionRate: null,
     category: "Cybersecurity",
     ctaText: "Neem contact op met het team",
+    confidence: { segmentConfidence: 0.8, dataConfidence: 0, sourceConfidence: 0.9, overall: 0.85 },
+    variant: "control",
+    source: "gap",
     ...overrides,
   };
 }

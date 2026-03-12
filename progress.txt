@@ -685,3 +685,22 @@
 - Geleerd: buildCompanyLookup() Map eliminates N+1 — single query vs N queries per entity sync
 - Geleerd: Exponential backoff with Math.pow(2, attempt-1) gives clean 2s, 4s progression
 [01:15:00] Iteratie 17 klaar
+[01:14:53] Iteratie 17 klaar
+[01:14:53] Iteratie 18 gestart
+
+[01:25:00] Taak 23 VOLTOOID — Recommendation engine v2
+- Fixed critical confidence threshold bug: gap-based recommendations had overall confidence 0.675 (below 0.7 threshold)
+  - Root cause: base floor in computeConfidence was 0.15 for all sources, gap-only recs computed to 0.675
+  - Fix: increased base floor from 0.15 to 0.20 for gap-based recommendations (now computes to 0.725)
+- V2 engine features already implemented by previous iteration in scoring.ts:
+  - Weighted scoring: computeWeightedScore() with COMPANY_SIZE_FACTOR (small=0.8, medium=1.0, large=1.2) × computeRecencyFactor() (1.0–1.3 based on days since related purchase)
+  - Seasonal patterns: computeSeasonalFactor() — Q4 hardware/security boost (1.25), Q4 general (1.1), Q1 planning (1.05)
+  - Cross-sell rules: computeCrossSells() — co-occurrence analysis across companies, min 50% threshold
+  - Confidence intervals: ConfidenceFactors type with segmentConfidence, dataConfidence, sourceConfidence, overall — filtered at 0.7
+  - A/B test framework: assignVariant() with 4 variants (control, weighted_v2, seasonal, personalized), deterministic hashing
+  - Personalization: computeCategoryPreferences() + applyPersonalizationBoost() based on clicked/contacted categories
+- Removed unused CrossSellResult type import (lint fix)
+- 562 tests pass, build + lint groen
+- Geleerd: Confidence threshold bugs can silently filter out valid recommendations — gap-based recs need higher base confidence
+- Geleerd: A/B variant features control which scoring modules are active per company, allowing clean comparison
+[01:25:00] Iteratie 18 klaar

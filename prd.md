@@ -295,7 +295,7 @@ Per iteratie:
   - Metrics: sync duration, records per seconde, error rate
   - Webhook support voorbereiden (stub voor CW callback endpoint)
 
-### Taak 23: Recommendation engine v2 [not started]
+### Taak 23: Recommendation engine v2 [done]
 - Lees `src/lib/engine/` volledig
 - Verbeter:
   - Weighted scoring: gap severity × recency × company size factor
