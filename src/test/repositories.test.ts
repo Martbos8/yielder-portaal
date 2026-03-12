@@ -10,7 +10,7 @@ vi.mock("@/lib/logger", () => ({
     info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn(),
     child: () => ({ info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }),
   }),
-  withTiming: async (_l: unknown, _n: string, fn: () => Promise<unknown>, _m?: unknown) => fn(),
+  withTiming: async (_l: unknown, _n: string, fn: () => Promise<unknown>) => fn(),
 }));
 
 import { createClient } from "@/lib/supabase/server";
@@ -20,14 +20,20 @@ function chain(result: { data?: unknown; error?: { message: string; code?: strin
   const r = { data: result.data ?? null, error: result.error ?? null, count: result.count ?? null };
   const methods = ["select","insert","update","eq","neq","lt","lte","not","or","in","order","limit","returns"];
   const obj: Record<string, unknown> = {};
-  for (const m of methods) obj[m] = vi.fn().mockReturnValue(obj);
-  obj["single"] = vi.fn().mockResolvedValue(r);
-  return new Proxy(obj, {
+
+  // Create proxy FIRST so chain methods can return it
+  const proxy: unknown = new Proxy(obj, {
     get(t, p) {
       if (p === "then") return (ok: (v: unknown) => void, fail: (e: unknown) => void) => Promise.resolve(r).then(ok, fail);
       return t[p as string];
     },
   });
+
+  // Chain methods return the proxy (not obj) to keep then-handler reachable
+  for (const m of methods) obj[m] = vi.fn().mockReturnValue(proxy);
+  obj["single"] = vi.fn().mockResolvedValue(r);
+
+  return proxy;
 }
 
 function mockSb(opts: {
