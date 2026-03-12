@@ -200,10 +200,29 @@ function formatPrice(price: string): string {
   }).format(Number(price));
 }
 
+function groupByCategory(items: ShopProduct[]): Record<string, ShopProduct[]> {
+  const groups: Record<string, ShopProduct[]> = {};
+  for (const item of items) {
+    if (!groups[item.category]) {
+      groups[item.category] = [];
+    }
+    groups[item.category].push(item);
+  }
+  return groups;
+}
+
+const categoryIcons: Record<string, string> = {
+  Werkplek: "desktop_windows",
+  Beveiliging: "shield",
+  Productiviteit: "trending_up",
+};
+
 export default function ShopPage() {
+  const grouped = groupByCategory(products);
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-2">
         <h1 className="section-title text-2xl">IT-oplossingen</h1>
         <Badge className="bg-yielder-orange/10 text-yielder-orange">
           {products.length} oplossingen
@@ -212,100 +231,140 @@ export default function ShopPage() {
 
       <p className="text-sm text-muted-foreground mb-8 max-w-2xl">
         Ontdek onze IT-oplossingen voor uw organisatie. Alle prijzen zijn
-        exclusief BTW. Neem contact op met uw accountmanager voor een
-        offerte op maat.
+        exclusief BTW. Neem contact op met uw accountmanager voor een offerte op
+        maat.
       </p>
 
-      <div className="space-y-10">
-        {products.map((product) => (
-          <div key={product.name}>
-            {/* Product header */}
-            <div className="flex items-center gap-3 mb-4">
-              <div className="size-10 rounded-xl bg-yielder-navy/[0.06] flex items-center justify-center">
-                <MaterialIcon
-                  name={product.icon}
-                  className="text-yielder-navy"
-                  size={24}
-                />
-              </div>
-              <div>
-                <h2 className="text-base font-semibold text-foreground">
-                  {product.name}
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  {product.description}
-                </p>
-              </div>
-              <Badge className="ml-auto bg-gray-100 text-gray-600">
-                {product.category}
-              </Badge>
+      <div className="space-y-12">
+        {Object.entries(grouped).map(([category, categoryProducts]) => (
+          <section key={category}>
+            <div className="flex items-center gap-2 mb-6">
+              <MaterialIcon
+                name={categoryIcons[category] ?? "category"}
+                className="text-yielder-navy/60"
+                size={20}
+              />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-yielder-navy/60">
+                {category}
+              </h2>
+              <div className="flex-1 h-px bg-border ml-2" />
             </div>
 
-            {/* Pricing tiers */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {product.tiers.map((tier) => (
-                <div
-                  key={`${product.name}-${tier.name}`}
-                  className={`bg-card rounded-2xl p-5 shadow-card border transition-all
-                    ${
-                      tier.highlighted
-                        ? "border-yielder-navy ring-1 ring-yielder-navy/20 shadow-card-hover"
-                        : "border-border hover:shadow-card-hover"
-                    }`}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-foreground">
-                      {tier.name}
-                    </h3>
-                    {tier.highlighted && (
-                      <Badge className="bg-yielder-navy text-white text-[10px]">
-                        Populair
-                      </Badge>
-                    )}
+            <div className="space-y-8">
+              {categoryProducts.map((product) => (
+                <div key={product.name}>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="size-10 rounded-xl bg-yielder-navy/[0.06] flex items-center justify-center">
+                      <MaterialIcon
+                        name={product.icon}
+                        className="text-yielder-navy"
+                        size={24}
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-foreground">
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-muted-foreground">
+                        {product.description}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="mb-4">
-                    <span className="text-3xl font-bold text-yielder-navy">
-                      {formatPrice(tier.price)}
-                    </span>
-                    <span className="text-xs text-muted-foreground ml-1">
-                      {tier.period}
-                    </span>
-                  </div>
-
-                  <ul className="space-y-2">
-                    {tier.features.map((feature) => (
-                      <li
-                        key={feature}
-                        className="flex items-start gap-2 text-sm"
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {product.tiers.map((tier) => (
+                      <div
+                        key={`${product.name}-${tier.name}`}
+                        className={`bg-card rounded-2xl p-5 shadow-card border transition-all
+                          ${
+                            tier.highlighted
+                              ? "border-yielder-navy ring-1 ring-yielder-navy/20 shadow-card-hover"
+                              : "border-border hover:shadow-card-hover"
+                          }`}
                       >
-                        <MaterialIcon
-                          name="check_circle"
-                          className="text-emerald-500 shrink-0 mt-0.5"
-                          size={16}
-                        />
-                        <span className="text-muted-foreground">
-                          {feature}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-sm font-semibold text-foreground">
+                            {tier.name}
+                          </h4>
+                          {tier.highlighted && (
+                            <Badge className="bg-yielder-navy text-white text-[10px]">
+                              Populair
+                            </Badge>
+                          )}
+                        </div>
 
-                  <button
-                    className={`mt-5 w-full py-2 rounded-lg text-sm font-medium transition-colors
-                      ${
-                        tier.highlighted
-                          ? "bg-yielder-navy text-white hover:bg-yielder-navy/90"
-                          : "bg-yielder-navy/[0.06] text-yielder-navy hover:bg-yielder-navy/10"
-                      }`}
-                  >
-                    Offerte aanvragen
-                  </button>
+                        <div className="mb-4">
+                          <span className="text-3xl font-bold text-yielder-navy">
+                            {formatPrice(tier.price)}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-1">
+                            {tier.period}
+                          </span>
+                        </div>
+
+                        <ul className="space-y-2 mb-5">
+                          {tier.features.map((feature) => (
+                            <li
+                              key={feature}
+                              className="flex items-start gap-2 text-sm"
+                            >
+                              <MaterialIcon
+                                name="check_circle"
+                                className="text-emerald-500 shrink-0 mt-0.5"
+                                size={16}
+                              />
+                              <span className="text-muted-foreground">
+                                {feature}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+
+                        <button
+                          className={`w-full py-2 rounded-lg text-sm font-medium transition-colors
+                            ${
+                              tier.highlighted
+                                ? "bg-yielder-navy text-white hover:bg-yielder-navy/90"
+                                : "bg-yielder-navy/[0.06] text-yielder-navy hover:bg-yielder-navy/10"
+                            }`}
+                        >
+                          Offerte aanvragen
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
-          </div>
+          </section>
         ))}
+      </div>
+
+      {/* Contact CTA */}
+      <div className="mt-12 bg-yielder-navy/[0.03] border border-yielder-navy/10 rounded-2xl p-6 flex flex-col sm:flex-row items-center gap-4">
+        <div className="size-12 rounded-xl bg-yielder-orange/10 flex items-center justify-center shrink-0">
+          <MaterialIcon
+            name="support_agent"
+            className="text-yielder-orange"
+            size={28}
+          />
+        </div>
+        <div className="text-center sm:text-left">
+          <h3 className="text-sm font-semibold text-foreground">
+            Op zoek naar een maatwerkoplossing?
+          </h3>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Onze consultants helpen u graag met een pakket dat past bij uw
+            organisatie.
+          </p>
+        </div>
+        <a
+          href="/contact"
+          className="sm:ml-auto shrink-0 inline-flex items-center gap-2 bg-yielder-orange text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-yielder-orange/90 transition-colors"
+        >
+          <MaterialIcon name="mail" size={16} />
+          Neem contact op
+        </a>
       </div>
     </div>
   );

@@ -196,8 +196,14 @@ export default function LoginPage() {
           </button>
         </form>
 
+        {/* Magic link uitleg */}
+        <p className="text-center text-xs text-white/30 mt-6 leading-relaxed max-w-xs mx-auto">
+          U ontvangt een beveiligde inloglink per e-mail. Geen wachtwoord
+          nodig — klik op de link om direct in te loggen.
+        </p>
+
         {/* Footer */}
-        <div className="flex items-center justify-center gap-2 mt-10 opacity-40">
+        <div className="flex items-center justify-center gap-2 mt-8 opacity-40">
           <svg className="size-3" viewBox="0 0 12 12" fill="none">
             <path
               d="M6 1L2 4v4c0 2.2 1.6 3.6 4 4 2.4-.4 4-1.8 4-4V4L6 1z"
