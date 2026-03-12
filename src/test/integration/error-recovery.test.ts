@@ -115,12 +115,10 @@ describe("Error Recovery", () => {
     });
 
     it("returns fallback for generic Error in production", () => {
-      const origEnv = process.env["NODE_ENV"];
-      process.env["NODE_ENV"] = "production";
+      vi.stubEnv("NODE_ENV", "production");
       const err = new Error("Unexpected failure");
-      // In production, non-AppErrors get the fallback message
       expect(getErrorMessage(err)).toBe("Er is een onverwachte fout opgetreden");
-      process.env["NODE_ENV"] = origEnv;
+      vi.unstubAllEnvs();
     });
 
     it("returns fallback for unknown error types", () => {
@@ -130,12 +128,10 @@ describe("Error Recovery", () => {
     });
 
     it("non-operational AppError gets fallback in production", () => {
-      const origEnv = process.env["NODE_ENV"];
-      process.env["NODE_ENV"] = "production";
+      vi.stubEnv("NODE_ENV", "production");
       const err = new DatabaseError("Connection refused");
-      // DatabaseError is non-operational, so in production it gets fallback
       expect(getErrorMessage(err)).toBe("Er is een onverwachte fout opgetreden");
-      process.env["NODE_ENV"] = origEnv;
+      vi.unstubAllEnvs();
     });
   });
 

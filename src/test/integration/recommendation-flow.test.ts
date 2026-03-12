@@ -66,7 +66,7 @@ const testProducts = [
     vendor: "Fortinet",
     sku: "FG-100F",
     description: "Next-gen firewall",
-    type: "hardware",
+    type: "hardware" as const,
     lifecycle_years: 5,
     is_active: true,
     created_at: "2026-01-01",
@@ -79,7 +79,7 @@ const testProducts = [
     vendor: "Microsoft",
     sku: "MDB-001",
     description: "Endpoint security",
-    type: "software",
+    type: "software" as const,
     lifecycle_years: null,
     is_active: true,
     created_at: "2026-01-01",
@@ -121,11 +121,10 @@ describe("Recommendation Flow: upgrade → contact request", () => {
 
       const gaps = [
         {
-          category: "Security",
           missingProduct: testProducts[0]!,
           reason: "Geen firewall aanwezig",
           severity: "critical" as const,
-          adoptionRate: 0.85,
+          relatedTo: testProducts[1]!,
         },
       ];
 
@@ -159,7 +158,8 @@ describe("Recommendation Flow: upgrade → contact request", () => {
         remaining: 9,
         resetInMs: 60000,
         warning: false,
-        currentCount: 1,
+        limit: 10,
+        resetAt: Math.floor(Date.now() / 1000) + 60,
       });
 
       const { createContactRequest } = await import("@/lib/actions/contact.actions");
@@ -186,7 +186,8 @@ describe("Recommendation Flow: upgrade → contact request", () => {
         remaining: 0,
         resetInMs: 30000,
         warning: false,
-        currentCount: 5,
+        limit: 5,
+        resetAt: Math.floor(Date.now() / 1000) + 30,
       });
 
       const { createContactRequest } = await import("@/lib/actions/contact.actions");

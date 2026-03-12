@@ -327,7 +327,7 @@ describe("Error Handling Edge Cases", () => {
   it("toErrorResponse handles circular reference gracefully", () => {
     // Circular Error object
     const err = new Error("circular");
-    (err as Record<string, unknown>)["self"] = err;
+    (err as unknown as Record<string, unknown>)["self"] = err;
     const response = toErrorResponse(err);
     expect(response.statusCode).toBe(500);
     expect(response.error).toBe("Er is een onverwachte fout opgetreden");
@@ -352,23 +352,17 @@ describe("Error Handling Edge Cases", () => {
   });
 
   it("getErrorMessage returns dev message in development", () => {
-    const originalEnv = process.env["NODE_ENV"];
-    process.env["NODE_ENV"] = "development";
-
+    vi.stubEnv("NODE_ENV", "development");
     const msg = getErrorMessage(new Error("dev visible message"));
     expect(msg).toBe("dev visible message");
-
-    process.env["NODE_ENV"] = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   it("getErrorMessage returns fallback in production for non-AppError", () => {
-    const originalEnv = process.env["NODE_ENV"];
-    process.env["NODE_ENV"] = "production";
-
+    vi.stubEnv("NODE_ENV", "production");
     const msg = getErrorMessage(new Error("should not leak"), "Veilige fout");
     expect(msg).toBe("Veilige fout");
-
-    process.env["NODE_ENV"] = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   it("AppError extends Error prototype chain correctly", () => {

@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import {
   AppError,
   AuthError,
@@ -274,12 +274,11 @@ describe("getErrorMessage", () => {
   });
 
   it("returns fallback for non-operational errors in production", () => {
-    const originalEnv = process.env['NODE_ENV'];
-    process.env['NODE_ENV'] = "production";
+    vi.stubEnv("NODE_ENV", "production");
     expect(getErrorMessage(new DatabaseError("secret db info"))).toBe(
       "Er is een onverwachte fout opgetreden"
     );
-    process.env['NODE_ENV'] = originalEnv;
+    vi.unstubAllEnvs();
   });
 
   it("returns custom fallback", () => {
