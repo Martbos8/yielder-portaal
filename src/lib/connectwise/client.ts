@@ -42,7 +42,13 @@ export class ConnectWiseClient {
   /**
    * Makes an authenticated GET request to the ConnectWise API.
    */
-  async get<T>(endpoint: string, params?: Record<string, string>): Promise<T[]> {
+  /**
+   * Makes an authenticated GET request to the ConnectWise API.
+   * @param endpoint API endpoint path
+   * @param params Query parameters
+   * @param conditions CW conditions filter (e.g. "lastUpdated > [2026-01-01T00:00:00Z]")
+   */
+  async get<T>(endpoint: string, params?: Record<string, string>, conditions?: string): Promise<T[]> {
     if (!this.config) {
       return [];
     }
@@ -60,6 +66,10 @@ export class ConnectWiseClient {
         for (const [key, value] of Object.entries(params)) {
           url.searchParams.set(key, value);
         }
+      }
+
+      if (conditions) {
+        url.searchParams.set("conditions", conditions);
       }
 
       const authString = `${this.config.companyId}+${this.config.publicKey}:${this.config.privateKey}`;

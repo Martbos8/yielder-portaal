@@ -659,3 +659,29 @@
 [01:12:00] Iteratie 20b klaar
 [01:08:33] Iteratie 16 klaar
 [01:08:34] Iteratie 17 gestart
+[01:14:10] Iteratie 20 klaar
+[01:14:10] Iteratie 21 gestart
+
+[01:15:00] Taak 22 VOLTOOID — ConnectWise sync robuuster maken
+- Idempotent sync: sync_id tracking via sync_logs, skips duplicate runs
+  - syncAll() accepts optional syncId; isSyncIdempotent() checks completed runs
+- Delta sync: only fetches records changed since last successful sync
+  - buildDeltaCondition() creates CW conditions: "lastUpdated > [ISO timestamp]"
+  - getLastSyncTimestamp() queries sync_logs for last completed sync per entity
+  - CW client.get() now accepts optional conditions parameter
+- N+1 elimination: buildCompanyLookup() preloads cw_company_id → id map
+  - Was: 1 query per ticket/agreement/config to resolve company
+  - Now: 1 query for all companies, O(1) Map lookup per record
+- Retry queue: failed entities retried up to 2× with exponential backoff (2s, 4s)
+  - Failed entities added to retry_queue in SyncRunMeta response
+- Metrics: records_per_second and total_fetched added to CWSyncResult
+- Sync logging: creates sync_logs entries per entity (running → completed/failed)
+- Webhook stub: POST /api/webhooks/connectwise for CW callback notifications
+  - Secured with CW_WEBHOOK_SECRET, logs action/type/id
+- API route updated: accepts optional sync_id in body for idempotency
+- New types: SyncRunMeta, SyncRetryEntry
+- 517 tests pass, build + lint groen
+- Geleerd: CW API supports conditions parameter — "lastUpdated > [ISO]" format for delta sync
+- Geleerd: buildCompanyLookup() Map eliminates N+1 — single query vs N queries per entity sync
+- Geleerd: Exponential backoff with Math.pow(2, attempt-1) gives clean 2s, 4s progression
+[01:15:00] Iteratie 17 klaar
