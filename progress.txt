@@ -706,3 +706,36 @@
 [01:25:00] Iteratie 18 klaar
 [01:23:00] Iteratie 18 klaar
 [01:23:00] Iteratie 19 gestart
+[01:23:37] Iteratie 21 klaar
+[01:23:37] Iteratie 22 gestart
+
+[01:28:00] Taak 24 VOLTOOID — Background jobs voorbereiden
+- Created src/lib/jobs/ directory with 4 job modules + types + index:
+  - sync-scheduler.ts: idempotent hourly CW sync using date-based sync_id (cron-2026-03-12T14)
+    - Reuses existing syncAll() from connectwise/sync.ts
+    - Invalidates all caches after successful sync
+  - price-refresher.ts: batch refresh distributor prices for all active products with SKU
+    - Processes in batches of 5 to avoid overwhelming distributor APIs
+    - Uses Promise.allSettled for resilient batch processing
+    - Clears stale price cache before refresh
+  - notification-generator.ts: generates contract expiry + warranty expiry notifications
+    - Contract expiry: 3-tier thresholds (7, 30, 60 days), idempotent via message-based dedup check
+    - Warranty expiry: grouped by company, monthly dedup (one notification per company per month)
+    - Uses notification types from DB schema: "warning" for contracts, "alert" for warranties
+  - health-calculator.ts: per-company health score computation
+    - Fetches tickets + hardware per company, uses calculateHealthScores()
+    - Stores results in memory cache (CacheTTL.LONG = 30min)
+    - Safe to run multiple times — always produces same result from current data
+- Created POST /api/cron route:
+  - Secured with CRON_SECRET via x-cron-secret header
+  - Rate limited: 30 req/min
+  - Supports single job dispatch: { "job": "sync-connectwise" }
+  - Supports all-jobs mode: no body runs all 4 jobs sequentially
+  - Returns per-job results with success/duration/details
+  - Uses createApiHandler() pattern for consistent middleware
+- All jobs: idempotent, structured logging (start/end/duration), error handling with graceful fallback
+- 562 tests pass, build + lint groen
+- Geleerd: Map iteration with for...of requires Array.from() when tsconfig target < es2015 or downlevelIteration is off
+- Geleerd: Notification type column uses DB enum ("info"|"warning"|"alert"|"success"), not custom strings
+- Geleerd: Dynamic imports in job files prevent circular dependencies and keep initial bundle small
+[01:28:00] Iteratie 19 klaar

@@ -305,7 +305,7 @@ Per iteratie:
   - A/B test framework: track welke recommendation variant beter converteert
   - Personalisatie: prioriteer categorieën waar klant eerder op klikte
 
-### Taak 24: Background jobs voorbereiden [not started]
+### Taak 24: Background jobs voorbereiden [done]
 - Maak `src/lib/jobs/` directory:
   - `sync-scheduler.ts` — scheduled ConnectWise sync
   - `price-refresher.ts` — ververs distributor prijzen
