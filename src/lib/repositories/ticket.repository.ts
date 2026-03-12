@@ -108,58 +108,62 @@ export interface TicketResponseStats {
   avgResolutionDays: number | null;
 }
 
-/** Calculate response/resolution time statistics from ticket timestamps. */
+/** Calculate response/resolution time statistics using efficient count queries. */
 export async function getTicketStats(): Promise<TicketResponseStats> {
   return withTiming(log, "getTicketStats", async () => {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("tickets")
-      .select("status, is_closed, cw_created_at, cw_updated_at")
-      .returns<Array<{
-        status: string;
-        is_closed: boolean;
-        cw_created_at: string | null;
-        cw_updated_at: string | null;
-      }>>();
 
-    if (error) throw new DatabaseError(`Failed to fetch ticket stats: ${error.message}`);
+    const [openRes, closedRes, timingsRes] = await Promise.all([
+      // Count open tickets
+      supabase
+        .from("tickets")
+        .select("id", { count: "exact", head: true })
+        .eq("is_closed", false),
+      // Count closed tickets
+      supabase
+        .from("tickets")
+        .select("id", { count: "exact", head: true })
+        .eq("is_closed", true),
+      // Fetch only timestamps for avg calculation (only tickets with both dates)
+      supabase
+        .from("tickets")
+        .select("is_closed, cw_created_at, cw_updated_at")
+        .not("cw_created_at", "is", null)
+        .not("cw_updated_at", "is", null)
+        .returns<Array<{
+          is_closed: boolean;
+          cw_created_at: string;
+          cw_updated_at: string;
+        }>>(),
+    ]);
 
-    const tickets = data ?? [];
-    let totalOpen = 0;
-    let totalClosed = 0;
-    const responseTimes: number[] = [];
-    const resolutionTimes: number[] = [];
+    if (openRes.error) throw new DatabaseError(`Failed to count open tickets: ${openRes.error.message}`);
+    if (closedRes.error) throw new DatabaseError(`Failed to count closed tickets: ${closedRes.error.message}`);
+    if (timingsRes.error) throw new DatabaseError(`Failed to fetch ticket timings: ${timingsRes.error.message}`);
 
-    for (const t of tickets) {
-      if (t.is_closed) {
-        totalClosed++;
-      } else {
-        totalOpen++;
-      }
+    // Calculate averages from the filtered set (only rows with valid timestamps)
+    let responseSum = 0;
+    let responseCount = 0;
+    let resolutionSum = 0;
+    let resolutionCount = 0;
 
-      if (t.cw_created_at && t.cw_updated_at) {
-        const created = new Date(t.cw_created_at).getTime();
-        const updated = new Date(t.cw_updated_at).getTime();
-        const diffHours = (updated - created) / (1000 * 60 * 60);
-        if (diffHours > 0) {
-          responseTimes.push(diffHours);
-          if (t.is_closed) {
-            resolutionTimes.push(diffHours / 24);
-          }
+    for (const t of timingsRes.data ?? []) {
+      const diffHours = (new Date(t.cw_updated_at).getTime() - new Date(t.cw_created_at).getTime()) / (1000 * 60 * 60);
+      if (diffHours > 0) {
+        responseSum += diffHours;
+        responseCount++;
+        if (t.is_closed) {
+          resolutionSum += diffHours / 24;
+          resolutionCount++;
         }
       }
     }
 
-    const avg = (arr: number[]): number | null => {
-      if (arr.length === 0) return null;
-      return arr.reduce((a, b) => a + b, 0) / arr.length;
-    };
-
     return {
-      avgResponseHours: avg(responseTimes),
-      totalOpen,
-      totalClosed,
-      avgResolutionDays: avg(resolutionTimes),
+      avgResponseHours: responseCount > 0 ? responseSum / responseCount : null,
+      totalOpen: openRes.count ?? 0,
+      totalClosed: closedRes.count ?? 0,
+      avgResolutionDays: resolutionCount > 0 ? resolutionSum / resolutionCount : null,
     };
   });
 }

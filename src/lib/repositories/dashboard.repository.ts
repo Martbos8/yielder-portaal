@@ -28,8 +28,8 @@ export interface ActivityEntry {
 }
 
 /**
- * Calculate dashboard trends by comparing current 30-day window with previous 30-day window.
- * Also provides sparkline data for ticket creation over the last 14 days.
+ * Calculate dashboard trends using targeted count queries per period.
+ * Uses 6 parallel count/sum queries instead of loading all rows into memory.
  */
 export async function getDashboardTrends(): Promise<DashboardTrends> {
   return withTiming(log, "getDashboardTrends", async () => {
@@ -37,79 +37,113 @@ export async function getDashboardTrends(): Promise<DashboardTrends> {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
-    const [ticketsRes, hardwareRes, agreementsRes] = await Promise.all([
-      // All tickets from last 60 days with creation date
+    const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000);
+
+    const [
+      recentTicketsRes,
+      prevTicketsRes,
+      recentHardwareRes,
+      prevHardwareRes,
+      recentAgreementsRes,
+      prevAgreementsRes,
+      sparklineRes,
+    ] = await Promise.all([
+      // Current 30-day ticket count
       supabase
         .from("tickets")
-        .select("cw_created_at, is_closed")
-        .gte("cw_created_at", sixtyDaysAgo.toISOString()),
-      // All hardware from last 60 days
+        .select("id", { count: "exact", head: true })
+        .gte("cw_created_at", thirtyDaysAgo.toISOString()),
+      // Previous 30-day ticket count
+      supabase
+        .from("tickets")
+        .select("id", { count: "exact", head: true })
+        .gte("cw_created_at", sixtyDaysAgo.toISOString())
+        .lt("cw_created_at", thirtyDaysAgo.toISOString()),
+      // Current 30-day hardware count
       supabase
         .from("hardware_assets")
-        .select("created_at")
-        .gte("created_at", sixtyDaysAgo.toISOString()),
-      // Agreements with status changes
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", thirtyDaysAgo.toISOString()),
+      // Previous 30-day hardware count
+      supabase
+        .from("hardware_assets")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", sixtyDaysAgo.toISOString())
+        .lt("created_at", thirtyDaysAgo.toISOString()),
+      // Current 30-day active agreements (with bill_amount for sum)
       supabase
         .from("agreements")
-        .select("status, bill_amount, created_at")
-        .gte("created_at", sixtyDaysAgo.toISOString()),
+        .select("bill_amount")
+        .eq("status", "active")
+        .gte("created_at", thirtyDaysAgo.toISOString()),
+      // Previous 30-day active agreements (with bill_amount for sum)
+      supabase
+        .from("agreements")
+        .select("bill_amount")
+        .eq("status", "active")
+        .gte("created_at", sixtyDaysAgo.toISOString())
+        .lt("created_at", thirtyDaysAgo.toISOString()),
+      // Sparkline: last 14 days of tickets with their creation dates
+      supabase
+        .from("tickets")
+        .select("cw_created_at")
+        .gte("cw_created_at", fourteenDaysAgo.toISOString())
+        .order("cw_created_at", { ascending: true }),
     ]);
 
-    if (ticketsRes.error) throw new DatabaseError(`Failed to fetch ticket trends: ${ticketsRes.error.message}`);
-    if (hardwareRes.error) throw new DatabaseError(`Failed to fetch hardware trends: ${hardwareRes.error.message}`);
-    if (agreementsRes.error) throw new DatabaseError(`Failed to fetch agreement trends: ${agreementsRes.error.message}`);
+    // Check for errors
+    if (recentTicketsRes.error) throw new DatabaseError(`Failed to fetch ticket trends: ${recentTicketsRes.error.message}`);
+    if (prevTicketsRes.error) throw new DatabaseError(`Failed to fetch ticket trends: ${prevTicketsRes.error.message}`);
+    if (recentHardwareRes.error) throw new DatabaseError(`Failed to fetch hardware trends: ${recentHardwareRes.error.message}`);
+    if (prevHardwareRes.error) throw new DatabaseError(`Failed to fetch hardware trends: ${prevHardwareRes.error.message}`);
+    if (recentAgreementsRes.error) throw new DatabaseError(`Failed to fetch agreement trends: ${recentAgreementsRes.error.message}`);
+    if (prevAgreementsRes.error) throw new DatabaseError(`Failed to fetch agreement trends: ${prevAgreementsRes.error.message}`);
+    if (sparklineRes.error) throw new DatabaseError(`Failed to fetch sparkline data: ${sparklineRes.error.message}`);
 
-    const tickets = ticketsRes.data ?? [];
-    const hardware = hardwareRes.data ?? [];
-    const agreements = agreementsRes.data ?? [];
-
-    // Calculate ticket trend: tickets created this period vs previous period
-    const recentTickets = tickets.filter((t) => new Date(t.cw_created_at ?? "").getTime() >= thirtyDaysAgo.getTime());
-    const previousTickets = tickets.filter((t) => {
-      const d = new Date(t.cw_created_at ?? "").getTime();
-      return d >= sixtyDaysAgo.getTime() && d < thirtyDaysAgo.getTime();
-    });
-
-    // Hardware trend
-    const recentHardware = hardware.filter((h) => new Date(h.created_at).getTime() >= thirtyDaysAgo.getTime());
-    const previousHardware = hardware.filter((h) => {
-      const d = new Date(h.created_at).getTime();
-      return d >= sixtyDaysAgo.getTime() && d < thirtyDaysAgo.getTime();
-    });
-
-    // Agreement trend (active agreements added)
-    const recentAgreements = agreements.filter(
-      (a) => a.status === "active" && new Date(a.created_at).getTime() >= thirtyDaysAgo.getTime()
+    // Agreement amounts
+    const recentAmount = (recentAgreementsRes.data ?? []).reduce(
+      (sum, a) => sum + (a.bill_amount ?? 0), 0
     );
-    const previousAgreements = agreements.filter(
-      (a) => a.status === "active" && new Date(a.created_at).getTime() >= sixtyDaysAgo.getTime() && new Date(a.created_at).getTime() < thirtyDaysAgo.getTime()
+    const prevAmount = (prevAgreementsRes.data ?? []).reduce(
+      (sum, a) => sum + (a.bill_amount ?? 0), 0
     );
 
-    // Amount trend
-    const recentAmount = recentAgreements.reduce((sum, a) => sum + (a.bill_amount ?? 0), 0);
-    const previousAmount = previousAgreements.reduce((sum, a) => sum + (a.bill_amount ?? 0), 0);
-
-    // Sparkline: daily ticket counts for last 14 days
-    const ticketSparkline: number[] = [];
-    for (let i = 13; i >= 0; i--) {
-      const dayStart = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      dayStart.setHours(0, 0, 0, 0);
-      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-      const count = tickets.filter((t) => {
-        const d = new Date(t.cw_created_at ?? "").getTime();
-        return d >= dayStart.getTime() && d < dayEnd.getTime();
-      }).length;
-      ticketSparkline.push(count);
-    }
+    // Build sparkline: bucket tickets into 14 daily bins
+    const ticketSparkline = buildSparkline(sparklineRes.data ?? [], now);
 
     return {
-      ticketTrend: calcTrend(recentTickets.length, previousTickets.length),
-      hardwareTrend: calcTrend(recentHardware.length, previousHardware.length),
-      contractTrend: calcTrend(recentAgreements.length, previousAgreements.length),
-      amountTrend: calcTrend(recentAmount, previousAmount),
+      ticketTrend: calcTrend(recentTicketsRes.count ?? 0, prevTicketsRes.count ?? 0),
+      hardwareTrend: calcTrend(recentHardwareRes.count ?? 0, prevHardwareRes.count ?? 0),
+      contractTrend: calcTrend(
+        (recentAgreementsRes.data ?? []).length,
+        (prevAgreementsRes.data ?? []).length
+      ),
+      amountTrend: calcTrend(recentAmount, prevAmount),
       ticketSparkline,
     };
   });
+}
+
+/** Build 14-day sparkline from pre-sorted ticket dates. */
+function buildSparkline(
+  tickets: Array<{ cw_created_at: string | null }>,
+  now: Date
+): number[] {
+  const sparkline: number[] = new Array(14).fill(0) as number[];
+
+  for (const t of tickets) {
+    if (!t.cw_created_at) continue;
+    const ticketDate = new Date(t.cw_created_at);
+    // Days ago (0 = today, 13 = 13 days ago)
+    const daysAgo = Math.floor((now.getTime() - ticketDate.getTime()) / (24 * 60 * 60 * 1000));
+    // Map to sparkline index (0 = oldest = 13 days ago, 13 = newest = today)
+    const idx = 13 - daysAgo;
+    if (idx >= 0 && idx < 14) {
+      sparkline[idx]!++;
+    }
+  }
+
+  return sparkline;
 }
 
 /** Calculate percentage change; returns 0 when previous is 0. */

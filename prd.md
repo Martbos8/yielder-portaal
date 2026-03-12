@@ -276,7 +276,7 @@ Per iteratie:
   - Client-side form validatie
 - Eén schema, drie toepassingen: server validatie, client validatie, TypeScript types
 
-### Taak 21: Database query optimalisatie [not started]
+### Taak 21: Database query optimalisatie [done]
 - Lees alle repositories/queries
 - Optimaliseer:
   - Compound indexes voorstellen voor veel-gebruikte filters (database/030_indexes.sql)

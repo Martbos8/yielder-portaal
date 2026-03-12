@@ -67,6 +67,7 @@ export async function getUserCompany(): Promise<Company | null> {
       .from("user_company_mapping")
       .select(`company_id, companies(${COMPANY_COLUMNS})`)
       .eq("user_id", user.id)
+      .returns<Array<{ company_id: string; companies: Company | null }>>()
       .single();
 
     if (error && error.code !== "PGRST116") {
@@ -74,9 +75,7 @@ export async function getUserCompany(): Promise<Company | null> {
     }
     if (!data) return null;
 
-    // Supabase returns joined data as nested object
-    const company = data.companies as unknown as Company | null;
-    return company ?? null;
+    return data.companies ?? null;
   });
 }
 

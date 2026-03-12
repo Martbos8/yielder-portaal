@@ -593,3 +593,36 @@
 - Geleerd: safeParse → fieldErrors pattern works well for client-side Zod validation without additional dependencies
 - Geleerd: aria-invalid on form fields improves accessibility for validation errors
 [01:07:00] Iteratie 19 klaar
+[01:07:20] Iteratie 19 klaar
+[01:07:20] Iteratie 20 gestart
+
+[01:09:00] Taak 21 VOLTOOID — Database query optimalisatie
+- Created database/030_indexes.sql with 15 compound indexes for common query patterns:
+  - tickets: (company_id, is_closed), (company_id, cw_created_at DESC), (cw_created_at DESC)
+  - hardware_assets: (company_id), (warranty_expiry) WHERE NOT NULL
+  - agreements: (company_id, status), (end_date) WHERE active AND NOT NULL
+  - contacts: (company_id, full_name)
+  - notifications: (user_id, is_read, created_at DESC), (company_id, created_at DESC)
+  - audit_log: (company_id, created_at DESC), (created_at DESC)
+  - licenses: (company_id)
+  - sync_logs: (entity_type, synced_at DESC)
+  - user_company_mapping: (company_id) reverse lookup
+- Fixed N+1 in getUserCompany(): 2 sequential queries → 1 join query via .select("company_id, companies(...)")
+  - Uses .returns<> with explicit type for Supabase join result
+- Optimized getDashboardStats(): agreements now use head:true count + filtered bill_amount query
+  - Was: fetching ALL agreements and filtering in JS
+  - Now: 4 parallel queries (3 counts + 1 filtered select)
+- Optimized getDashboardTrends(): eliminated in-memory 60-day data processing
+  - Was: loading ALL tickets/hardware/agreements from 60 days, filtering in JS, nested loops for sparkline
+  - Now: 7 parallel targeted queries (6 counts + 1 sparkline select for 14 days only)
+  - Sparkline builder: single pass through pre-sorted data instead of 14 nested .filter() calls
+- Optimized getTicketStats(): parallel count queries + filtered timing select
+  - Was: loading ALL tickets, counting open/closed in JS loop
+  - Now: 3 parallel queries (2 counts + 1 filtered for timing calculation only)
+  - .not("cw_created_at", "is", null) filters at DB level instead of JS null checks
+- 517 tests pass, build + lint groen
+- Geleerd: Supabase join syntax .select("fk_col, table(col1, col2)") requires .returns<> for proper typing
+- Geleerd: head:true with count:"exact" is the most efficient way to count rows — zero data transfer
+- Geleerd: Splitting large in-memory processing into parallel targeted queries is both faster and more memory-efficient
+- Geleerd: buildSparkline() with single pass O(n) is much better than 14 × .filter() calls which is O(14n)
+[01:09:00] Iteratie 20 klaar
