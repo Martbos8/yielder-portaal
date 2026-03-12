@@ -25,46 +25,104 @@ const SEVERITY_WEIGHT: Record<GapSeverity, number> = {
 };
 
 const MAX_RECOMMENDATIONS = 10;
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+// In-memory cache per companyId
+const recommendationCache = new Map<
+  string,
+  { recommendations: Recommendation[]; fetchedAt: number }
+>();
 
 /**
  * Fetches all data and computes ranked recommendations for a company.
+ * Returns [] on any error — never throws.
+ * Results are cached for 5 minutes per companyId.
  */
 export async function getRecommendations(
   companyId: string
 ): Promise<Recommendation[]> {
-  const supabase = await createClient();
+  // Check cache
+  const cached = recommendationCache.get(companyId);
+  if (cached && Date.now() - cached.fetchedAt < CACHE_TTL_MS) {
+    return cached.recommendations;
+  }
 
-  const [companyRes, companiesRes, clientProductsRes, productsRes, depsRes, categoriesRes] =
-    await Promise.all([
-      supabase.from("companies").select("*").eq("id", companyId).single(),
-      supabase.from("companies").select("*"),
-      supabase.from("client_products").select("*").eq("status", "active"),
-      supabase.from("products").select("*").eq("is_active", true),
-      supabase.from("product_dependencies").select("*"),
-      supabase.from("product_categories").select("*"),
-    ]);
+  try {
+    const supabase = await createClient();
 
-  const company = companyRes.data as Company | null;
-  if (!company) return [];
+    const [companyRes, companiesRes, clientProductsRes, productsRes, depsRes, categoriesRes] =
+      await Promise.all([
+        supabase.from("companies").select("id, name, employee_count, industry, region, created_at, updated_at").eq("id", companyId).single(),
+        supabase.from("companies").select("id, name, employee_count, industry, region, created_at, updated_at"),
+        supabase.from("client_products").select("id, company_id, product_id, quantity, purchase_date, expiry_date, status, created_at, updated_at").eq("status", "active"),
+        supabase.from("products").select("id, category_id, name, vendor, sku, description, type, lifecycle_years, is_active, created_at, updated_at").eq("is_active", true),
+        supabase.from("product_dependencies").select("id, product_id, depends_on_product_id, dependency_type, created_at"),
+        supabase.from("product_categories").select("id, name"),
+      ]);
 
-  const allCompanies = (companiesRes.data ?? []) as Company[];
-  const allClientProducts = (clientProductsRes.data ?? []) as ClientProduct[];
-  const allProducts = (productsRes.data ?? []) as Product[];
-  const dependencies = (depsRes.data ?? []) as ProductDependency[];
+    const company = companyRes.data as Company | null;
+    if (!company) return [];
 
-  const categoryMap = new Map(
-    ((categoriesRes.data ?? []) as { id: string; name: string }[]).map((c) => [c.id, c.name])
-  );
+    const allCompanies = (companiesRes.data ?? []) as Company[];
+    const allClientProducts = (clientProductsRes.data ?? []) as ClientProduct[];
+    const allProducts = (productsRes.data ?? []) as Product[];
+    const dependencies = (depsRes.data ?? []) as ProductDependency[];
 
-  // Filter client products for this company
-  const companyClientProducts = allClientProducts.filter(
-    (cp) => cp.company_id === companyId
-  );
+    const categoryMap = new Map(
+      ((categoriesRes.data ?? []) as { id: string; name: string }[]).map((c) => [c.id, c.name])
+    );
 
-  const gaps = computeGaps(companyClientProducts, dependencies, allProducts);
-  const patterns = computePatterns(company, allCompanies, allClientProducts, allProducts);
+    // Filter client products for this company
+    const companyClientProducts = allClientProducts.filter(
+      (cp) => cp.company_id === companyId
+    );
 
-  return computeRecommendations(gaps, patterns, categoryMap);
+    const gaps = computeGapsSafe(companyClientProducts, dependencies, allProducts);
+    const patterns = computePatternsSafe(company, allCompanies, allClientProducts, allProducts);
+
+    const recommendations = computeRecommendations(gaps, patterns, categoryMap);
+
+    // Cache the result
+    recommendationCache.set(companyId, {
+      recommendations,
+      fetchedAt: Date.now(),
+    });
+
+    return recommendations;
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Safe wrapper around computeGaps — returns [] on error.
+ */
+function computeGapsSafe(
+  clientProducts: ClientProduct[],
+  dependencies: ProductDependency[],
+  products: Product[]
+): GapResult[] {
+  try {
+    return computeGaps(clientProducts, dependencies, products);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Safe wrapper around computePatterns — returns [] on error.
+ */
+function computePatternsSafe(
+  company: Company,
+  allCompanies: Company[],
+  allClientProducts: ClientProduct[],
+  allProducts: Product[]
+): PatternResult[] {
+  try {
+    return computePatterns(company, allCompanies, allClientProducts, allProducts);
+  } catch {
+    return [];
+  }
 }
 
 /**
@@ -126,4 +184,11 @@ export function computeRecommendations(
   );
 
   return sorted.slice(0, MAX_RECOMMENDATIONS);
+}
+
+/**
+ * Clear the recommendation cache (useful for testing).
+ */
+export function clearRecommendationCache(): void {
+  recommendationCache.clear();
 }

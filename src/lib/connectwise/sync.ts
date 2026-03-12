@@ -1,5 +1,6 @@
 // ConnectWise sync functions — fetches data from CW API and upserts into Supabase
 // In demo mode (no API keys), logs a message and returns early
+// Each entity syncs independently — one failure doesn't stop others
 
 import { ConnectWiseClient } from "./client";
 import type {
@@ -9,6 +10,7 @@ import type {
   CWConfiguration,
   CWSyncResult,
 } from "./types";
+import type { SyncEntityType } from "@/types/database";
 
 /**
  * Transforms CW ticket status to our internal status.
@@ -44,36 +46,100 @@ function mapAgreementStatus(cancelled: boolean, endDate?: string): string {
 }
 
 /**
+ * Insert a sync_log row with status "running".
+ * Returns the log ID for later update.
+ */
+async function startSyncLog(entityType: SyncEntityType): Promise<string | null> {
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("sync_logs")
+      .insert({
+        entity_type: entityType,
+        status: "running",
+        records_synced: 0,
+        records_failed: 0,
+      })
+      .select("id")
+      .single();
+    return data?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Update a sync_log row with final status.
+ */
+async function completeSyncLog(
+  logId: string | null,
+  status: "completed" | "failed",
+  synced: number,
+  failed: number,
+  errorMessage?: string
+): Promise<void> {
+  if (!logId) return;
+  try {
+    const { createClient } = await import("@/lib/supabase/server");
+    const supabase = await createClient();
+    await supabase
+      .from("sync_logs")
+      .update({
+        status,
+        records_synced: synced,
+        records_failed: failed,
+        error_message: errorMessage ?? null,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("id", logId);
+  } catch {
+    // Silent fail — sync logging should never break sync
+  }
+}
+
+/**
  * Runs a full sync of all entities from ConnectWise to Supabase.
+ * Each entity syncs independently — partial failures don't block other entities.
  * Returns early in demo mode (no API keys configured).
  */
 export async function syncAll(): Promise<CWSyncResult[]> {
   const client = new ConnectWiseClient();
 
   if (!client.isConfigured()) {
-    console.log("CW sync: demo modus — geen API key geconfigureerd");
     return [];
   }
 
   const results: CWSyncResult[] = [];
 
-  results.push(await syncCompanies(client));
-  results.push(await syncTickets(client));
-  results.push(await syncAgreements(client));
-  results.push(await syncConfigurations(client));
+  // Each sync runs independently — failure in one doesn't stop others
+  const syncFns = [
+    () => syncCompanies(client),
+    () => syncTickets(client),
+    () => syncAgreements(client),
+    () => syncConfigurations(client),
+  ];
+
+  for (const fn of syncFns) {
+    try {
+      results.push(await fn());
+    } catch {
+      // Individual entity sync failed — continue with others
+    }
+  }
 
   return results;
 }
 
 async function syncCompanies(client: ConnectWiseClient): Promise<CWSyncResult> {
   const start = Date.now();
+  const logId = await startSyncLog("companies");
   let synced = 0;
   let errors = 0;
 
   try {
     const companies = await client.get<CWCompany>("/company/companies");
 
-    // Dynamic import to avoid issues in non-server contexts
     const { createClient } = await import("@/lib/supabase/server");
     const supabase = await createClient();
 
@@ -94,7 +160,11 @@ async function syncCompanies(client: ConnectWiseClient): Promise<CWSyncResult> {
         synced++;
       }
     }
-  } catch {
+
+    await completeSyncLog(logId, "completed", synced, errors);
+  } catch (err) {
+    await completeSyncLog(logId, "failed", synced, errors + 1,
+      err instanceof Error ? err.message : "Unknown error");
     errors++;
   }
 
@@ -103,6 +173,7 @@ async function syncCompanies(client: ConnectWiseClient): Promise<CWSyncResult> {
 
 async function syncTickets(client: ConnectWiseClient): Promise<CWSyncResult> {
   const start = Date.now();
+  const logId = await startSyncLog("tickets");
   let synced = 0;
   let errors = 0;
 
@@ -113,7 +184,6 @@ async function syncTickets(client: ConnectWiseClient): Promise<CWSyncResult> {
     const supabase = await createClient();
 
     for (const cw of tickets) {
-      // Look up company by cw_company_id
       const companyId = cw.company?.id;
       if (!companyId) {
         errors++;
@@ -153,7 +223,11 @@ async function syncTickets(client: ConnectWiseClient): Promise<CWSyncResult> {
         synced++;
       }
     }
-  } catch {
+
+    await completeSyncLog(logId, "completed", synced, errors);
+  } catch (err) {
+    await completeSyncLog(logId, "failed", synced, errors + 1,
+      err instanceof Error ? err.message : "Unknown error");
     errors++;
   }
 
@@ -162,6 +236,7 @@ async function syncTickets(client: ConnectWiseClient): Promise<CWSyncResult> {
 
 async function syncAgreements(client: ConnectWiseClient): Promise<CWSyncResult> {
   const start = Date.now();
+  const logId = await startSyncLog("agreements");
   let synced = 0;
   let errors = 0;
 
@@ -209,7 +284,11 @@ async function syncAgreements(client: ConnectWiseClient): Promise<CWSyncResult> 
         synced++;
       }
     }
-  } catch {
+
+    await completeSyncLog(logId, "completed", synced, errors);
+  } catch (err) {
+    await completeSyncLog(logId, "failed", synced, errors + 1,
+      err instanceof Error ? err.message : "Unknown error");
     errors++;
   }
 
@@ -218,6 +297,7 @@ async function syncAgreements(client: ConnectWiseClient): Promise<CWSyncResult> 
 
 async function syncConfigurations(client: ConnectWiseClient): Promise<CWSyncResult> {
   const start = Date.now();
+  const logId = await startSyncLog("hardware");
   let synced = 0;
   let errors = 0;
 
@@ -266,7 +346,11 @@ async function syncConfigurations(client: ConnectWiseClient): Promise<CWSyncResu
         synced++;
       }
     }
-  } catch {
+
+    await completeSyncLog(logId, "completed", synced, errors);
+  } catch (err) {
+    await completeSyncLog(logId, "failed", synced, errors + 1,
+      err instanceof Error ? err.message : "Unknown error");
     errors++;
   }
 
