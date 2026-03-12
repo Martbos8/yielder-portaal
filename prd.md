@@ -364,7 +364,7 @@ Per iteratie:
   - robots.txt
   - sitemap.xml (voor publieke pagina's: login)
 
-### Taak 29: Final integration test [not started]
+### Taak 29: Final integration test [done]
 - Maak `src/test/integration/` directory:
   - Test complete user flow: login → dashboard → tickets → detail → terug
   - Test recommendation flow: upgrade pagina → klik aanbeveling → contact modal

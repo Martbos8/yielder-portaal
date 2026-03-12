@@ -831,3 +831,16 @@
 - Geleerd: .next cache corruptie kan "File not found" errors veroorzaken — rm -rf .next lost het op
 - Geleerd: Client Components (login/page.tsx) kunnen geen metadata exporteren — gebruik een layout.tsx wrapper
 [02:00:00] Iteratie 23 klaar
+[02:05:00] Iteratie 23 vervolg — Taak 29 VOLTOOID — Final integration tests
+- src/test/integration/user-flow.test.ts: 9 tests — login → dashboard → tickets → detail flow
+- src/test/integration/recommendation-flow.test.ts: 6 tests — products → engine → contact request
+- src/test/integration/admin-flow.test.ts: 7 tests — admin auth → sync status → audit log
+- src/test/integration/error-recovery.test.ts: 15 tests — error classification, message extraction, retry, auth/db recovery
+- src/test/integration/empty-states.test.ts: 13 tests — all repositories return empty gracefully
+- Total: 50 nieuwe integration tests + 18 bestaande = 68 integration tests
+- 846 tests pass across 52 test files, build + lint groen
+- Geleerd: Supabase .single() returns de data object direct, niet in een array — mock moet single object returnen
+- Geleerd: contactRequest schema vereist UUID v4 format voor companyId/productId — gebruik echte UUID formaat in tests
+- Geleerd: urgency enum is "normaal"/"hoog", niet "normal" — altijd schema checken voor enum waarden
+- Geleerd: computeRecommendations (niet generateRecommendations) is de export naam — check exports vóór testen schrijven
+[02:05:00] Iteratie 23 klaar (taak 28 + 29)
