@@ -9,11 +9,27 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Mijn Yielder",
-  description: "Uw IT-omgeving in één overzicht",
+  title: {
+    default: "Mijn Yielder",
+    template: "%s | Mijn Yielder",
+  },
+  description: "Uw IT-omgeving in één overzicht — beheer hardware, software, contracten en tickets vanuit één dashboard.",
   icons: {
     icon: "/yielder-monogram.png",
+    apple: "/yielder-monogram.png",
   },
+  openGraph: {
+    type: "website",
+    locale: "nl_NL",
+    siteName: "Mijn Yielder",
+    title: "Mijn Yielder",
+    description: "Uw IT-omgeving in één overzicht — beheer hardware, software, contracten en tickets vanuit één dashboard.",
+  },
+  robots: {
+    index: false,
+    follow: false,
+  },
+  metadataBase: new URL(process.env["NEXT_PUBLIC_SITE_URL"] ?? "https://portaal.yielder.nl"),
 };
 
 export default function RootLayout({

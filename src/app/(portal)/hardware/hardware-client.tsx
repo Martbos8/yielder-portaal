@@ -491,7 +491,7 @@ export function HardwareClient({ assets }: HardwareClientProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {group.assets.map((asset) => {
                 const warranty = getWarrantyStatus(asset.warranty_expiry);
-                const config = warrantyStatusConfig[warranty];
+                const config = warrantyStatusConfig[warranty] ?? { className: "bg-gray-100 text-gray-600", label: "Onbekend", icon: "help" };
                 const upgradeInfo = getHardwareUpgradeInfo(asset.warranty_expiry, null, null);
                 const warrantyText = formatWarrantyText(asset.warranty_expiry);
                 const health = healthScores.get(asset.id) ?? computeHealthScore(asset);

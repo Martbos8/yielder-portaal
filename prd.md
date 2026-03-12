@@ -344,7 +344,7 @@ Per iteratie:
 
 ## FASE 4: Polish & Production (Taak 27-30)
 
-### Taak 27: Consistent design system documentatie in code [not started]
+### Taak 27: Consistent design system documentatie in code [done]
 - Maak `src/lib/constants/` directory:
   - `colors.ts` — alle Yielder kleuren als TypeScript constants
   - `breakpoints.ts` — responsive breakpoints
@@ -354,7 +354,7 @@ Per iteratie:
   - Badge variants per status type (ticket, contract, hardware, license)
   - Consistent color mapping: success=groen, warning=oranje, error=rood, info=blauw
 
-### Taak 28: SEO en metadata [not started]
+### Taak 28: SEO en metadata [done]
 - Voeg per pagina correcte metadata toe:
   - `generateMetadata()` functie per route
   - Titel: "Pagina | Mijn Yielder"

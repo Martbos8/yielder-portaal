@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/dashboard");
+
 /** Revalidate dashboard data every 2 minutes (matches CacheTTL.SHORT). */
 export const revalidate = 120;
 

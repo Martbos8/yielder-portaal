@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/tickets");
+
 import { Suspense } from "react";
 import { getTickets, getTicketStats } from "@/lib/repositories";
 import { TicketFilters } from "./ticket-filters";

@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/supportcontracten");
+
 import { getAgreements } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
 import {

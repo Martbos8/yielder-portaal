@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/upgrade");
+
 /** Revalidate recommendations every 5 minutes (matches CacheTTL.MEDIUM). */
 export const revalidate = 300;
 

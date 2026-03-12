@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/admin");
+
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { MaterialIcon } from "@/components/icon";

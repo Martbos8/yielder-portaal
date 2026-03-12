@@ -6,22 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
 import { MaterialIcon } from "./icon";
 import { createClient } from "@/lib/supabase/client";
-
-const navItems = [
-  { href: "/dashboard", icon: "space_dashboard", label: "Dashboard" },
-  { href: "/upgrade", icon: "rocket_launch", label: "Upgrade" },
-  { href: "/hardware", icon: "laptop_mac", label: "Hardware" },
-  { href: "/software", icon: "key", label: "Software" },
-  { href: "/tickets", icon: "confirmation_number", label: "Tickets" },
-  { href: "/contracten", icon: "verified_user", label: "Contracten" },
-  { href: "/supportcontracten", icon: "support_agent", label: "Support SLA" },
-  { href: "/it-gezondheid", icon: "health_and_safety", label: "IT-gezondheid" },
-  { href: "/prestaties", icon: "monitoring", label: "Prestaties" },
-  { href: "/facturen", icon: "receipt_long", label: "Facturen" },
-  { href: "/documenten", icon: "folder_open", label: "Documenten" },
-  { href: "/contact", icon: "contact_support", label: "Contact" },
-  { href: "/shop", icon: "storefront", label: "IT-oplossingen" },
-];
+import { NAV_ITEMS } from "@/lib/constants/navigation";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -99,7 +84,7 @@ export function Sidebar({ isOpen, onClose, fullName, companyName, initials, crit
 
           {/* Navigatie */}
           <nav aria-label="Hoofdnavigatie" className="flex flex-col gap-0.5">
-            {navItems.map((item) => {
+            {NAV_ITEMS.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link

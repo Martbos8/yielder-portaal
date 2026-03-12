@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/prestaties");
+
 import { getTickets } from "@/lib/repositories";
 import {
   calculateSLAMetrics,

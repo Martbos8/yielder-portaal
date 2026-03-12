@@ -802,3 +802,32 @@
 - Geleerd: Supabase mock chains must return the Proxy itself (not raw object) for await to work correctly
 - Geleerd: Warning threshold should use post-push count (currentCount + 1) to match the user's actual usage at that point
 [01:45:00] Iteratie 21 klaar
+[01:45:00] Iteratie 22 gestart
+
+[01:55:00] Taak 27 VOLTOOID — Consistent design system documentatie in code
+- src/lib/constants/colors.ts: COLORS, STATUS_COLORS, STATUS_BADGE_CLASSES
+- src/lib/constants/breakpoints.ts: responsive breakpoints matching Tailwind defaults
+- src/lib/constants/status.ts: TICKET_STATUS, TICKET_PRIORITY, AGREEMENT_STATUS, LICENSE_STATUS, WARRANTY_STATUS, SEVERITY, NOTIFICATION_TYPE
+- src/lib/constants/navigation.ts: NAV_ITEMS, getNavItem(), getPageLabel()
+- src/lib/constants/index.ts: barrel exports
+- src/components/ui/theme.ts: BADGE_CONFIGS, getBadgeClassName(), getBadgeLabel()
+- Alle bestanden waren al aangemaakt door eerdere iteraties maar niet gecommit (untracked)
+- Verified: 778 tests pass, build + lint groen
+- Geleerd: Bestanden die door eerdere iteraties als bijproduct worden aangemaakt kunnen untracked achterblijven — altijd git status checken
+[01:55:00] Iteratie 22 klaar
+[01:55:00] Iteratie 23 gestart
+
+[02:00:00] Taak 28 VOLTOOID — SEO en metadata
+- Root layout.tsx: template title "%s | Mijn Yielder", OG tags (nl_NL locale), metadataBase, apple icon
+- src/lib/metadata.ts: portalMetadata() helper met page-specifieke titels en beschrijvingen
+- Login layout.tsx: eigen metadata met robots index:true (enige publieke pagina)
+- Alle 13 portaal pagina's: metadata via portalMetadata() met robots noindex/nofollow
+- Ticket detail [id]/page.tsx: generateMetadata() met dynamische titel uit ticket.summary
+- src/app/robots.ts: allow /login, disallow alle portaal + api routes
+- src/app/sitemap.ts: alleen /login (enige publieke pagina)
+- Root layout default: robots noindex/nofollow (beschermt alle routes standaard)
+- Build toont robots.txt en sitemap.xml als statische routes (○)
+- 778 tests pass, build + lint groen
+- Geleerd: .next cache corruptie kan "File not found" errors veroorzaken — rm -rf .next lost het op
+- Geleerd: Client Components (login/page.tsx) kunnen geen metadata exporteren — gebruik een layout.tsx wrapper
+[02:00:00] Iteratie 23 klaar

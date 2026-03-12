@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/it-gezondheid");
+
 import { getTickets, getHardwareAssets } from "@/lib/repositories";
 import {
   calculateHealthScores,

@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/hardware");
+
 /** Revalidate hardware data every 5 minutes. */
 export const revalidate = 300;
 

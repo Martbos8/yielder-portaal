@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/facturen");
+
 import { MaterialIcon } from "@/components/icon";
 
 export default function FacturenPage() {

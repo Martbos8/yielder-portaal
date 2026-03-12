@@ -1,3 +1,7 @@
+import { portalMetadata } from "@/lib/metadata";
+
+export const metadata = portalMetadata("/contact");
+
 import { getContacts, getCachedUserCompany, getCachedUserCompanyId } from "@/lib/repositories";
 import { MaterialIcon } from "@/components/icon";
 import { Badge } from "@/components/ui/badge";

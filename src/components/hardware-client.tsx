@@ -492,7 +492,7 @@ function HardwareCard({
   onToggleSelect: (id: string) => void;
 }) {
   const warranty = getWarrantyStatus(asset.warranty_expiry);
-  const config = warrantyStatusConfig[warranty];
+  const config = warrantyStatusConfig[warranty] ?? { className: "bg-gray-100 text-gray-600", label: "Onbekend", icon: "help" };
   const upgradeInfo = getHardwareUpgradeInfo(asset.warranty_expiry, null, null);
   const warrantyText = formatWarrantyText(asset.warranty_expiry);
   const healthScore = getHealthScore(asset);

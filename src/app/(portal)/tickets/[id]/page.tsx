@@ -1,6 +1,20 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getTicketById, getSimilarTickets, getTicketStats } from "@/lib/repositories";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const ticket = await getTicketById(id);
+  return {
+    title: ticket ? `Ticket: ${ticket.summary}` : "Ticket niet gevonden",
+    robots: { index: false, follow: false },
+  };
+}
 import { MaterialIcon } from "@/components/icon";
 import { formatDate } from "@/lib/utils";
 import {
