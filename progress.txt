@@ -739,3 +739,22 @@
 - Geleerd: Notification type column uses DB enum ("info"|"warning"|"alert"|"success"), not custom strings
 - Geleerd: Dynamic imports in job files prevent circular dependencies and keep initial bundle small
 [01:28:00] Iteratie 19 klaar
+[01:28:23] Iteratie 19 klaar
+[01:28:23] Iteratie 20 gestart
+
+[01:32:00] Taak 25 VOLTOOID — Rate limiting verbeteren
+- Sliding window was already in place, kept it
+- Added graduated response: warning flag at 80% usage, X-RateLimit-Warning header
+- Added compound rate limiting: checkCompoundRateLimit() checks both per-user AND per-IP independently
+- Added whitelist system: isWhitelisted(), addToWhitelist(), removeFromWhitelist()
+  - Default whitelist: "internal", "127.0.0.1", "::1"
+  - Prefix matching: "internal:scheduler" matches "internal"
+- Extended RateLimitResult with: warning, limit, resetAt fields
+- Updated API middleware to use compound rate limiting and warning headers
+- Response headers: X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset, X-RateLimit-Warning
+- Retry-After header on 429 already existed
+- Added 10 new tests: warning threshold, whitelist, compound rate limiting
+- 572 tests pass, build + lint groen
+- Geleerd: Set iteration in TypeScript needs Array.from() when downlevelIteration is off
+- Geleerd: Warning threshold math: floor(max*0.8) means warning triggers when currentCount >= threshold, which is BEFORE adding the current request
+[01:32:00] Iteratie 22 klaar

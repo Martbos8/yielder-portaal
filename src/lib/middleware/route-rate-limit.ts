@@ -1,49 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  checkRateLimit,
+  buildRateLimitHeaders,
+  clearRateLimits,
+  type RateLimitConfig,
+  type RateLimitResult,
+} from "@/lib/rate-limit";
 
 /**
  * Route-level rate limit configuration.
  * Maps route prefixes to their rate limit profiles.
  */
-type RouteRateLimitConfig = {
-  maxRequests: number;
-  windowMs: number;
-};
-
-const ROUTE_LIMITS: Record<string, RouteRateLimitConfig> = {
+const ROUTE_LIMITS: Record<string, RateLimitConfig> = {
   "/api/sync": { maxRequests: 10, windowMs: 60 * 1000 },
   "/api/": { maxRequests: 100, windowMs: 60 * 1000 },
   "/login": { maxRequests: 30, windowMs: 60 * 1000 },
 };
 
-type RateLimitEntry = {
-  timestamps: number[];
-};
+/** Sorted route prefixes (most specific first) for matching */
+const SORTED_PREFIXES = Object.keys(ROUTE_LIMITS).sort(
+  (a, b) => b.length - a.length
+);
 
-/** In-memory store keyed by "ip:routePrefix" */
-const store = new Map<string, RateLimitEntry>();
-
-/** Periodically clean expired entries to prevent memory leaks */
-let lastCleanup = Date.now();
-const CLEANUP_INTERVAL_MS = 5 * 60 * 1000;
-
-function cleanupExpiredEntries(): void {
-  const now = Date.now();
-  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
-  lastCleanup = now;
-
-  store.forEach((entry, key) => {
-    // Remove entries with no recent timestamps
-    if (entry.timestamps.length === 0) {
-      store.delete(key);
-      return;
-    }
-    const latest = entry.timestamps[entry.timestamps.length - 1];
-    // If latest timestamp is older than 1 hour, remove
-    if (latest !== undefined && now - latest > 60 * 60 * 1000) {
-      store.delete(key);
-    }
-  });
-}
+/** Cache the last rate limit result per request key for getRateLimitHeaders */
+const lastResultCache = new Map<string, RateLimitResult>();
 
 function getClientIp(request: NextRequest): string {
   return (
@@ -53,105 +33,79 @@ function getClientIp(request: NextRequest): string {
   );
 }
 
-function findRouteConfig(
+function findRouteMatch(
   pathname: string
-): RouteRateLimitConfig | undefined {
-  // Match most specific route first
-  for (const prefix of Object.keys(ROUTE_LIMITS).sort(
-    (a, b) => b.length - a.length
-  )) {
+): { config: RateLimitConfig; prefix: string } | undefined {
+  for (let i = 0; i < SORTED_PREFIXES.length; i++) {
+    const prefix = SORTED_PREFIXES[i];
+    if (prefix === undefined) continue;
     if (pathname.startsWith(prefix)) {
-      return ROUTE_LIMITS[prefix];
+      const config = ROUTE_LIMITS[prefix];
+      if (config) return { config, prefix };
     }
   }
   return undefined;
 }
 
+function buildKey(ip: string, prefix: string): string {
+  return `route:${ip}:${prefix}`;
+}
+
 /**
  * Apply route-level rate limiting.
  * Returns a 429 response if the limit is exceeded, or undefined to continue.
+ * Uses sliding window algorithm with whitelist and graduated warning support.
  */
 export function checkRouteRateLimit(
   request: NextRequest
 ): NextResponse | undefined {
-  const config = findRouteConfig(request.nextUrl.pathname);
-  if (!config) return undefined;
-
-  cleanupExpiredEntries();
+  const match = findRouteMatch(request.nextUrl.pathname);
+  if (!match) return undefined;
 
   const ip = getClientIp(request);
-  const routePrefix =
-    Object.keys(ROUTE_LIMITS)
-      .sort((a, b) => b.length - a.length)
-      .find((p) => request.nextUrl.pathname.startsWith(p)) ?? "";
-  const key = `${ip}:${routePrefix}`;
+  const key = buildKey(ip, match.prefix);
 
-  const now = Date.now();
-  const windowStart = now - config.windowMs;
+  const result = checkRateLimit(key, match.config);
 
-  let entry = store.get(key);
-  if (!entry) {
-    entry = { timestamps: [] };
-    store.set(key, entry);
-  }
+  // Cache result so getRateLimitHeaders doesn't double-count
+  lastResultCache.set(key, result);
 
-  // Sliding window: remove timestamps outside the window
-  entry.timestamps = entry.timestamps.filter((t) => t > windowStart);
-
-  const resetMs = config.windowMs;
-
-  if (entry.timestamps.length >= config.maxRequests) {
-    const resetAt = Math.ceil((now + resetMs) / 1000);
-    const retryAfter = Math.ceil(resetMs / 1000);
-
+  if (!result.allowed) {
+    const headers = buildRateLimitHeaders(result);
     return NextResponse.json(
       { error: "Te veel verzoeken. Probeer het later opnieuw." },
-      {
-        status: 429,
-        headers: {
-          "X-RateLimit-Limit": String(config.maxRequests),
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": String(resetAt),
-          "Retry-After": String(retryAfter),
-        },
-      }
+      { status: 429, headers }
     );
   }
 
-  entry.timestamps.push(now);
-
-  // Rate limit info headers are applied in the main middleware
   return undefined;
 }
 
 /**
  * Get rate limit info headers for the current request (for non-blocked requests).
+ * Includes X-RateLimit-Warning when usage exceeds 80%.
+ * Uses cached result from checkRouteRateLimit to avoid double-counting.
  */
 export function getRateLimitHeaders(
   request: NextRequest
 ): Record<string, string> {
-  const config = findRouteConfig(request.nextUrl.pathname);
-  if (!config) return {};
+  const match = findRouteMatch(request.nextUrl.pathname);
+  if (!match) return {};
 
   const ip = getClientIp(request);
-  const routePrefix =
-    Object.keys(ROUTE_LIMITS)
-      .sort((a, b) => b.length - a.length)
-      .find((p) => request.nextUrl.pathname.startsWith(p)) ?? "";
-  const key = `${ip}:${routePrefix}`;
-  const entry = store.get(key);
-  const count = entry?.timestamps.length ?? 0;
-  const remaining = Math.max(0, config.maxRequests - count);
-  const resetAt = Math.ceil((Date.now() + config.windowMs) / 1000);
+  const key = buildKey(ip, match.prefix);
 
-  return {
-    "X-RateLimit-Limit": String(config.maxRequests),
-    "X-RateLimit-Remaining": String(remaining),
-    "X-RateLimit-Reset": String(resetAt),
-  };
+  // Use cached result from checkRouteRateLimit (avoids double-counting)
+  const cached = lastResultCache.get(key);
+  if (cached) {
+    return buildRateLimitHeaders(cached);
+  }
+
+  return {};
 }
 
 /** Clear store — for testing */
 export function clearRouteRateLimits(): void {
-  store.clear();
+  clearRateLimits();
+  lastResultCache.clear();
 }

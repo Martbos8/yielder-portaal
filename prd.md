@@ -320,7 +320,7 @@ Per iteratie:
   - Auth via CRON_SECRET
   - Dispatcht naar juiste job op basis van parameter
 
-### Taak 25: Rate limiting verbeteren [not started]
+### Taak 25: Rate limiting verbeteren [done]
 - Lees `src/lib/rate-limit.ts`
 - Verbeter:
   - Sliding window algorithm (niet fixed window)

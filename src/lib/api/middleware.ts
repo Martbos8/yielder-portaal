@@ -8,7 +8,7 @@ import {
   isAppError,
   toErrorResponse,
 } from "@/lib/errors";
-import { checkRateLimit, RATE_LIMITS, type RateLimitResult } from "@/lib/rate-limit";
+import { checkCompoundRateLimit, RATE_LIMITS, type RateLimitResult } from "@/lib/rate-limit";
 import { createLogger } from "@/lib/logger";
 
 const log = createLogger("api:middleware");
@@ -104,15 +104,17 @@ function authenticateSecret(
 }
 
 /**
- * Check rate limit for the given key and config. Throws RateLimitError if exceeded.
+ * Check compound rate limit (per-user AND per-IP). Throws RateLimitError if exceeded.
  * Returns the rate limit result for adding response headers.
  */
 function enforceRateLimit(
-  key: string,
+  userId: string | undefined,
+  ip: string,
   profile: RateLimitProfile | { maxRequests: number; windowMs: number }
 ): RateLimitResult {
   const config = typeof profile === "string" ? RATE_LIMITS[profile] : profile;
-  const result = checkRateLimit(key, config);
+  const profileKey = typeof profile === "string" ? profile : "custom";
+  const result = checkCompoundRateLimit(userId, ip, profileKey, config);
 
   if (!result.allowed) {
     throw new RateLimitError(result.resetInMs);
@@ -150,19 +152,19 @@ async function validateBody<T>(
 }
 
 /**
- * Add rate limit headers to a response.
+ * Add rate limit headers to a response, including warning at 80% usage.
  */
 function addRateLimitHeaders(
   response: NextResponse,
-  result: RateLimitResult,
-  config: { maxRequests: number; windowMs: number }
+  result: RateLimitResult
 ): void {
-  response.headers.set("X-RateLimit-Limit", String(config.maxRequests));
+  response.headers.set("X-RateLimit-Limit", String(result.limit));
   response.headers.set("X-RateLimit-Remaining", String(result.remaining));
-  response.headers.set(
-    "X-RateLimit-Reset",
-    String(Math.ceil((Date.now() + result.resetInMs) / 1000))
-  );
+  response.headers.set("X-RateLimit-Reset", String(result.resetAt));
+
+  if (result.warning) {
+    response.headers.set("X-RateLimit-Warning", "Approaching rate limit");
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -207,20 +209,13 @@ export function createApiHandler<TBody = unknown>(
         reqLog.info("Authenticated request", { userId });
       }
 
-      // 3. Rate limiting
+      // 3. Rate limiting (per-user AND per-IP)
       let rateLimitResult: RateLimitResult | undefined;
       if (config.rateLimit) {
-        const rateLimitKey = userId
-          ?? request.headers.get("x-forwarded-for")
+        const ip = request.headers.get("x-forwarded-for")
           ?? request.headers.get("x-real-ip")
           ?? "anonymous";
-        const profileKey = typeof config.rateLimit === "string"
-          ? config.rateLimit
-          : "custom";
-        rateLimitResult = enforceRateLimit(
-          `api:${profileKey}:${rateLimitKey}`,
-          config.rateLimit
-        );
+        rateLimitResult = enforceRateLimit(userId, ip, config.rateLimit);
       }
 
       // 4. Body validation
@@ -237,12 +232,9 @@ export function createApiHandler<TBody = unknown>(
         log: reqLog,
       });
 
-      // 6. Add rate limit headers
-      if (rateLimitResult && config.rateLimit) {
-        const rlConfig = typeof config.rateLimit === "string"
-          ? RATE_LIMITS[config.rateLimit]
-          : config.rateLimit;
-        addRateLimitHeaders(response, rateLimitResult, rlConfig);
+      // 6. Add rate limit headers (with warning at 80%)
+      if (rateLimitResult) {
+        addRateLimitHeaders(response, rateLimitResult);
       }
 
       // 7. Audit logging
