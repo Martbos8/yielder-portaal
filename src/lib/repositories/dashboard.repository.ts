@@ -29,7 +29,8 @@ export interface ActivityEntry {
 
 /**
  * Calculate dashboard trends using targeted count queries per period.
- * Uses 6 parallel count/sum queries instead of loading all rows into memory.
+ * Uses head:true count queries where possible (no data transfer).
+ * Agreement amounts still need bill_amount column for client-side sum.
  */
 export async function getDashboardTrends(): Promise<DashboardTrends> {
   return withTiming(log, "getDashboardTrends", async () => {
@@ -44,11 +45,13 @@ export async function getDashboardTrends(): Promise<DashboardTrends> {
       prevTicketsRes,
       recentHardwareRes,
       prevHardwareRes,
-      recentAgreementsRes,
-      prevAgreementsRes,
+      recentAgreementCountRes,
+      prevAgreementCountRes,
+      recentAgreementAmountRes,
+      prevAgreementAmountRes,
       sparklineRes,
     ] = await Promise.all([
-      // Current 30-day ticket count
+      // Current 30-day ticket count (head: true — no data transfer)
       supabase
         .from("tickets")
         .select("id", { count: "exact", head: true })
@@ -70,20 +73,33 @@ export async function getDashboardTrends(): Promise<DashboardTrends> {
         .select("id", { count: "exact", head: true })
         .gte("created_at", sixtyDaysAgo.toISOString())
         .lt("created_at", thirtyDaysAgo.toISOString()),
-      // Current 30-day active agreements (with bill_amount for sum)
+      // Current 30-day active agreement count (head: true — count only)
+      supabase
+        .from("agreements")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active")
+        .gte("created_at", thirtyDaysAgo.toISOString()),
+      // Previous 30-day active agreement count
+      supabase
+        .from("agreements")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "active")
+        .gte("created_at", sixtyDaysAgo.toISOString())
+        .lt("created_at", thirtyDaysAgo.toISOString()),
+      // Current 30-day active agreement amounts (only bill_amount for sum)
       supabase
         .from("agreements")
         .select("bill_amount")
         .eq("status", "active")
         .gte("created_at", thirtyDaysAgo.toISOString()),
-      // Previous 30-day active agreements (with bill_amount for sum)
+      // Previous 30-day active agreement amounts
       supabase
         .from("agreements")
         .select("bill_amount")
         .eq("status", "active")
         .gte("created_at", sixtyDaysAgo.toISOString())
         .lt("created_at", thirtyDaysAgo.toISOString()),
-      // Sparkline: last 14 days of tickets with their creation dates
+      // Sparkline: last 14 days of ticket timestamps only
       supabase
         .from("tickets")
         .select("cw_created_at")
@@ -96,15 +112,17 @@ export async function getDashboardTrends(): Promise<DashboardTrends> {
     if (prevTicketsRes.error) throw new DatabaseError(`Failed to fetch ticket trends: ${prevTicketsRes.error.message}`);
     if (recentHardwareRes.error) throw new DatabaseError(`Failed to fetch hardware trends: ${recentHardwareRes.error.message}`);
     if (prevHardwareRes.error) throw new DatabaseError(`Failed to fetch hardware trends: ${prevHardwareRes.error.message}`);
-    if (recentAgreementsRes.error) throw new DatabaseError(`Failed to fetch agreement trends: ${recentAgreementsRes.error.message}`);
-    if (prevAgreementsRes.error) throw new DatabaseError(`Failed to fetch agreement trends: ${prevAgreementsRes.error.message}`);
+    if (recentAgreementCountRes.error) throw new DatabaseError(`Failed to fetch agreement trends: ${recentAgreementCountRes.error.message}`);
+    if (prevAgreementCountRes.error) throw new DatabaseError(`Failed to fetch agreement trends: ${prevAgreementCountRes.error.message}`);
+    if (recentAgreementAmountRes.error) throw new DatabaseError(`Failed to fetch agreement amounts: ${recentAgreementAmountRes.error.message}`);
+    if (prevAgreementAmountRes.error) throw new DatabaseError(`Failed to fetch agreement amounts: ${prevAgreementAmountRes.error.message}`);
     if (sparklineRes.error) throw new DatabaseError(`Failed to fetch sparkline data: ${sparklineRes.error.message}`);
 
-    // Agreement amounts
-    const recentAmount = (recentAgreementsRes.data ?? []).reduce(
+    // Agreement amounts (client-side sum — Supabase doesn't support server-side SUM)
+    const recentAmount = (recentAgreementAmountRes.data ?? []).reduce(
       (sum, a) => sum + (a.bill_amount ?? 0), 0
     );
-    const prevAmount = (prevAgreementsRes.data ?? []).reduce(
+    const prevAmount = (prevAgreementAmountRes.data ?? []).reduce(
       (sum, a) => sum + (a.bill_amount ?? 0), 0
     );
 
@@ -115,8 +133,8 @@ export async function getDashboardTrends(): Promise<DashboardTrends> {
       ticketTrend: calcTrend(recentTicketsRes.count ?? 0, prevTicketsRes.count ?? 0),
       hardwareTrend: calcTrend(recentHardwareRes.count ?? 0, prevHardwareRes.count ?? 0),
       contractTrend: calcTrend(
-        (recentAgreementsRes.data ?? []).length,
-        (prevAgreementsRes.data ?? []).length
+        recentAgreementCountRes.count ?? 0,
+        prevAgreementCountRes.count ?? 0,
       ),
       amountTrend: calcTrend(recentAmount, prevAmount),
       ticketSparkline,

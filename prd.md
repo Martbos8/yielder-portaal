@@ -285,7 +285,7 @@ Per iteratie:
   - Count queries: gebruik .count() met head:true voor efficiency
   - Materialized views overwegen voor dashboard stats
 
-### Taak 22: ConnectWise sync robuuster maken [not started]
+### Taak 22: ConnectWise sync robuuster maken [done]
 - Lees `src/lib/connectwise/sync.ts`
 - Verbeter:
   - Idempotent sync: track sync_id per run, skip duplicaten

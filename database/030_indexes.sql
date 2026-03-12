@@ -66,3 +66,46 @@ CREATE INDEX IF NOT EXISTS idx_sync_logs_entity_synced
 -- user_company_mapping: reverse lookup (company → users)
 CREATE INDEX IF NOT EXISTS idx_ucm_company
   ON user_company_mapping (company_id);
+
+-- ============================================================
+-- Additional indexes for query optimization (030b)
+-- ============================================================
+
+-- tickets: similar tickets query (company + source + date sort)
+CREATE INDEX IF NOT EXISTS idx_tickets_company_source_created
+  ON tickets (company_id, source, cw_created_at DESC);
+
+-- tickets: stats timing query (need both timestamps not null)
+CREATE INDEX IF NOT EXISTS idx_tickets_timestamps
+  ON tickets (cw_created_at, cw_updated_at)
+  WHERE cw_created_at IS NOT NULL AND cw_updated_at IS NOT NULL;
+
+-- hardware_assets: company listing sorted by name
+CREATE INDEX IF NOT EXISTS idx_hardware_company_name
+  ON hardware_assets (company_id, name);
+
+-- licenses: company listing sorted by vendor + product
+CREATE INDEX IF NOT EXISTS idx_licenses_company_vendor
+  ON licenses (company_id, vendor, product_name);
+
+-- products: active products sorted by name
+CREATE INDEX IF NOT EXISTS idx_products_active_name
+  ON products (name)
+  WHERE is_active = true;
+
+-- client_products: company + active status filter
+CREATE INDEX IF NOT EXISTS idx_client_products_company_status
+  ON client_products (company_id, status);
+
+-- agreements: bill_amount for active (dashboard sum query)
+CREATE INDEX IF NOT EXISTS idx_agreements_active_amount
+  ON agreements (status, bill_amount)
+  WHERE status = 'active';
+
+-- tickets: cursor-based pagination (id as tiebreaker for cw_created_at)
+CREATE INDEX IF NOT EXISTS idx_tickets_cursor
+  ON tickets (cw_created_at DESC, id DESC);
+
+-- notifications: cursor-based pagination
+CREATE INDEX IF NOT EXISTS idx_notifications_cursor
+  ON notifications (created_at DESC, id DESC);

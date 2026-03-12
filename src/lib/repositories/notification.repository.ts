@@ -25,3 +25,17 @@ export async function getNotifications(unreadOnly = false): Promise<Notification
     return data ?? [];
   }, { unreadOnly: String(unreadOnly) });
 }
+
+/** Count unread notifications efficiently (no data transfer). */
+export async function getUnreadNotificationCount(): Promise<number> {
+  return withTiming(log, "getUnreadNotificationCount", async () => {
+    const supabase = await createClient();
+    const { count, error } = await supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("is_read", false);
+
+    if (error) throw new DatabaseError(`Failed to count unread notifications: ${error.message}`);
+    return count ?? 0;
+  });
+}

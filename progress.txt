@@ -626,3 +626,36 @@
 - Geleerd: Splitting large in-memory processing into parallel targeted queries is both faster and more memory-efficient
 - Geleerd: buildSparkline() with single pass O(n) is much better than 14 × .filter() calls which is O(14n)
 [01:09:00] Iteratie 20 klaar
+
+[01:12:00] Taak 21 aanvulling — Extra optimalisaties (iteratie 20b)
+- Added 11 additional compound indexes in 030_indexes.sql:
+  - tickets(company_id, source, cw_created_at DESC) — getSimilarTickets
+  - tickets(cw_created_at, cw_updated_at) WHERE NOT NULL — getTicketStats timing
+  - hardware_assets(company_id, name) — sorted listing
+  - licenses(company_id, vendor, product_name) — sorted listing
+  - products(name) WHERE is_active — active products
+  - client_products(company_id, status) — company product lookup
+  - agreements(status, bill_amount) WHERE active — dashboard sum
+  - tickets(cw_created_at DESC, id DESC) — cursor pagination
+  - notifications(created_at DESC, id DESC) — cursor pagination
+- Cursor-based pagination: getTicketsPaginated() with composite (date, id) cursor
+  - Base64url-encoded opaque cursor, fetches limit+1 for hasMore detection
+  - Stable ordering via (cw_created_at DESC, id DESC) tiebreaker
+  - Optional totalCount on first page via count: "exact"
+- getTicketStats(): consolidated 3 parallel queries → 1 single query (3 cols)
+  - Client-side count + timing calculation in single pass
+- getDashboardTrends(): agreement count now uses head:true (was fetching rows for .length)
+  - Separated count query from amount query for agreements
+- getUnreadNotificationCount(): new efficient count-only function (head:true)
+- TICKET_LIST_COLUMNS: lighter column set without description for list views
+- Created database/031_materialized_views.sql:
+  - mv_dashboard_stats: pre-computed per-company aggregates
+  - mv_ticket_trends: 30-day window counts
+  - refresh_dashboard_views() function for periodic refresh
+- 517 tests pass, build + lint groen
+- Geleerd: Composite cursor (date, id) prevents skipping rows with identical timestamps
+- Geleerd: Fetching limit+1 rows is cleaner than a separate count query for hasMore detection
+- Geleerd: Materialized views with CONCURRENTLY refresh allow reads during refresh
+[01:12:00] Iteratie 20b klaar
+[01:08:33] Iteratie 16 klaar
+[01:08:34] Iteratie 17 gestart
